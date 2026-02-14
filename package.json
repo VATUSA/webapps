@@ -1,0 +1,24 @@
+{
+  "name": "webapps",
+  "version": "0.0.1",
+  "description": "VATUSA webapps",
+  "main": "",
+  "private": true,
+  "scripts": {
+    "dev": "",
+    "build": "",
+    "check": "astro check",
+    "typecheck": "tsc -b"
+  },
+  "author": "VATUSA tech team",
+  "license": "",
+  "packageManager": "pnpm@10.29.3",
+  "engines": {
+    "node": "24",
+    "pnpm": ">=10"
+  },
+  "dependencies": {
+    "astro": "^5.17.2",
+    "turbo": "^2.8.8"
+  }
+}
