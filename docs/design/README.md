@@ -13,7 +13,7 @@ stakeholders, and more.
 | Division_Roles | Not Started |
 | Email_Broadcasts | Not Started |
 | Events | Not Started |
-| FAQ | Not Started |
+| FAQ | Initial draft written |
 | Facility_Management | Not Started |
 | Look_and_Feel | Not Started |
 | News | Not Started |
