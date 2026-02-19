@@ -36,3 +36,9 @@ sort of visual indication should be included to focus the linked question's answ
 
 While these items don't change frequently, the ability to do so without reaching directly for the database would be nice to have. This action should be limited to VATUSA# staff only; no other division or
 subdivision roles should see any sort of controls for editing content.
+
+## Recommendations
+
+In general, this page should be fairly _un-busy_ - it should be clear to see which question is highlighted (though an accordion-style controller or otherwise), simple to copy the direct URL for a question,
+and the content should focus on readability. This page's font may be larger than font on other pages. The time to [first contentful paint](https://web.dev/articles/fcp) should be very quick - loading some
+items from a database and rendering HTML should _not_ be a computationally difficult task. The use of a cache should not be required, even though this data is rather well-suited for one (long lasting / very rarely changed).
