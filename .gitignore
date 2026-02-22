@@ -2,3 +2,5 @@ node_modules
 .turbo
 mysql_data
 .env
+dist
+.astro

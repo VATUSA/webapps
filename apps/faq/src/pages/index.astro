@@ -1,0 +1,49 @@
+---
+type FAQ = {
+  id: number;
+  category: string;
+  question: string;
+  answer: string;
+};
+
+const FAQ_ENTRIES: Array<FAQ> = [
+  {
+    id: 1,
+    category: "Membership",
+    question: "How do I become a VATUSA Air Traffic Controller?",
+    answer: "The text in here should probably be rendered with markdown.",
+  },
+];
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>FAQ</title>
+  </head>
+  <body>
+    <h1>FAQ</h1>
+
+    {
+      !FAQ_ENTRIES ||
+        (FAQ_ENTRIES.length === 0 && (
+          <h3>This is where my FAQs would be ... if I had any!</h3>
+        ))
+    }
+    {
+      FAQ_ENTRIES.map((faq) => (
+        <>
+          <div id={`${faq.id}`}>
+            <p>{faq.question} </p>
+            <p>{faq.answer}</p>
+          </div>
+          <hr />
+        </>
+      ))
+    }
+  </body>
+</html>
