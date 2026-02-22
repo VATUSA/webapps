@@ -23,7 +23,7 @@ This document will cover all of the basics to run the projects in this repositor
     - Docker comes from your OS's package manager or installers on their website
 1. Clone the repository
 1. Run `pnpm i`
-1. Start the database with `docker compose up -d`
+1. Start the database with `docker compose up -d`, or run MySQL/MariaDB on your system
 
 ## Loading your database with demo data
 

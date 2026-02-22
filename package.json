@@ -1,24 +1,25 @@
 {
-  "name": "webapps",
-  "version": "0.0.1",
-  "description": "VATUSA webapps",
-  "main": "",
-  "private": true,
-  "scripts": {
-    "dev": "",
-    "build": "",
-    "check": "astro check",
-    "typecheck": "tsc -b"
-  },
-  "author": "VATUSA tech team",
-  "license": "",
-  "packageManager": "pnpm@10.29.3",
-  "engines": {
-    "node": "24",
-    "pnpm": ">=10"
-  },
-  "dependencies": {
-    "astro": "^5.17.2",
-    "turbo": "^2.8.8"
-  }
+    "name": "webapps",
+    "version": "0.0.1",
+    "description": "VATUSA webapps",
+    "main": "",
+    "private": true,
+    "scripts": {
+        "dev": "",
+        "build": "",
+        "check": "astro check",
+        "typecheck": "tsc -b"
+    },
+    "author": "VATUSA Web Team",
+    "packageManager": "pnpm@10.29.3",
+    "engines": {
+        "node": "24",
+        "pnpm": ">=10"
+    },
+    "devDependencies": {
+        "@types/node": "^25.3.0",
+        "astro": "^5.17.3",
+        "turbo": "^2.8.10",
+        "typescript": "^5.9.3"
+    }
 }
