@@ -12,6 +12,8 @@ This document will cover all of the basics to run the projects in this repositor
 - Formatting: **prettier**
 - Supporting tech: **vite** + **turbo** + **Docker**
 
+2026-02-21 note: we may switch from eslint + prettier to [biome](<https://biomejs.dev/>).
+
 ## Setting up
 
 1. Install the prerequisite tooling
@@ -22,6 +24,10 @@ This document will cover all of the basics to run the projects in this repositor
 1. Clone the repository
 1. Run `pnpm i`
 1. Start the database with `docker compose up -d`
+
+## Loading your database with demo data
+
+TODO
 
 ## Running an app
 
