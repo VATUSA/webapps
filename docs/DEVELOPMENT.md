@@ -34,6 +34,9 @@ TODO
 1. `cd` into the app you want to run (`cd apps/<name>`)
 1. Run `pnpm run dev`
 
+Alternatively, you can use pnpm's workspace filter, by remaining in the root project directory and running
+`pnpm run --filter ./apps/<name> dev`.
+
 ## Building an app
 
 The dev server should be sufficient for all development. If it isn't, perhaps we need to update our tooling.
