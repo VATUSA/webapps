@@ -14,7 +14,6 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.6",
-    "db": "workspace:*"
+    "@astrojs/check": "^0.9.6"
   }
 }
