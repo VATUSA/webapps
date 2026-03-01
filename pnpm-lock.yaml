@@ -21,6 +21,12 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  apps/events_calendar:
+    dependencies:
+      '@astrojs/check':
+        specifier: ^0.9.6
+        version: 0.9.6(prettier@3.8.1)(typescript@5.9.3)
+
   apps/faq:
     dependencies:
       '@astrojs/check':
