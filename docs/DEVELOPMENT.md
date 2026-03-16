@@ -5,12 +5,12 @@ This document will cover all of the basics to run the projects in this repositor
 ## Tech Stack
 
 - Programming language: **TypeScript**
-- Framework: **Astro** + **Vue/React/Solid/Svelte/etc.**
+- Framework: **Next.js** MPA, **React** SPA
 - CSS framework: **Tailwind CSS**
 - Dependency management: **pnpm**
 - Linting: **eslint**
 - Formatting: **prettier**
-- Supporting tech: **vite** + **turbo** + **Docker**
+- Supporting tech: **turbopack** + **Docker**
 
 2026-02-21 note: we may switch from eslint + prettier to [biome](<https://biomejs.dev/>).
 
