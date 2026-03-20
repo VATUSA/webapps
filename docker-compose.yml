@@ -1,17 +1,36 @@
 version: "3.9"
 
 services:
-  mysql:
+  cobalt_mysql:
     image: mysql:9
     container_name: mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: vatusa_webapps
+      MYSQL_DATABASE: cobalt
     ports:
       - 3306:3306
     volumes:
       - mysql_data:/var/lib/mysql
+  cobalt:
+    image: vatusa/cobalt:latest
+    container_name: cobalt
+    restart: unless-stopped
+    env_file:
+      - cobalt.env
+    depends_on:
+      - cobalt_mysql
+  nginx:
+    image: nginx:alpine
+    ports:
+      - 8000:8000
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - cobalt
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
 
 volumes:
   mysql_data:
