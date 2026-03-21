@@ -23,7 +23,28 @@ This document will cover all of the basics to run the projects in this repositor
     - Docker comes from your OS's package manager or installers on their website
 1. Clone the repository
 1. Run `pnpm i`
-1. Start the database with `docker compose up -d`, or run MySQL/MariaDB on your system
+1. Start the backend + database with `docker compose up -d`
+
+This will run [`cobalt`](https://github.com/VATUSA/cobalt) as well as a MySQL database. Make your calls to Cobalt at <http://localhost:8000/cobalt/>.
+
+### Making Cobalt changes
+
+You can make changes to Cobalt at the same time.
+
+#### With Docker
+
+1. In `./webapps/docker-compose.yml`, change the `image` for the cobalt server to something like `image: localhost:cobalt/latest`
+1. Stop Docker (`docker compose down`)
+1. Clone the cobalt project to your machine (`git clone https://github.com/vatusa/cobalt`)
+1. Make your desired changes
+1. Build the Docker container (`docker build -t localhost/cobalt .`)
+1. Start Docker compose (`docker compose up`)
+
+If you have already done this once (so you have a "localhost/cobalt" image), then you can restart just Cobalt with `docker compose restart cobalt` instead of bringing all containers down and back up.
+
+#### Without Docker
+
+You aren't required to use Docker, but without it you are required to manage Cobalt's access to a database (simple) and localhost URL routing (more complicated) on your own. Instructions are not provided for this setup at this time.
 
 ## Loading your database with demo data
 
