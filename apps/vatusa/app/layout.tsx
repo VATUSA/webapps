@@ -54,9 +54,12 @@ export default function RootLayout({
                 <div className="flex items-center space-x-4">
                   <ThemeSwitch />
 
-                  <button className="bg-vatusaRed hover:bg-red-800 px-4 py-2 rounded-xl text-sm shadow-md">
+                  <a
+                    className="bg-vatusaRed hover:bg-red-800 px-4 py-2 rounded-xl text-sm shadow-md"
+                    href="http://localhost:8000/cobalt/login"
+                  >
                     Log In
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>
