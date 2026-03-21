@@ -1,0 +1,10 @@
+{
+  "name": "third_party",
+  "version": "0.0.1",
+  "private": true,
+  "packageManager": "pnpm@10.29.3",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {}
+}

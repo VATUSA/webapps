@@ -2,15 +2,20 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import ThemeSwitch from "./theme-switch";
+import LoginDropdown from "./login-dropdown";
+import { getSession } from "@/lib/session";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "VATUSA",
   description: "VATUSA, part of VATSIM",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const session = await getSession();
+
   return (
     <html suppressHydrationWarning lang="en">
       <head>
@@ -34,9 +39,9 @@ export default function RootLayout({
                 </div>
 
                 <nav className="hidden md:flex space-x-8 text-sm font-medium">
-                  <a href="#" className="hover:text-red-400 transition">
+                  <Link href="/" className="hover:text-red-400 transition">
                     Home
-                  </a>
+                  </Link>
                   <a href="#" className="hover:text-red-400 transition">
                     Facilities
                   </a>
@@ -53,13 +58,10 @@ export default function RootLayout({
 
                 <div className="flex items-center space-x-4">
                   <ThemeSwitch />
-
-                  <a
-                    className="bg-vatusaRed hover:bg-red-800 px-4 py-2 rounded-xl text-sm shadow-md"
-                    href="http://localhost:8000/cobalt/login"
-                  >
-                    Log In
-                  </a>
+                  <LoginDropdown
+                    isLoggedIn={session.isLoggedIn ?? false}
+                    name={session.name}
+                  />
                 </div>
               </div>
             </div>
