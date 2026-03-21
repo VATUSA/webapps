@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   cobalt_mysql:
     image: mysql:9
@@ -8,6 +6,12 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: cobalt
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-ppassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
     ports:
       - 3306:3306
     volumes:
@@ -19,9 +23,11 @@ services:
     env_file:
       - cobalt.env
     depends_on:
-      - cobalt_mysql
+      cobalt_mysql:
+        condition: service_healthy
   nginx:
     image: nginx:alpine
+    restart: unless-stopped
     ports:
       - 8000:8000
     volumes:
