@@ -23,6 +23,7 @@ This document will cover all of the basics to run the projects in this repositor
     - Docker comes from your OS's package manager or installers on their website
 1. Clone the repository
 1. Run `pnpm i`
+1. Copy the example env file in the Next.js app (`cp apps/vatusa/.env.example apps/vatusa/.env`)
 1. Start the backend + database with `docker compose up -d`
 
 This will run [`cobalt`](https://github.com/VATUSA/cobalt) as well as a MySQL database. Make your calls to Cobalt at <http://localhost:8000/cobalt/>.
