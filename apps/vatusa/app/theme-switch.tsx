@@ -9,13 +9,15 @@ export default function ThemeSwitch() {
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
+  const icon = theme === "light" ? "🌙" : "☀️";
+
   return (
     <button
       id="darkToggle"
       className="text-sm hover:text-red-400 transition cursor-pointer"
       onClick={handle}
     >
-      🌙
+      {icon}
     </button>
   );
 }
