@@ -51,6 +51,11 @@ You aren't required to use Docker, but without it you are required to manage Cob
 
 TODO
 
+## Running all apps
+
+1. Run `docker compose up -d` to start the backend and database
+1. Run `pnpm run dev` in the root of the project to start all apps
+
 ## Running an app
 
 1. `cd` into the app you want to run (`cd apps/<name>`)
