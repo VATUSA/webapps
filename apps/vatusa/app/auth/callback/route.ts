@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { cobalt, vatusa } from "third_party";
 import { cookies } from "next/headers";
+import { cobalt, vatusa } from "@workspace/third_party"
+
 
 /**
  * Callback from Cobalt's login flow. Used to store additional session data.
