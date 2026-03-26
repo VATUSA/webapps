@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8000/cobalt/";
+const BASE_URL = "http://localhost:8000/cobalt/"
 
 /**
  * Call to the backend, using browser cookies, to get information
@@ -16,7 +16,7 @@ export async function whoami(): Promise<string> {
     await fetch(`${BASE_URL}login/whoami`, {
       credentials: "include",
     })
-  ).json();
+  ).json()
 }
 
 /**
@@ -25,15 +25,53 @@ export async function whoami(): Promise<string> {
  * @returns CID
  */
 export async function whoamiWithCookies(
-  cobaltCookie?: string,
+  cobaltCookie?: string
 ): Promise<string> {
   if (!cobaltCookie) {
-    return "-1";
+    return "-1"
   }
   const resp = await fetch(`${BASE_URL}login/whoami`, {
     headers: {
       Cookie: `vatusa-cobalt-token=${cobaltCookie}`,
     },
-  });
-  return await resp.json();
+  })
+  return await resp.json()
+}
+
+/**
+ * Event type from Cobalt API
+ */
+export type CobaltEvent = {
+  id: number
+  title: string
+  body?: string
+  banner_image_url?: string
+  facility?: string
+  start_timestamp: string
+  end_timestamp: string
+}
+
+/**
+ * Fetch upcoming events from Cobalt API
+ *
+ * @param count - Number of upcoming events to fetch (default: 10)
+ * @returns Array of upcoming events
+ * @throws Error if the fetch fails
+ */
+export async function getUpcomingEvents(
+  count: number = 10
+): Promise<CobaltEvent[]> {
+  const resp = await fetch(`${BASE_URL}event/upcoming/${count}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+
+  if (!resp.ok) {
+    throw new Error(`Failed to fetch events: ${resp.statusText}`)
+  }
+
+  const data = await resp.json()
+  return data || []
 }

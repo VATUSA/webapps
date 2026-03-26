@@ -1,20 +1,66 @@
+import { EventCarousel } from "@/components/Events/EventCarousel/EventCarousel"
+import DisclaimerBanner from "@/components/HomePage/DisclaimerBanner"
+import HomeFeedList, {
+  type HomeFeedItem,
+} from "@/components/HomePage/HomeFeedList"
+
+const recentNews: HomeFeedItem[] = [
+  {
+    id: "news-1",
+    title: "New ARTCC training cycle announced",
+    href: "/news",
+    date: "Mar 25, 2026",
+    summary:
+      "Training leadership published the updated spring training timeline.",
+  },
+  {
+    id: "news-2",
+    title: "Policy updates posted",
+    href: "/news",
+    date: "Mar 20, 2026",
+  },
+]
+
+const upcomingEvents: HomeFeedItem[] = [
+  {
+    id: "event-1",
+    title: "Friday Night Ops: ZLA",
+    href: "/events",
+    date: "Mar 29, 2026 • 2300z",
+    summary:
+      "West coast coverage event with staffed enroute and terminal positions.",
+  },
+  {
+    id: "event-2",
+    title: "Crossfire: ZBW ↔ ZNY",
+    href: "/events",
+    date: "Apr 3, 2026 • 0000z",
+  },
+]
+
 export default function Page() {
   return (
     <div className="container mx-auto">
-      <h1 className="py-5 text-3xl font-semibold text-black dark:text-zinc-50">
-        Homepage
-      </h1>
+      <div className="flex w-full justify-center py-4">
+        <EventCarousel />
+      </div>
 
-      <section className="rounded-xl border-l-4 border-yellow-500 bg-yellow-50 p-6 shadow-sm dark:bg-yellow-900/20">
-        <h3 className="mb-2 font-semibold text-yellow-800 dark:text-yellow-300">
-          Disclaimer
-        </h3>
-        <p className="text-sm leading-relaxed text-yellow-900 dark:text-yellow-200">
-          VATUSA is the United States Division of the VATSIM network. This
-          website and organization are not affiliated with the Federal Aviation
-          Administration (FAA) or any real-world government agency. All air
-          traffic control services are provided in a simulated environment.
-        </p>
+      <DisclaimerBanner />
+
+      <section className="mt-8 grid gap-4 pb-6 md:grid-cols-2">
+        <HomeFeedList
+          title="Recent News"
+          titleHref="/news"
+          items={recentNews}
+          emptyText="No recent news."
+        />
+
+        <HomeFeedList
+          title="Upcoming Events"
+          titleHref="/events"
+          items={upcomingEvents}
+          emptyText="No upcoming events."
+        />
       </section>
     </div>
   )

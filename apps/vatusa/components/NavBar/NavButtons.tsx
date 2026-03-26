@@ -165,9 +165,9 @@ const divisionInfo: NavMenuEntry[] = [
   },
   {
     type: "item",
-    title: "Solo Certs",
+    title: "Solo Endorsements",
     href: "/info/solo",
-    description: "View all active Solo Certs.",
+    description: "View all active Solo Endorsements.",
     icon: TiStarburst,
   },
 ]
@@ -306,8 +306,11 @@ const facilities: NavMenuEntry[] = [
     description: "",
   },
 ]
+interface NavButtonsProps {
+  onNavigate?: () => void
+}
 
-export function NavButtons() {
+export function NavButtons({ onNavigate }: NavButtonsProps) {
   return (
     <NavigationMenu>
       <NavigationMenuList>
@@ -398,7 +401,9 @@ export function NavButtons() {
         <NavigationMenuItem>
           <NavigationMenuLink
             className={navigationMenuTriggerStyle()}
-            render={<Link href="https://donorbox.org/donate-to-vatusa">Donate</Link>}
+            render={
+              <Link href="https://donorbox.org/donate-to-vatusa">Donate</Link>
+            }
           />
         </NavigationMenuItem>
       </NavigationMenuList>
