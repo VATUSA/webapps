@@ -1,3 +1,4 @@
+import Image from "next/image"
 import Link from "next/link"
 import { ThemeSwitch } from "@/components/Theme/ThemeSwitch"
 import LoginDropdown from "@/components/LoginButton/LoginButton"
@@ -14,11 +15,28 @@ export default function NavBar({ session }: NavBarProps) {
     <header className="sticky top-0 z-50 border-b border-border bg-card/95 text-card-foreground shadow-sm backdrop-blur">
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center space-x-3">
-            <div className="h-8 w-8 rounded-md border border-border bg-muted" />
-            <Link href="/" className="text-lg font-semibold tracking-wide">
-              VATUSA
+          <div className="flex items-center">
+            <Link
+              href="/"
+              aria-label="VATUSA Home"
+              className="inline-flex items-center"
+            >
+              <Image
+                src="/VATUSA-LOGO-FULLCOLOR.png"
+                alt="VATUSA"
+                width={220}
+                height={48}
+                priority
+                className="h-9 w-auto dark:hidden"
+              />
+              <Image
+                src="/VATUSA-LOGO-FULLCOLOR-ALT.png"
+                alt="VATUSA"
+                width={220}
+                height={48}
+                priority
+                className="hidden h-9 w-auto dark:block"
+              />
             </Link>
           </div>
 
