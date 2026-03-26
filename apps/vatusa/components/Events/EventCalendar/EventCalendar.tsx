@@ -72,11 +72,10 @@ export default function EventCalendar({
     () => startOfWeek(monthStart, weekStartsOn),
     [monthStart, weekStartsOn]
   )
-  const gridEnd = useMemo(
+  useMemo(
     () => endOfWeek(monthEnd, weekStartsOn),
     [monthEnd, weekStartsOn]
   )
-
   const grid = useMemo(() => {
     const days: Date[] = []
     const start = new Date(gridStart)
@@ -108,7 +107,7 @@ export default function EventCalendar({
       }
     }
 
-    load()
+    void load()
     return () => {
       aborted = true
     }
@@ -206,9 +205,10 @@ export default function EventCalendar({
                 <div
                   key={d.toISOString()}
                   className={cn(
-                    "flex min-h-[108px] flex-col overflow-hidden rounded-md border p-3 text-sm",
-                    "border-border/60 bg-card hover:bg-muted/20",
-                    !inMonth && "bg-muted/20"
+                    "flex min-h-[108px] flex-col overflow-hidden rounded-md border p-3 text-sm transition-colors duration-150",
+                    "border-border/60 bg-card hover:border-border hover:bg-accent/30",
+                    !inMonth &&
+                      "border-border/50 bg-muted/45 text-muted-foreground/85 hover:bg-muted/60"
                   )}
                 >
                   <div className="mb-2 flex items-center justify-between">
@@ -241,7 +241,7 @@ export default function EventCalendar({
                             <Link
                               key={ev.id}
                               href={`/events/${ev.id}`}
-                              className="flex flex-col gap-1 rounded-md border border-border/50 bg-accent/35 px-3 py-2 text-xs transition-colors hover:bg-accent/50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+                              className="flex flex-col gap-1 rounded-md border border-border/50 bg-accent/40 px-3 py-2 text-xs transition-colors duration-150 hover:border-border hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
                             >
                               <div className="font-medium text-foreground">
                                 {ev.title}
@@ -297,7 +297,7 @@ export default function EventCalendar({
                           <Link
                             key={ev.id}
                             href={`/events/${ev.id}`}
-                            className="flex flex-col gap-1 rounded-md border border-border/50 bg-accent/35 px-3 py-3 text-sm transition-colors hover:bg-accent/50 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+                            className="flex flex-col gap-1 rounded-md border border-border/50 bg-accent/40 px-3 py-3 text-sm transition-colors duration-150 hover:border-border hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
                           >
                             <div className="font-medium text-foreground">
                               {ev.title}
