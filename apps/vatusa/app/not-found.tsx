@@ -1,7 +1,4 @@
-import Link from "next/link"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import { buttonVariants } from "@workspace/ui/components/button"
-import { cn } from "@workspace/ui/lib/utils"
 import { NotFoundActions } from "@/components/NotFound/NotFoundActions"
 
 export default function NotFound() {
@@ -22,7 +19,7 @@ export default function NotFound() {
               Error 404
             </p>
 
-            <h1 className="bg-gradient-to-r from-primary via-primary/80 to-chart-2 bg-clip-text text-5xl font-extrabold tracking-tight text-transparent sm:text-6xl">
+            <h1 className="bg-linear-to-r from-primary via-primary/80 to-chart-2 bg-clip-text text-5xl font-extrabold tracking-tight text-transparent sm:text-6xl">
               Page not found
             </h1>
 
