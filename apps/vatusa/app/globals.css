@@ -1,0 +1,6 @@
+@import "@workspace/ui/globals.css";
+
+/* Ensure Tailwind v4 scans shared workspace UI components */
+@source "../../../packages/ui/src/**/*.{ts,tsx}";
+@source "../**/*.{ts,tsx}";
+@source "../../components/**/*.{ts,tsx}";
