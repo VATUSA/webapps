@@ -1,46 +1,250 @@
-const BASE_URL = "http://localhost:8000/cobalt/"
+const DEFAULT_BASE_URL = "http://localhost:8000/cobalt"
 
-/**
- * Call to the backend, using browser cookies, to get information
- * about the current authenticated user.
- *
- * This can only be used from the client; making a server-side call
- * from Next.js will not include the browser's cookies and therefore
- * cannot make this call. If accessing the auth'd user from the server
- * is required, we'll need to pass in cookies from the browser.
- *
- * @returns CID
- */
-export async function whoami(): Promise<string> {
-  return await (
-    await fetch(`${BASE_URL}login/whoami`, {
-      credentials: "include",
+export type CobaltRequestOptions = {
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
+  body?: unknown
+  headers?: HeadersInit
+  signal?: AbortSignal
+  cache?: RequestCache
+  credentials?: RequestCredentials
+  next?: NextFetchRequestConfig
+  /**
+   * Raw cobalt cookie value (without cookie name).
+   * Adds: Cookie: vatusa-cobalt-token=<value>
+   */
+  cobaltCookie?: string
+  /**
+   * Optional bearer token if your backend accepts it.
+   */
+  bearerToken?: string
+}
+
+export class CobaltHttpError extends Error {
+  status: number
+  statusText: string
+  url: string
+  body: unknown
+
+  constructor(input: {
+    message: string
+    status: number
+    statusText: string
+    url: string
+    body: unknown
+  }) {
+    super(input.message)
+    this.name = "CobaltHttpError"
+    this.status = input.status
+    this.statusText = input.statusText
+    this.url = input.url
+    this.body = input.body
+  }
+}
+
+type CobaltErrorBody = {
+  success?: boolean
+  id?: number
+  errors?: string[]
+}
+
+export function isNoRowsNotFound(body: unknown): boolean {
+  if (!body || typeof body !== "object") return false
+
+  const b = body as CobaltErrorBody
+  if (b.success !== false || !Array.isArray(b.errors)) return false
+
+  return b.errors.some((e) =>
+    String(e).toLowerCase().includes("no rows in result set")
+  )
+}
+
+function getBaseUrl(): string {
+  const fromEnv =
+    process.env.NEXT_PUBLIC_COBALT_BASE_URL ??
+    process.env.COBALT_BASE_URL ??
+    DEFAULT_BASE_URL
+
+  return fromEnv.endsWith("/") ? fromEnv.slice(0, -1) : fromEnv
+}
+
+function toUrl(path: string): string {
+  const cleanPath = path.startsWith("/") ? path.slice(1) : path
+  return `${getBaseUrl()}/${cleanPath}`
+}
+
+function buildHeaders(options: CobaltRequestOptions): Headers {
+  const headers = new Headers(options.headers ?? {})
+
+  if (options.body !== undefined && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json")
+  }
+
+  if (options.cobaltCookie) {
+    headers.set("Cookie", `vatusa-cobalt-token=${options.cobaltCookie}`)
+  }
+
+  if (options.bearerToken && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${options.bearerToken}`)
+  }
+
+  return headers
+}
+
+async function parseResponseBody(resp: Response): Promise<unknown> {
+  const contentType = resp.headers.get("content-type") ?? ""
+
+  if (contentType.includes("application/json")) {
+    return await resp.json()
+  }
+
+  // Fallback for text/plain or unknown payloads
+  const txt = await resp.text()
+  return txt.length ? txt : null
+}
+
+export async function cobaltRequest<T>(
+  path: string,
+  options: CobaltRequestOptions = {}
+): Promise<T> {
+  const url = toUrl(path)
+  const method = options.method ?? "GET"
+
+  const resp = await fetch(url, {
+    method,
+    cache: options.cache ?? "no-store",
+    credentials: options.credentials ?? "include",
+    headers: buildHeaders(options),
+    body:
+      options.body === undefined
+        ? undefined
+        : typeof options.body === "string"
+          ? options.body
+          : JSON.stringify(options.body),
+    signal: options.signal,
+    next: options.next,
+  })
+
+  const body = await parseResponseBody(resp)
+
+  if (!resp.ok) {
+    throw new CobaltHttpError({
+      message: `Cobalt request failed (${resp.status} ${resp.statusText}) at ${url}`,
+      status: resp.status,
+      statusText: resp.statusText,
+      url,
+      body,
     })
-  ).json()
+  }
+
+  return body as T
 }
 
 /**
- * Using cookies from Next.js, call to Cobalt to see who is current authenticated.
- *
- * @returns CID
+ * Returns null for:
+ * - 404
+ * - 500 + { success: false, errors: ["...no rows in result set..."] }
  */
+export async function cobaltRequestOrNull<T>(
+  path: string,
+  options: CobaltRequestOptions = {}
+): Promise<T | null> {
+  try {
+    return await cobaltRequest<T>(path, options)
+  } catch (err) {
+    if (err instanceof CobaltHttpError) {
+      if (err.status === 404) return null
+      if (err.status === 500 && isNoRowsNotFound(err.body)) return null
+    }
+    throw err
+  }
+}
+
+/* ============================================================================
+ * Auth / Session
+ * ========================================================================== */
+
+export async function whoami(): Promise<string> {
+  return cobaltRequest<string>("login/whoami", { method: "GET" })
+}
+
 export async function whoamiWithCookies(
   cobaltCookie?: string
 ): Promise<string> {
-  if (!cobaltCookie) {
-    return "-1"
-  }
-  const resp = await fetch(`${BASE_URL}login/whoami`, {
-    headers: {
-      Cookie: `vatusa-cobalt-token=${cobaltCookie}`,
-    },
+  if (!cobaltCookie) return "-1"
+
+  return cobaltRequest<string>("login/whoami", {
+    method: "GET",
+    cobaltCookie,
+    credentials: "omit",
   })
-  return await resp.json()
 }
 
-/**
- * Event type from Cobalt API
- */
+export async function loginAs(cid: number | string): Promise<unknown> {
+  return cobaltRequest<unknown>(`login/as/${encodeURIComponent(String(cid))}`, {
+    method: "GET",
+  })
+}
+
+export type CobaltSession = {
+  [key: string]: unknown
+}
+
+export async function getMySession(): Promise<CobaltSession> {
+  return cobaltRequest<CobaltSession>("my/session", { method: "GET" })
+}
+
+/* ============================================================================
+ * Users / Tokens / Roles
+ * ========================================================================== */
+
+export type CobaltUser = {
+  cid?: number
+  [key: string]: unknown
+}
+
+export async function getUserByCid(cid: number | string): Promise<CobaltUser> {
+  return cobaltRequest<CobaltUser>(`user/${encodeURIComponent(String(cid))}`, {
+    method: "GET",
+  })
+}
+
+export type GenerateUserTokenResponse = {
+  token?: string
+  [key: string]: unknown
+}
+
+export async function generateUserToken(
+  cid: number | string
+): Promise<GenerateUserTokenResponse> {
+  return cobaltRequest<GenerateUserTokenResponse>(
+    `token/${encodeURIComponent(String(cid))}`,
+    { method: "GET" }
+  )
+}
+
+export type LegacyRole = {
+  facility: string
+  role: string
+}
+
+export type LegacySyncRolesInput = {
+  cid: number
+  roles: LegacyRole[]
+}
+
+export async function legacySyncRoles(
+  payload: LegacySyncRolesInput
+): Promise<unknown> {
+  return cobaltRequest<unknown>("roles/legacy_sync", {
+    method: "POST",
+    body: payload,
+  })
+}
+
+/* ============================================================================
+ * Events
+ * ========================================================================== */
+
 export type CobaltEvent = {
   id: number
   title: string
@@ -51,85 +255,48 @@ export type CobaltEvent = {
   end_timestamp: string
 }
 
-/**
- * Fetch upcoming events from Cobalt API
- *
- * @param count - Number of upcoming events to fetch (default: 10)
- * @returns Array of upcoming events
- * @throws Error if the fetch fails
- */
-export async function getUpcomingEvents(
-  count: number = 5
-): Promise<CobaltEvent[]> {
-  const resp = await fetch(`${BASE_URL}event/upcoming/${count}`, {
+export type CreateEventInput = {
+  title: string
+  body: string
+  banner_image_url?: string
+  facility: string
+  start_timestamp: string
+  end_timestamp: string
+}
+
+export async function getUpcomingEvents(count = 5): Promise<CobaltEvent[]> {
+  const safeCount = Number.isInteger(count) && count > 0 ? count : 5
+  return cobaltRequest<CobaltEvent[]>(`event/upcoming/${safeCount}`, {
     method: "GET",
-    cache: "no-store",
-    headers: {
-      "Content-Type": "application/json",
-    },
   })
-
-  if (!resp.ok) {
-    throw new Error(`Failed to fetch events: ${resp.statusText}`)
-  }
-
-  const data = await resp.json()
-  return data || []
 }
 
-type CobaltErrorBody = {
-  success?: boolean
-  id?: number
-  errors?: string[]
+export async function getEventsPage(page = 1): Promise<CobaltEvent[]> {
+  const safePage = Number.isInteger(page) && page > 0 ? page : 1
+  return cobaltRequest<CobaltEvent[]>(`event/page/${safePage}`, {
+    method: "GET",
+  })
 }
-
-function isNoRowsNotFound(body: CobaltErrorBody | null): boolean {
-  if (!body || body.success !== false || !Array.isArray(body.errors)) {
-    return false
-  }
-
-  return body.errors.some((e) =>
-    e.toLowerCase().includes("no rows in result set")
-  )
-}
-
 
 export async function getEventById(
   id: number | string
 ): Promise<CobaltEvent | null> {
-  const resp = await fetch(
-    `${BASE_URL}event/${encodeURIComponent(String(id))}`,
-    {
-      method: "GET",
-      cache: "no-store",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
+  return cobaltRequestOrNull<CobaltEvent>(
+    `event/${encodeURIComponent(String(id))}`,
+    { method: "GET" }
   )
-
-  if (resp.status === 404) {
-    return null
-  }
-
-  let body: unknown = null
-  try {
-    body = await resp.json()
-  } catch {
-    body = null
-  }
-
-  if (resp.status === 500 && isNoRowsNotFound(body as CobaltErrorBody | null)) {
-    return null
-  }
-
-  if (!resp.ok) {
-    throw new Error(`Failed to fetch event ${id}: ${resp.statusText}`)
-  }
-
-  return (body as CobaltEvent) ?? null
 }
 
+export async function createEvent(payload: CreateEventInput): Promise<unknown> {
+  return cobaltRequest<unknown>("event/create", {
+    method: "POST",
+    body: payload,
+  })
+}
+
+/* ============================================================================
+ * News
+ * ========================================================================== */
 
 export type CobaltNewsItem = {
   id: number
@@ -137,12 +304,12 @@ export type CobaltNewsItem = {
   body?: string
   author_cid?: number
   post_timestamp?: number
-  post_date?: string  
+  post_date?: string
   created_timestamp?: string
   updated_timestamp?: string
 }
 
-type CobaltNewsResponse =
+type CobaltNewsResponseEnvelope =
   | CobaltNewsItem[]
   | {
       data?: CobaltNewsItem[]
@@ -150,85 +317,75 @@ type CobaltNewsResponse =
       items?: CobaltNewsItem[]
     }
 
-function extractNewsItems(payload: CobaltNewsResponse): CobaltNewsItem[] {
-  if (Array.isArray(payload)) {
-    return payload
-  }
-
-  if (Array.isArray(payload.data)) {
-    return payload.data
-  }
-
-  if (Array.isArray(payload.news)) {
-    return payload.news
-  }
-
-  if (Array.isArray(payload.items)) {
-    return payload.items
-  }
-
+function extractNewsItems(
+  payload: CobaltNewsResponseEnvelope
+): CobaltNewsItem[] {
+  if (Array.isArray(payload)) return payload
+  if (Array.isArray(payload.data)) return payload.data
+  if (Array.isArray(payload.news)) return payload.news
+  if (Array.isArray(payload.items)) return payload.items
   return []
 }
 
-/**
- * Fetch paginated news from Cobalt API
- *
- * @param page - 1-based page number (default: 1)
- * @returns Array of news items
- * @throws Error if the fetch fails
- */
-export async function getNewsPage(page: number = 1): Promise<CobaltNewsItem[]> {
+export type CreateNewsPostInput = {
+  title: string
+  body: string
+}
+
+export type UpdateNewsPostInput = Partial<CreateNewsPostInput>
+
+export async function getNewsPage(page = 1): Promise<CobaltNewsItem[]> {
   const safePage = Number.isInteger(page) && page > 0 ? page : 1
+  const raw = await cobaltRequest<CobaltNewsResponseEnvelope>(
+    `news/page/${safePage}`,
+    { method: "GET" }
+  )
+  return extractNewsItems(raw)
+}
 
-  const resp = await fetch(`${BASE_URL}news/page/${safePage}`, {
-    method: "GET",
-    cache: "no-store",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-
-  if (!resp.ok) {
-    throw new Error(`Failed to fetch news page ${safePage}: ${resp.statusText}`)
-  }
-
-  const body = (await resp.json()) as CobaltNewsResponse
-  return extractNewsItems(body)
+export async function getNewsPosts(count = 20): Promise<CobaltNewsItem[]> {
+  const safeCount = Number.isInteger(count) && count > 0 ? count : 20
+  const raw = await cobaltRequest<CobaltNewsResponseEnvelope>(
+    `news/${safeCount}`,
+    { method: "GET" }
+  )
+  return extractNewsItems(raw)
 }
 
 export async function getNewsPostById(
   id: number | string
 ): Promise<CobaltNewsItem | null> {
-  const resp = await fetch(
-    `${BASE_URL}news/post/${encodeURIComponent(String(id))}`,
-    {
-      method: "GET",
-      cache: "no-store",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
+  return cobaltRequestOrNull<CobaltNewsItem>(
+    `news/post/${encodeURIComponent(String(id))}`,
+    { method: "GET" }
   )
+}
 
-  if (resp.status === 404) {
-    return null
-  }
+export async function createNewsPost(
+  payload: CreateNewsPostInput
+): Promise<unknown> {
+  return cobaltRequest<unknown>("news/new", {
+    method: "POST",
+    body: payload,
+  })
+}
 
-  let body: unknown = null
-  try {
-    body = await resp.json()
-  } catch {
-    body = null
-  }
+/**
+ * Bruno shows POST /news/post/:id for update.
+ * If Cobalt expects a body, pass payload.
+ */
+export async function updateNewsPost(
+  id: number | string,
+  payload?: UpdateNewsPostInput
+): Promise<unknown> {
+  return cobaltRequest<unknown>(`news/post/${encodeURIComponent(String(id))}`, {
+    method: "POST",
+    body: payload,
+  })
+}
 
-  // Match current Cobalt "not found" behavior: 500 + no rows
-  if (resp.status === 500 && isNoRowsNotFound(body as CobaltErrorBody | null)) {
-    return null
-  }
-
-  if (!resp.ok) {
-    throw new Error(`Failed to fetch news post ${id}: ${resp.statusText}`)
-  }
-
-  return (body as CobaltNewsItem) ?? null
+export async function deleteNewsPost(id: number | string): Promise<unknown> {
+  return cobaltRequest<unknown>(`news/post/${encodeURIComponent(String(id))}`, {
+    method: "DELETE",
+  })
 }
