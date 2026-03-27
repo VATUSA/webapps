@@ -1,7 +1,7 @@
-import { redirect } from "next/navigation";
-import { getSession } from "@/lib/session";
-import { cobalt, vatusa } from "third_party";
-import { cookies } from "next/headers";
+import { redirect } from "next/navigation"
+import { getSession } from "@/lib/session"
+import { cobalt, vatusa } from "@workspace/third-party"
+import { cookies } from "next/headers"
 
 /**
  * Callback from Cobalt's login flow. Used to store additional session data.
@@ -12,17 +12,22 @@ import { cookies } from "next/headers";
  * with that data. Then redirects to the homepage.
  */
 export async function GET() {
-  const cookieStorage = await cookies();
-  const cobaltCookie = cookieStorage.get("vatusa-cobalt-token");
-  const cid = await cobalt.whoamiWithCookies(cobaltCookie?.value);
-  const info = await vatusa.getUserInfo(cid);
+  const cookieStorage = await cookies()
+  const cobaltCookie = cookieStorage.get("vatusa-cobalt-token")
+  const cid = await cobalt.whoamiWithCookies(cobaltCookie?.value)
+  const cobaltInfo = await cobalt.getUserInfo(cobaltCookie?.value)
+  console.log(cobaltInfo)
 
-  const session = await getSession();
-  session.isLoggedIn = true;
-  session.cid = cid;
-  session.name = `${info.data.fname} ${info.data.lname}`;
-  session.roles = info.data.roles;
-  await session.save();
+  // TODO use new cobalt endpoint for getting user info
 
-  redirect("/");
+  const info = await vatusa.getUserInfo(cid)
+
+  const session = await getSession()
+  session.isLoggedIn = true
+  session.cid = cid
+  session.name = `${info.data.fname} ${info.data.lname}`
+  session.roles = info.data.roles
+  await session.save()
+
+  redirect("/")
 }

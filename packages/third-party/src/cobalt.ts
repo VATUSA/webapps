@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8000/cobalt/";
+const BASE_URL = "http://localhost:8000/cobalt/"
 
 /**
  * Call to the backend, using browser cookies, to get information
@@ -16,7 +16,7 @@ export async function whoami(): Promise<string> {
     await fetch(`${BASE_URL}login/whoami`, {
       credentials: "include",
     })
-  ).json();
+  ).json()
 }
 
 /**
@@ -25,15 +25,32 @@ export async function whoami(): Promise<string> {
  * @returns CID
  */
 export async function whoamiWithCookies(
-  cobaltCookie?: string,
+  cobaltCookie?: string
 ): Promise<string> {
   if (!cobaltCookie) {
-    return "-1";
+    return "-1"
   }
   const resp = await fetch(`${BASE_URL}login/whoami`, {
     headers: {
       Cookie: `vatusa-cobalt-token=${cobaltCookie}`,
     },
-  });
-  return await resp.json();
+  })
+  return await resp.json()
+}
+
+/**
+ * Retrieve information about the user from Cobalt.
+ *
+ * @returns TODO
+ */
+export async function getUserInfo(cobaltCookie?: string): Promise<unknown> {
+  if (!cobaltCookie) {
+    return "-1"
+  }
+  const resp = await fetch(`${BASE_URL}my/session`, {
+    headers: {
+      Cookie: `vatusa-cobalt-token=${cobaltCookie}`,
+    },
+  })
+  return await resp.json()
 }
