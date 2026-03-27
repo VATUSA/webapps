@@ -76,7 +76,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                     Application Error
                   </p>
 
-                  <h1 className="mt-2 bg-gradient-to-r from-primary via-primary/80 to-chart-2 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl">
+                  <h1 className="mt-2 bg-gradient-to-r from-primary via-primary/80 to-chart-2 bg-clip-text pb-1 text-4xl leading-[1.12] font-extrabold tracking-tight text-transparent sm:text-5xl">
                     Something went wrong
                   </h1>
 

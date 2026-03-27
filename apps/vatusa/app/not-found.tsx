@@ -19,7 +19,7 @@ export default function NotFound() {
               Error 404
             </p>
 
-            <h1 className="bg-linear-to-r from-primary via-primary/80 to-chart-2 bg-clip-text text-5xl font-extrabold tracking-tight text-transparent sm:text-6xl">
+            <h1 className="bg-linear-to-r from-primary via-primary/80 to-chart-2 bg-clip-text pb-1 text-5xl leading-[1.12] font-extrabold tracking-tight text-transparent sm:text-6xl">
               Page not found
             </h1>
 

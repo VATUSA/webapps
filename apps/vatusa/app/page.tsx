@@ -3,55 +3,72 @@ import DisclaimerBanner from "@/components/HomePage/DisclaimerBanner"
 import HomeFeedList, {
   type HomeFeedItem,
 } from "@/components/HomePage/HomeFeedList"
+import NewsFeedList from "@/components/HomePage/NewsFeedList"
+import {
+  getNewsPage,
+  getUpcomingEvents,
+  type CobaltEvent,
+  type CobaltNewsItem,
+} from "@workspace/third_party/cobalt"
 
-const recentNews: HomeFeedItem[] = [
-  {
-    id: "news-1",
-    title: "New ARTCC training cycle announced",
-    href: "/news",
-    date: "Mar 25, 2026",
-    summary:
-      "Training leadership published the updated spring training timeline.",
-  },
-  {
-    id: "news-2",
-    title: "Policy updates posted",
-    href: "/news",
-    date: "Mar 20, 2026",
-  },
-]
+function formatZulu(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
 
-const upcomingEvents: HomeFeedItem[] = [
-  {
-    id: "event-1",
-    title: "Friday Night Ops: ZLA",
-    href: "/events",
-    date: "Mar 29, 2026 • 2300z",
-    summary:
-      "West coast coverage event with staffed enroute and terminal positions.",
-  },
-  {
-    id: "event-2",
-    title: "Crossfire: ZBW ↔ ZNY",
-    href: "/events",
-    date: "Apr 3, 2026 • 0000z",
-  },
-]
+  const formatted = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "UTC",
+  }).format(date)
 
-export default function Page() {
+  return `${formatted}Z`
+}
+
+export default async function Page() {
+  let cobaltUpcomingEvents: CobaltEvent[] = []
+  let cobaltNews: CobaltNewsItem[] = []
+
+  const [eventsResult, newsResult] = await Promise.allSettled([
+    getUpcomingEvents(5),
+    getNewsPage(1),
+  ])
+
+  if (eventsResult.status === "fulfilled") {
+    cobaltUpcomingEvents = eventsResult.value
+  } else {
+    console.error("Failed to load home upcoming events:", eventsResult.reason)
+  }
+
+  if (newsResult.status === "fulfilled") {
+    cobaltNews = newsResult.value
+  } else {
+    console.error("Failed to load home news:", newsResult.reason)
+  }
+
+  const upcomingEvents: HomeFeedItem[] = cobaltUpcomingEvents.map((event) => ({
+    id: `event-${event.id}`,
+    title: event.title,
+    href: `/events/${event.id}`,
+    date: `${formatZulu(event.start_timestamp)} - ${formatZulu(event.end_timestamp)}`,
+    summary: event.body?.trim() || undefined,
+  }))
+
   return (
     <div className="container mx-auto">
       <div className="flex w-full justify-center py-4">
-        <EventCarousel />
+        <EventCarousel events={cobaltUpcomingEvents} />
       </div>
 
       <DisclaimerBanner />
 
       <section className="mt-8 grid gap-4 pb-6 md:grid-cols-2">
-        <HomeFeedList
+        <NewsFeedList
           title="Recent News"
           titleHref="/news"
-          items={recentNews}
+          items={cobaltNews}
           emptyText="No recent news."
         />
 
