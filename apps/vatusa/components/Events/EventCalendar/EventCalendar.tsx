@@ -8,7 +8,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { cn } from "@workspace/ui/lib/utils"
 import { type CobaltEvent } from "@workspace/third_party/cobalt"
-import { fetchUpcomingEvents } from "@/app/actions/events"
+import { fetchUpcomingEvents } from "@/actions/events"
 
 interface CalendarProps {
   initialDate?: string | Date

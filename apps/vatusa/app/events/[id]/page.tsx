@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 import EventDetail from "@/components/Events/EventDetail/EventDetail"
-import { fetchEventById } from "@/app/actions/events"
+import { fetchEventById } from "@/actions/events"
 
 type EventPageProps = {
   params: Promise<{

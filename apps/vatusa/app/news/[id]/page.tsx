@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 import NewsPostDetail from "@/components/News/NewsPostDetail"
-import { fetchNewsPostById } from "@/app/actions/news"
+import { fetchNewsPostById } from "@/actions/news"
 
 type NewsPageProps = {
   params: Promise<{
