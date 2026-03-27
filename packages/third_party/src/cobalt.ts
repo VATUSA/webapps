@@ -59,10 +59,11 @@ export type CobaltEvent = {
  * @throws Error if the fetch fails
  */
 export async function getUpcomingEvents(
-  count: number = 10
+  count: number = 5
 ): Promise<CobaltEvent[]> {
   const resp = await fetch(`${BASE_URL}event/upcoming/${count}`, {
     method: "GET",
+    cache: "no-store",
     headers: {
       "Content-Type": "application/json",
     },
@@ -74,4 +75,160 @@ export async function getUpcomingEvents(
 
   const data = await resp.json()
   return data || []
+}
+
+type CobaltErrorBody = {
+  success?: boolean
+  id?: number
+  errors?: string[]
+}
+
+function isNoRowsNotFound(body: CobaltErrorBody | null): boolean {
+  if (!body || body.success !== false || !Array.isArray(body.errors)) {
+    return false
+  }
+
+  return body.errors.some((e) =>
+    e.toLowerCase().includes("no rows in result set")
+  )
+}
+
+
+export async function getEventById(
+  id: number | string
+): Promise<CobaltEvent | null> {
+  const resp = await fetch(
+    `${BASE_URL}event/${encodeURIComponent(String(id))}`,
+    {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  )
+
+  if (resp.status === 404) {
+    return null
+  }
+
+  let body: unknown = null
+  try {
+    body = await resp.json()
+  } catch {
+    body = null
+  }
+
+  if (resp.status === 500 && isNoRowsNotFound(body as CobaltErrorBody | null)) {
+    return null
+  }
+
+  if (!resp.ok) {
+    throw new Error(`Failed to fetch event ${id}: ${resp.statusText}`)
+  }
+
+  return (body as CobaltEvent) ?? null
+}
+
+
+export type CobaltNewsItem = {
+  id: number
+  title: string
+  body?: string
+  author_cid?: number
+  post_timestamp?: number
+  post_date?: string  
+  created_timestamp?: string
+  updated_timestamp?: string
+}
+
+type CobaltNewsResponse =
+  | CobaltNewsItem[]
+  | {
+      data?: CobaltNewsItem[]
+      news?: CobaltNewsItem[]
+      items?: CobaltNewsItem[]
+    }
+
+function extractNewsItems(payload: CobaltNewsResponse): CobaltNewsItem[] {
+  if (Array.isArray(payload)) {
+    return payload
+  }
+
+  if (Array.isArray(payload.data)) {
+    return payload.data
+  }
+
+  if (Array.isArray(payload.news)) {
+    return payload.news
+  }
+
+  if (Array.isArray(payload.items)) {
+    return payload.items
+  }
+
+  return []
+}
+
+/**
+ * Fetch paginated news from Cobalt API
+ *
+ * @param page - 1-based page number (default: 1)
+ * @returns Array of news items
+ * @throws Error if the fetch fails
+ */
+export async function getNewsPage(page: number = 1): Promise<CobaltNewsItem[]> {
+  const safePage = Number.isInteger(page) && page > 0 ? page : 1
+
+  const resp = await fetch(`${BASE_URL}news/page/${safePage}`, {
+    method: "GET",
+    cache: "no-store",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+
+  if (!resp.ok) {
+    throw new Error(`Failed to fetch news page ${safePage}: ${resp.statusText}`)
+  }
+
+  const body = (await resp.json()) as CobaltNewsResponse
+  return extractNewsItems(body)
+}
+
+export async function getNewsPostById(
+  id: number | string
+): Promise<CobaltNewsItem | null> {
+  const resp = await fetch(
+    `${BASE_URL}news/post/${encodeURIComponent(String(id))}`,
+    {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  )
+
+  if (resp.status === 404) {
+    return null
+  }
+
+  let body: unknown = null
+  try {
+    body = await resp.json()
+  } catch {
+    body = null
+  }
+
+  // Match current Cobalt "not found" behavior: 500 + no rows
+  if (resp.status === 500 && isNoRowsNotFound(body as CobaltErrorBody | null)) {
+    return null
+  }
+
+  if (!resp.ok) {
+    throw new Error(`Failed to fetch news post ${id}: ${resp.statusText}`)
+  }
+
+  return (body as CobaltNewsItem) ?? null
 }
