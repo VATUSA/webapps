@@ -1,40 +1,47 @@
-import { Card, CardContent } from "@workspace/ui/components/card"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
 export default function Loading() {
   return (
-    <div className="container mx-auto">
-      <h1 className="py-5 text-3xl font-semibold text-black dark:text-zinc-50">
-        Homepage
-      </h1>
+    <div className="container mx-auto space-y-8">
+      {/* Page Title Skeleton */}
+      <Skeleton className="h-10 w-48 rounded-lg" />
 
-      <div className="flex w-full justify-center py-4">
-        <div className="relative mx-auto w-full max-w-4xl px-12 sm:px-14">
-          <div className="p-1">
-            <Card className="overflow-hidden">
-              <CardContent className="aspect-video p-0">
-                <Skeleton className="h-full w-full rounded-none" />
-              </CardContent>
-            </Card>
-          </div>
+      {/* Generic Content Skeletons */}
+      <div className="space-y-4">
+        {/* Hero/Featured Section */}
+        <Skeleton className="aspect-video w-full rounded-xl" />
 
-          {/* Match EventCarousel arrow placement */}
-          <Skeleton className="absolute top-1/2 left-2 size-8 -translate-y-1/2 rounded-full sm:left-3" />
-          <Skeleton className="absolute top-1/2 right-2 size-8 -translate-y-1/2 rounded-full sm:right-3" />
+        {/* Content Paragraphs */}
+        <div className="mt-6 space-y-3">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
         </div>
       </div>
 
-      {/* Match DisclaimerBanner styling exactly */}
-      <section className="relative rounded-xl bg-chart-2/60 p-6 pr-12 shadow-sm dark:bg-chart-2/40">
-        <Skeleton className="absolute top-3 right-3 h-8 w-8 rounded-md" />
-        <h3 className="mb-2 font-semibold">Disclaimer</h3>
+      {/* Cards Grid Section */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {[...Array(3)].map((_, i) => (
+          <div
+            key={i}
+            className="space-y-3 rounded-lg border border-border/50 p-4"
+          >
+            <Skeleton className="h-40 w-full rounded-md" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
+        ))}
+      </div>
+
+      {/* Additional Content Section */}
+      <div className="space-y-3 rounded-lg border border-border/50 bg-muted/30 p-4">
+        <Skeleton className="h-5 w-1/3" />
         <div className="space-y-2">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-[96%]" />
-          <Skeleton className="h-4 w-[92%]" />
-          <Skeleton className="h-4 w-[78%]" />
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-3 w-2/3" />
         </div>
-      </section>
+      </div>
     </div>
   )
 }
