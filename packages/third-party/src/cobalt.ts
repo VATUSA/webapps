@@ -1,5 +1,8 @@
 const BASE_URL = "http://localhost:8000/cobalt/"
 
+export const LOGIN_URL = `${BASE_URL}login`
+export const LOGOUT_URL = `${BASE_URL}login/logout`
+
 /**
  * Call to the backend, using browser cookies, to get information
  * about the current authenticated user.

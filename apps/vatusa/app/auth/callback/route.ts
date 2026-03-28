@@ -13,21 +13,27 @@ import { cookies } from "next/headers"
  */
 export async function GET() {
   const cookieStorage = await cookies()
-  const cobaltCookie = cookieStorage.get("vatusa-cobalt-token")
-  const cid = await cobalt.whoamiWithCookies(cobaltCookie?.value)
-  const cobaltInfo = await cobalt.getUserInfo(cobaltCookie?.value)
-  console.log(cobaltInfo)
+  const cobaltCookie = cookieStorage.get("vatusa-cobalt-token")?.value
 
-  // TODO use new cobalt endpoint for getting user info
+  if (cobaltCookie) {
+    const cid = await cobalt.whoamiWithCookies(cobaltCookie)
+    const cobaltInfo = await cobalt.getUserInfo(cobaltCookie)
+    console.log(cobaltInfo) // TODO
+    const info = await vatusa.getUserInfo(cid)
 
-  const info = await vatusa.getUserInfo(cid)
-
-  const session = await getSession()
-  session.isLoggedIn = true
-  session.cid = cid
-  session.name = `${info.data.fname} ${info.data.lname}`
-  session.roles = info.data.roles
-  await session.save()
+    const session = await getSession()
+    session.isLoggedIn = true
+    session.cid = cid
+    session.name = `${info.data.fname} ${info.data.lname}`
+    session.roles = info.data.roles
+    await session.save()
+  } else {
+    // If the cookie is undefined, then either the login did not succeed, or this
+    // route is getting the callback from cobalt after logging out. Regardless,
+    // there should be no client-side cookie created for that.
+    const session = await getSession()
+    session.destroy()
+  }
 
   redirect("/")
 }
