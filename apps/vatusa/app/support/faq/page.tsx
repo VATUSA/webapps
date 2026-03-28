@@ -1,5 +1,5 @@
-import FAQPageContent from "@/components/Support/FAQPageContent"
-import { faqCategories } from "@/components/Support/faq-data"
+import FAQPageContent from "@/components/Support/FAQ/FAQPageContent"
+import { faqCategories } from "@/components/Support/FAQ/faq-data"
 
 const FALLBACK_TICKET_URL = "/support"
 

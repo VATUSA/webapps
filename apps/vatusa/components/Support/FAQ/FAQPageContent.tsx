@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import type { FAQCategory } from "@/components/Support/faq-data"
+import type { FAQCategory } from "@/components/Support/FAQ/faq-data"
 
 type FAQPageContentProps = {
   categories: FAQCategory[]
