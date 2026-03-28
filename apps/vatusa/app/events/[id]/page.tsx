@@ -1,11 +1,32 @@
 import { notFound } from "next/navigation"
 import EventDetail from "@/components/Events/EventDetail/EventDetail"
 import { fetchEventById } from "@/actions/events"
+import { Metadata } from "next"
 
 type EventPageProps = {
   params: Promise<{
     id: string
   }>
+}
+
+
+export async function generateMetadata({
+  params,
+}: EventPageProps): Promise<Metadata> {
+  const { id } = await params
+
+  try {
+    const event = await fetchEventById(id)
+    return {
+      title: `${event?.title} | VATUSA Events`,
+      description: event?.body?.substring(0, 160) || "VATUSA Event",
+    }
+  } catch {
+    return {
+      title: "Event Not Found | VATUSA",
+      description: "This event could not be found",
+    }
+  }
 }
 
 export default async function Page({ params }: EventPageProps) {

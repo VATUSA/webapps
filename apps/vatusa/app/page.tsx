@@ -10,6 +10,14 @@ import {
   type CobaltEvent,
   type CobaltNewsItem,
 } from "@workspace/third_party/cobalt"
+import { Metadata } from "next"
+
+
+export const metadata: Metadata = {
+  title: "Home | VATUSA",
+  description: "Welcome to VATUSA - The United States Division of VATSIM",
+}
+
 
 function formatZulu(value: string) {
   const date = new Date(value)

@@ -1,7 +1,13 @@
 import FAQPageContent from "@/components/Support/FAQ/FAQPageContent"
 import { faqCategories } from "@/components/Support/FAQ/faq-data"
+import { Metadata } from "next"
 
 const FALLBACK_TICKET_URL = "/support"
+
+export const metadata: Metadata = {
+  title: "FAQ | VATUSA Support",
+  description: "Frequently asked questions about VATUSA services",
+}
 
 export default function Page() {
   const supportTicketHref =

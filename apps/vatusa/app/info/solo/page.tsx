@@ -1,4 +1,10 @@
 import SoloList, { type SoloMember } from "@/components/Solo/SoloList"
+import { type Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Solo Endorsements | VATUSA",
+  description: "Browse current VATUSA solo endorsements",
+}
 
 const mockSoloMembers: SoloMember[] = [
   {

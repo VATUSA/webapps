@@ -2,6 +2,12 @@ import { notFound } from "next/navigation"
 import NewsPostList from "@/components/News/NewsPostList"
 import NewsPagination from "@/components/News/NewsPagination"
 import { fetchNewsPage } from "@/actions/news"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "News | VATUSA",
+  description: "Read the latest news and announcements from VATUSA",
+}
 
 type NewsIndexPageProps = {
   searchParams: Promise<{ page?: string }>
