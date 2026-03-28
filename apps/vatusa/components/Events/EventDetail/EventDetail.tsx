@@ -34,10 +34,15 @@ export default function EventDetail({ event }: EventDetailProps) {
     <Card className="overflow-hidden border-border/60 bg-card/95 pt-0">
       {event.banner_image_url ? (
         <div className="relative aspect-video w-full overflow-hidden bg-muted">
+          {/* Banner URLs may come from any host; next/image allowlist is too restrictive here. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={event.banner_image_url}
             alt={event.title}
             className="h-full w-full object-cover"
+            loading="eager"
+            decoding="async"
+            referrerPolicy="no-referrer"
           />
         </div>
       ) : null}
@@ -56,7 +61,6 @@ export default function EventDetail({ event }: EventDetailProps) {
           </div>
 
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground"></span>{" "}
             {formatZulu(event.start_timestamp)} -{" "}
             {formatZulu(event.end_timestamp)}
           </p>

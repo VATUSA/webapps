@@ -1,8 +1,5 @@
 import Link from "next/link"
 
-const discordUrl =
-  process.env.VATUSA_DISCORD_INVITE_URL ?? "https://discord.gg/vatusa"
-
 export default function Footer() {
   const year = new Date().getFullYear()
 

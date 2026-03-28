@@ -40,11 +40,16 @@ function EventSlide({ event }: { event: CobaltEvent }) {
         <Card className="overflow-hidden border-border/60 pt-0 transition-colors duration-150 hover:border-border hover:bg-accent/20">
           <div className="relative aspect-video w-full overflow-hidden bg-muted">
             {event.banner_image_url ? (
-              <img
-                src={event.banner_image_url}
-                alt={event.title}
-                className="h-full w-full object-cover"
-              />
+              <>
+                <img
+                  src={event.banner_image_url}
+                  alt={event.title}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                  referrerPolicy="no-referrer"
+                />
+              </>
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-muted text-muted-foreground">
                 No Banner
