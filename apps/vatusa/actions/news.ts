@@ -4,7 +4,7 @@ import {
   getNewsPage,
   getNewsPostById,
   type CobaltNewsItem,
-} from "@workspace/third_party/cobalt"
+} from "@workspace/third-party/cobalt"
 
 export async function fetchNewsPostById(
   id: number | string

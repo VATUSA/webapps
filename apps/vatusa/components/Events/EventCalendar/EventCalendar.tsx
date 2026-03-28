@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { cn } from "@workspace/ui/lib/utils"
-import { type CobaltEvent } from "@workspace/third_party/cobalt"
+import { type CobaltEvent } from "@workspace/third-party/cobalt"
 import { fetchUpcomingEvents } from "@/actions/events"
 
 interface CalendarProps {
@@ -72,10 +72,7 @@ export default function EventCalendar({
     () => startOfWeek(monthStart, weekStartsOn),
     [monthStart, weekStartsOn]
   )
-  useMemo(
-    () => endOfWeek(monthEnd, weekStartsOn),
-    [monthEnd, weekStartsOn]
-  )
+  useMemo(() => endOfWeek(monthEnd, weekStartsOn), [monthEnd, weekStartsOn])
   const grid = useMemo(() => {
     const days: Date[] = []
     const start = new Date(gridStart)

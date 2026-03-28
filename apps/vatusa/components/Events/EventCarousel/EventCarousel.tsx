@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import { type CobaltEvent } from "@workspace/third_party/cobalt"
+import { type CobaltEvent } from "@workspace/third-party/cobalt"
 import {
   Carousel,
   CarouselContent,

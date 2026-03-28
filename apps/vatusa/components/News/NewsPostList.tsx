@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import { type CobaltNewsItem } from "@workspace/third_party/cobalt"
+import { type CobaltNewsItem } from "@workspace/third-party/cobalt"
 
 type NewsPostListProps = {
   items: CobaltNewsItem[]
