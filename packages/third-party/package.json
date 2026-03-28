@@ -1,5 +1,5 @@
 {
-  "name": "@workspace/third_party",
+  "name": "@workspace/third-party",
   "version": "0.0.1",
   "private": true,
   "type": "module",

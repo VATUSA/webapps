@@ -163,6 +163,20 @@ export async function cobaltRequestOrNull<T>(
  * Auth / Session
  * ========================================================================== */
 
+/**
+ * First URL of the login flow. Used to redirect users from the frontend.
+ */
+export function getLoginUrl(): string {
+  return `${getBaseUrl()}/login`
+}
+
+/**
+ * Redirect users to this URL to clear their cobalt session.
+ */
+export function getLogoutUrl(): string {
+  return `${getBaseUrl()}/login/logout`
+}
+
 export async function whoami(): Promise<string> {
   return cobaltRequest<string>("login/whoami", { method: "GET" })
 }

@@ -170,9 +170,9 @@ importers:
       '@workspace/eslint-config':
         specifier: workspace:^
         version: link:../../packages/eslint-config
-      '@workspace/third_party':
+      '@workspace/third-party':
         specifier: workspace:*
-        version: link:../../packages/third_party
+        version: link:../../packages/third-party
       '@workspace/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
@@ -225,7 +225,7 @@ importers:
         specifier: ^8.54.0
         version: 8.55.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
 
-  packages/third_party: {}
+  packages/third-party: {}
 
   packages/typescript-config: {}
 

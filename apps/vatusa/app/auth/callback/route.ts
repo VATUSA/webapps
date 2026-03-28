@@ -1,8 +1,7 @@
-import { redirect } from "next/navigation";
-import { getSession } from "@/lib/session";
-import { cookies } from "next/headers";
-import { cobalt, vatusa } from "@workspace/third_party"
-
+import { redirect } from "next/navigation"
+import { getSession } from "@/lib/session"
+import { cobalt, vatusa } from "@workspace/third-party"
+import { cookies } from "next/headers"
 
 /**
  * Callback from Cobalt's login flow. Used to store additional session data.
@@ -13,17 +12,28 @@ import { cobalt, vatusa } from "@workspace/third_party"
  * with that data. Then redirects to the homepage.
  */
 export async function GET() {
-  const cookieStorage = await cookies();
-  const cobaltCookie = cookieStorage.get("vatusa-cobalt-token");
-  const cid = await cobalt.whoamiWithCookies(cobaltCookie?.value);
-  const info = await vatusa.getUserInfo(cid);
+  const cookieStorage = await cookies()
+  const cobaltCookie = cookieStorage.get("vatusa-cobalt-token")?.value
 
-  const session = await getSession();
-  session.isLoggedIn = true;
-  session.cid = cid;
-  session.name = `${info.data.fname} ${info.data.lname}`;
-  session.roles = info.data.roles;
-  await session.save();
+  if (cobaltCookie) {
+    const cid = await cobalt.whoamiWithCookies(cobaltCookie)
+    const cobaltInfo = await cobalt.getMySession()
+    console.log(cobaltInfo) // TODO use somewhere
+    const info = await vatusa.getUserInfo(cid)
 
-  redirect("/");
+    const session = await getSession()
+    session.isLoggedIn = true
+    session.cid = cid
+    session.name = `${info.data.fname} ${info.data.lname}`
+    session.roles = info.data.roles
+    await session.save()
+  } else {
+    // If the cookie is undefined, then either the login did not succeed, or this
+    // route is getting the callback from cobalt after logging out. Regardless,
+    // there should be no client-side cookie created for that.
+    const session = await getSession()
+    session.destroy()
+  }
+
+  redirect("/")
 }

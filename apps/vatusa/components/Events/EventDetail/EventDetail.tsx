@@ -6,7 +6,7 @@ import {
 } from "@workspace/ui/components/card"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-import { type CobaltEvent } from "@workspace/third_party/cobalt"
+import { type CobaltEvent } from "@workspace/third-party/cobalt"
 
 type EventDetailProps = {
   event: CobaltEvent

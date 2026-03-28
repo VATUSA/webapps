@@ -4,7 +4,7 @@ import {
   getUpcomingEvents,
   getEventById,
   type CobaltEvent,
-} from "@workspace/third_party/cobalt"
+} from "@workspace/third-party/cobalt"
 
 export async function fetchUpcomingEvents(
   count: number = 5

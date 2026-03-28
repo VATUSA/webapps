@@ -2,7 +2,7 @@ import { notFound } from "next/navigation"
 import NewsPostDetail from "@/components/News/NewsPostDetail"
 import { fetchNewsPostById } from "@/actions/news"
 import { Metadata } from "next"
-import { getNewsPostById } from "@workspace/third_party/cobalt"
+import { getNewsPostById } from "@workspace/third-party/cobalt"
 
 type NewsPageProps = {
   params: Promise<{
