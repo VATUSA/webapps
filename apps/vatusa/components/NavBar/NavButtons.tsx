@@ -176,141 +176,138 @@ const facilities: NavMenuEntry[] = [
   {
     type: "item",
     title: "Albuquerque ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://www.zabartcc.org/",
     description: "",
   },
   {
     type: "item",
     title: "Anchorage ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://www.zanartcc.org/",
     description: "",
   },
   {
     type: "item",
     title: "Atlanta ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://www.ztlartcc.org/",
     description: "",
   },
   {
     type: "item",
     title: "Boston ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://www.bvartcc.com/",
     description: "",
   },
   {
     type: "item",
     title: "Chicago ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://www.zauartcc.org/",
     description: "",
   },
   {
     type: "item",
     title: "Cleveland ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://clevelandcenter.org/",
     description: "",
   },
   {
     type: "item",
     title: "Denver ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://zdvartcc.org/",
     description: "",
   },
   {
     type: "item",
     title: "Fort Worth ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://www.zfwartcc.net/",
     description: "",
   },
   {
     type: "item",
     title: "Honolulu ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://www.vhcf.net/",
     description: "",
   },
   {
     type: "item",
     title: "Houston ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://houston.center/",
     description: "",
   },
   {
     type: "item",
     title: "Indianapolis ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://flyindycenter.com/",
     description: "",
   },
   {
     type: "item",
     title: "Jacksonville ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://zjxartcc.org/",
     description: "",
   },
   {
     type: "item",
     title: "Kansas City ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://zkcartcc.org/",
     description: "",
   },
   {
     type: "item",
     title: "Los Angeles ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://laartcc.org/",
     description: "",
   },
   {
     type: "item",
     title: "Memphis ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://memphisartcc.com/",
     description: "",
   },
   {
     type: "item",
     title: "Miami ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://www.zmaartcc.net/",
     description: "",
   },
   {
     type: "item",
     title: "Minneapolis ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://nyartcc.org/",
     description: "",
   },
   {
     type: "item",
     title: "New York ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://nyartcc.org/",
     description: "",
   },
   {
     type: "item",
     title: "Oakland ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://oakartcc.org/",
     description: "",
   },
   {
     type: "item",
     title: "Salt Lake City ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://zlcartcc.org/",
     description: "",
   },
   {
     type: "item",
     title: "Seattle ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://zseartcc.org/",
     description: "",
   },
   {
     type: "item",
     title: "Washington, D.C. ARTCC",
-    href: "/docs/primitives/alert-dialog",
+    href: "https://www.vzdc.org/",
     description: "",
   },
 ]
-interface NavButtonsProps {
-  onNavigate?: () => void
-}
 
-export function NavButtons({ onNavigate }: NavButtonsProps) {
+export function NavButtons() {
   return (
     <NavigationMenu>
       <NavigationMenuList>
