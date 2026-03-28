@@ -5,6 +5,7 @@ import NavBar from "@/components/NavBar/NavBar"
 import "./globals.css"
 import Footer from "@/components/Footer/Footer"
 import React from "react"
+import { Toaster } from "@workspace/ui/components/sonner"
 
 const fontSans = Inter({
   subsets: ["latin"],
@@ -35,9 +36,10 @@ export default async function RootLayout({
         <ThemeProvider>
           <div className="flex min-h-screen flex-col">
             <NavBar session={session} />
-              <div className="flex-1 mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                {children}
-              </div>
+            <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
+              {children}
+            </div>
+            <Toaster />
             <Footer />
           </div>
         </ThemeProvider>

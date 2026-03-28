@@ -1,10 +1,11 @@
 {
-  "name": "third_party",
+  "name": "@workspace/third_party",
   "version": "0.0.1",
   "private": true,
-  "packageManager": "pnpm@10.29.3",
+  "type": "module",
   "exports": {
-    ".": "./src/index.ts"
-  },
-  "scripts": {}
+    ".": "./src/index.ts",
+    "./cobalt": "./src/cobalt.ts",
+    "./vatusa": "./src/vatusa.ts"
+  }
 }

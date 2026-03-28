@@ -1,0 +1,52 @@
+# --- VCS / editor ---
+.git
+.git/*
+**/.DS_Store
+.idea
+.vscode
+
+# --- Dependencies / package manager caches ---
+**/node_modules
+**/.pnpm-store
+**/.npm
+**/.yarn
+**/.yarn-cache
+
+# --- Build outputs / caches ---
+**/.next
+**/.turbo
+**/dist
+**/build
+**/coverage
+**/.cache
+**/.vite
+
+# --- Logs ---
+**/*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Env / local secrets ---
+.env
+.env.*
+cobalt.env
+
+# Keep example env files
+!.env.example
+!cobalt.env.example
+
+# --- Unrelated app sources (optional but helpful for this image) ---
+apps/my_vatusa
+apps/staff
+
+# --- Test / docs artifacts ---
+**/__tests__
+**/*.test.*
+**/*.spec.*
+docs
+
+# --- OS / temp files ---
+**/tmp
+**/.tmp
