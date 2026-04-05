@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-
+import { usePathname, useRouter } from "next/navigation"
 import { NavMain } from "@/components/SideBar/NavMain"
 import { NavProjects } from "@/components/SideBar/NavProjects"
 import { NavUser } from "@/components/SideBar/NavUser"
@@ -13,22 +13,29 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@workspace/ui/components/sidebar"
-import {
-  TerminalSquareIcon,
-  BotIcon,
-  BookOpenIcon,
-  Settings2Icon,
-  FrameIcon,
-  PieChartIcon,
-  MapIcon,
-} from "lucide-react"
+import { FrameIcon, PieChartIcon, MapIcon } from "lucide-react"
 import { FaBuilding, FaPeopleGroup } from "react-icons/fa6"
-import {
-  MdAdminPanelSettings,
-  MdOutlineAdminPanelSettings,
-  MdOutlineGroups3,
-} from "react-icons/md"
+import { MdOutlineGroups3 } from "react-icons/md"
+import { MdAdminPanelSettings } from "react-icons/md"
 import { IoSchool } from "react-icons/io5"
+
+type Team = {
+  name: string
+  logo: React.ReactNode
+  plan: string
+  id: string
+}
+
+type NavItem = {
+  title: string
+  url: string
+  icon?: React.ReactNode
+  isActive?: boolean
+  items?: {
+    title: string
+    url: string
+  }[]
+}
 
 const data = {
   user: {
@@ -41,118 +48,141 @@ const data = {
       name: "VATUSA",
       logo: <MdAdminPanelSettings />,
       plan: "ARTCC",
+      id: "USA",
     },
     {
       name: "Albuquerque ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZAB",
     },
     {
       name: "Anchorage ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZAK",
     },
     {
       name: "Atlanta ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZTL",
     },
     {
       name: "Boston ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZBW",
     },
     {
       name: "Chicago ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZAU",
     },
     {
       name: "Cleveland ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZOB",
     },
     {
       name: "Denver ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZDV",
     },
     {
       name: "Fort Worth ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZFW",
     },
     {
       name: "Honolulu ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "HCF",
     },
     {
       name: "Houston ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZHU",
     },
     {
       name: "Indianapolis ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZID",
     },
     {
       name: "Jacksonville ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZJX",
     },
     {
       name: "Kansas City ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZKC",
     },
     {
       name: "Los Angeles ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZLA",
     },
     {
       name: "Memphis ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZME",
     },
     {
       name: "Miami ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZMA",
     },
     {
       name: "Minneapolis ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZMP",
     },
     {
       name: "New York ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZNY",
     },
     {
       name: "Oakland ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZOA",
     },
     {
       name: "Salt Lake City ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZLC",
     },
     {
       name: "Seattle ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZSE",
     },
     {
       name: "Washington, D.C. ARTCC",
       logo: <FaBuilding />,
       plan: "ARTCC",
+      id: "ZDC",
     },
-  ],
+  ] as const satisfies Team[],
   navMain: [
     {
       title: "ARTCC Overview",
@@ -172,7 +202,6 @@ const data = {
       items: [
         { title: "SR Staff Dashboard", url: "/sr/dashboard" },
         { title: "Pending Transfers", url: "/facility/:id/transfers" },
-        { title: "Controller Promotions", url: "/facility/:id/promotions" },
         { title: "Facility Staff POCs", url: "/facility/:id/staff-roles" },
         { title: "Action Log", url: "/facility/:id/log" },
       ],
@@ -182,9 +211,9 @@ const data = {
       url: "#",
       icon: <FaPeopleGroup />,
       items: [
-        { title: "Facility Dashboard", url: "/facility/:id/dashboard" },
-        { title: "Events", url: "" },
-        { title: "Tech Config", url: "/facility/:id/tech" },
+        { title: "Staff Dashboard", url: "/facility/:id/staff" },
+        { title: "Events", url: "/facility/:id/staff/events" },
+        { title: "Tech Config", url: "/facility/:id/staff/tech" },
       ],
     },
     {
@@ -193,19 +222,11 @@ const data = {
       icon: <IoSchool />,
       items: [
         { title: "Training Dashboard", url: "/facility/:id/training" },
-        {
-          title: "Review Training Notes",
-          url: "/facility/:id/training/notes/pending",
-        },
-        {
-          title: "Enter Training Note",
-          url: "/facility/:id/training/notes/new",
-        },
-        { title: "Exam Management", url: "/facility/:id/training/exams" },
-        { title: "Ratings & Transfers", url: "/facility/:id/ratings" },
+        { title: "Training Notes", url: "/facility/:id/training/notes" },
+        { title: "Controller Promotion", url: "/facility/:id/training/promotion" },
       ],
     },
-  ],
+  ] as const satisfies NavItem[],
   projects: [
     {
       name: "Design Engineering",
@@ -225,14 +246,94 @@ const data = {
   ],
 }
 
+function replaceIdInUrls(
+  items: typeof data.navMain,
+  facilityId: string
+): NavItem[] {
+  return items.map((item) => ({
+    ...item,
+    url: item.url.replace(":id", facilityId),
+    items: item.items?.map((subItem) => ({
+      ...subItem,
+      url: subItem.url.replace(":id", facilityId),
+    })),
+  }))
+}
+
+const TEAM_STORAGE_KEY = "staff.activeTeamId"
+
+function getTeamFromPathname(pathname: string, teams: readonly Team[]) {
+  const match = pathname.match(/^\/facility\/([^/]+)(?:\/|$)/i)
+  const idFromUrl = match?.[1]?.toUpperCase()
+  if (!idFromUrl) return null
+
+  return teams.find((t) => t.id.toUpperCase() === idFromUrl) ?? null
+}
+
+
+function swapFacilityInPath(pathname: string, newTeamId: string) {
+  const newSlug = newTeamId.toLowerCase()
+
+  if (/^\/facility\/[^/]+(?:\/|$)/i.test(pathname)) {
+    return pathname.replace(/^\/facility\/[^/]+/i, `/facility/${newSlug}`)
+  }
+
+  return `/facility/${newSlug}/staff/dashboard`
+}
+
+
 export function AppSideBar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const router = useRouter()
+  const pathname = usePathname()
+
+  const [activeTeam, setActiveTeam] = React.useState<Team>(data.teams[0])
+
+  React.useEffect(() => {
+    const fromPath = getTeamFromPathname(pathname, data.teams)
+    if (fromPath) {
+      setActiveTeam((prev) => (prev.id === fromPath.id ? prev : fromPath))
+      window.localStorage.setItem(TEAM_STORAGE_KEY, fromPath.id)
+      return
+    }
+
+    const savedId = window.localStorage.getItem(TEAM_STORAGE_KEY)?.toUpperCase()
+    if (!savedId) return
+
+    const savedTeam = data.teams.find((t) => t.id.toUpperCase() === savedId)
+    if (savedTeam) {
+      setActiveTeam((prev) => (prev.id === savedTeam.id ? prev : savedTeam))
+    }
+  }, [pathname])
+
+  const onTeamChangeAction = React.useCallback(
+    (team: Team) => {
+      setActiveTeam(team)
+      window.localStorage.setItem(TEAM_STORAGE_KEY, team.id)
+
+      const nextPath = swapFacilityInPath(pathname, team.id)
+      if (nextPath !== pathname) {
+        router.replace(nextPath)
+      }
+    },
+    [pathname, router]
+  )
+
+  const updatedNavMain = replaceIdInUrls(
+    data.navMain,
+    activeTeam.id.toLowerCase()
+  )
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <NavSwitcher teams={data.teams} />
+        <NavSwitcher
+          teams={data.teams}
+          activeTeam={activeTeam}
+          onTeamChangeAction={onTeamChangeAction}
+        />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={updatedNavMain} />
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
@@ -242,3 +343,4 @@ export function AppSideBar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     </Sidebar>
   )
 }
+

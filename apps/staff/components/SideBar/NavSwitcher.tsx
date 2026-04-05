@@ -18,20 +18,28 @@ import {
 } from "@workspace/ui/components/sidebar"
 import { ChevronsUpDownIcon } from "lucide-react"
 
+type TeamBase = {
+  name: string
+  logo: React.ReactNode
+  plan: string
+  id: string
+}
+
 export function NavSwitcher({
   teams,
+  activeTeam,
+  onTeamChangeAction,
 }: {
-  teams: {
-    name: string
-    logo: React.ReactNode
-    plan: string
-  }[]
+  teams: TeamBase[]
+  activeTeam: TeamBase
+  onTeamChangeAction: (team: TeamBase) => void
 }) {
   const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(teams[0])
+
   if (!activeTeam) {
     return null
   }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -66,7 +74,7 @@ export function NavSwitcher({
               {teams.map((team) => (
                 <DropdownMenuItem
                   key={team.name}
-                  onClick={() => setActiveTeam(team)}
+                  onClick={() => onTeamChangeAction(team)}
                   className="gap-2 p-2"
                 >
                   <div className="flex size-6 items-center justify-center rounded-md border">
