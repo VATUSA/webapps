@@ -18,6 +18,13 @@ import { FaBuilding, FaPeopleGroup } from "react-icons/fa6"
 import { MdOutlineGroups3 } from "react-icons/md"
 import { MdAdminPanelSettings } from "react-icons/md"
 import { IoSchool } from "react-icons/io5"
+import { buildStaffSidebarCapabilities } from "@/lib/acl"
+import type { CobaltPermission } from "@/lib/session"
+
+type AppSideBarProps = React.ComponentProps<typeof Sidebar> & {
+  globalPermissions: CobaltPermission[]
+  facilityPermissions: CobaltPermission[]
+}
 
 type Team = {
   name: string
@@ -282,7 +289,11 @@ function swapFacilityInPath(pathname: string, newTeamId: string) {
 }
 
 
-export function AppSideBar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSideBar({
+  globalPermissions,
+  facilityPermissions,
+  ...props
+}: AppSideBarProps) {
   const router = useRouter()
   const pathname = usePathname()
 
@@ -318,8 +329,31 @@ export function AppSideBar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     [pathname, router]
   )
 
+  const capabilities = React.useMemo(
+    () =>
+      buildStaffSidebarCapabilities({
+        globalPermissions,
+        facilityPermissions,
+        facilityId: activeTeam.id,
+      }),
+    [globalPermissions, facilityPermissions, activeTeam.id]
+  )
+
+  const permittedNavMain = React.useMemo(
+    () =>
+      data.navMain.filter((item) => {
+        if (item.title === "ARTCC Overview") return capabilities.canSeeOverview
+        if (item.title === "ARTCC Sr Staff") return capabilities.canSeeSrStaff
+        if (item.title === "ARTCC Staff") return capabilities.canSeeArtccStaff
+        if (item.title === "Training Staff")
+          return capabilities.canSeeTrainingStaff
+        return false
+      }),
+    [capabilities]
+  )
+
   const updatedNavMain = replaceIdInUrls(
-    data.navMain,
+    permittedNavMain,
     activeTeam.id.toLowerCase()
   )
 

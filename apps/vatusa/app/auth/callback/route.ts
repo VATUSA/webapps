@@ -2,14 +2,24 @@ import { redirect } from "next/navigation"
 import { getSession } from "@/lib/session"
 import { cobalt } from "@workspace/third-party"
 import { cookies } from "next/headers"
+import type { CobaltSession } from "@workspace/third-party/cobalt"
 
 /**
- * Callback from Cobalt's login flow. Used to store additional session data.
+ * Cobalt login callback handler.
  *
- * Gets the Cobalt cookie from the request, uses it to make a server-side
- * request to Cobalt for the user's CID, uses that with the VATUSA API
- * to get some basic user information, and updates this app's session
- * with that data. Then redirects to the homepage.
+ * This route finalizes authentication by reading the Cobalt auth cookie,
+ * fetching identity/session data from Cobalt, enriching profile data from
+ * the VATUSA API, and persisting everything into the shared iron-session.
+ *
+ * Persisted session fields include:
+ * - `isLoggedIn`, `cid`, `name`
+ * - legacy `roles` (for existing vatusa UI/features)
+ * - canonical Cobalt payload (`session.cobalt`) used by ACL-aware apps
+ *
+ * Behavior:
+ * - If `vatusa-cobalt-token` exists: hydrate and save session.
+ * - If missing: destroy existing session (logout or failed callback case).
+ * - Always redirect to `/` when finished.
  */
 export async function GET() {
   const cookieStorage = await cookies()
@@ -19,6 +29,7 @@ export async function GET() {
     const cid = await cobalt.whoamiWithCookies(cobaltCookie)
     const cobaltInfo = await cobalt.getMySession(cobaltCookie)
 
+    // Hydrate shared iron-session cookie used across apps.
     const session = await getSession()
     session.isLoggedIn = true
     session.cid = cid
@@ -26,12 +37,12 @@ export async function GET() {
     session.roles = cobaltInfo.global_permissions
     await session.save()
   } else {
-    // If the cookie is undefined, then either the login did not succeed, or this
-    // route is getting the callback from cobalt after logging out. Regardless,
-    // there should be no client-side cookie created for that.
+    // No Cobalt cookie means auth did not complete or user logged out.
+    // Remove app session to keep auth state consistent.
     const session = await getSession()
     session.destroy()
   }
 
+  // Return user to homepage after callback processing.
   redirect("/")
 }

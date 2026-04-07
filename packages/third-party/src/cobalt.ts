@@ -201,6 +201,41 @@ export async function loginAs(cid: number | string): Promise<unknown> {
   })
 }
 
+export type CobaltPermission = {
+  action: string
+  object: string
+  facility?: string
+}
+
+export type CobaltNetworkUser = {
+  first_name: string
+  last_name: string
+  email: string
+  rating: number
+  region: string
+  division: string
+  subdivision: string
+  pilot_rating: number
+  military_rating: number
+}
+
+export type CobaltDivisionUser = {
+  display_name: string | null
+  controller_rating: number
+  instructor_rating: number
+  facility: string
+  visiting_facilities: string[]
+  discord_id: string | null
+  last_promotion_timestamp: number
+  last_transfer_timestamp: number
+}
+
+export type CobaltSessionUser = {
+  cid: number
+  network_user: CobaltNetworkUser
+  division_user: CobaltDivisionUser
+}
+
 export type CobaltSession = {
   user: {
     cid: number

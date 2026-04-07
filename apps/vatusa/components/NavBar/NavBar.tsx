@@ -5,12 +5,24 @@ import LoginDropdown from "@/components/LoginButton/LoginButton"
 import type { UserSession } from "@/lib/session"
 import { NavButtons } from "@/components/NavBar/NavButtons"
 import { MobileNav } from "@/components/NavBar/MobileNav"
+import { hasStaffAccess } from "@workspace/third-party/acl"
+
 
 interface NavBarProps {
   session: UserSession
 }
 
 export default function NavBar({ session }: NavBarProps) {
+  const isStaff = hasStaffAccess([
+    ...(session.cobalt?.global_permissions ?? []),
+    ...(session.cobalt?.facility_permissions ?? []),
+  ])
+  const myVatusaProfileUrl =
+    process.env.NEXT_PUBLIC_MY_VATUSA_PROFILE_URL ??
+    "https://vatusa.net/my/profile"
+  const staffAppUrl =
+    process.env.NEXT_PUBLIC_STAFF_APP_URL ?? "https://vatusa.net/staff"
+
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-card/95 text-card-foreground shadow-sm backdrop-blur">
       <div className="mx-auto max-w-7xl px-4">
@@ -40,19 +52,19 @@ export default function NavBar({ session }: NavBarProps) {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:block">
             <NavButtons />
           </div>
 
-          {/* Right side items */}
           <div className="flex items-center space-x-2 md:space-x-4">
             <ThemeSwitch />
             <LoginDropdown
               isLoggedIn={session.isLoggedIn}
               name={session.name}
+              myVatusaProfileUrl={myVatusaProfileUrl}
+              staffAppUrl={staffAppUrl}
+              canAccessStaffApp={isStaff}
             />
-            {/* Mobile menu trigger */}
             <MobileNav />
           </div>
         </div>

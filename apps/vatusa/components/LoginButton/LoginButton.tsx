@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronDownIcon, LogOutIcon, UserIcon } from "lucide-react"
+import { ChevronDownIcon, LogOutIcon, UserIcon, ShieldIcon } from "lucide-react"
 import { buttonVariants } from "@workspace/ui/components/button"
 import {
   DropdownMenu,
@@ -17,9 +17,18 @@ import { cobalt } from "@workspace/third-party"
 type LoginDropdownProps = {
   isLoggedIn: boolean
   name?: string
+  myVatusaProfileUrl: string
+  staffAppUrl: string
+  canAccessStaffApp: boolean
 }
 
-export default function LoginButton({ isLoggedIn, name }: LoginDropdownProps) {
+export default function LoginButton({
+  isLoggedIn,
+  name,
+  myVatusaProfileUrl,
+  staffAppUrl,
+  canAccessStaffApp,
+}: LoginDropdownProps) {
   if (!isLoggedIn) {
     return (
       <a
@@ -52,6 +61,26 @@ export default function LoginButton({ isLoggedIn, name }: LoginDropdownProps) {
           <DropdownMenuLabel className="truncate">
             Signed in as {name ?? "Controller"}
           </DropdownMenuLabel>
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuGroup>
+          <DropdownMenuItem
+            onClick={() => (window.location.href = myVatusaProfileUrl)}
+          >
+            <UserIcon className="size-4" />
+            My VATUSA Profile
+          </DropdownMenuItem>
+
+          {canAccessStaffApp ? (
+            <DropdownMenuItem
+              onClick={() => (window.location.href = staffAppUrl)}
+            >
+              <ShieldIcon className="size-4" />
+              Staff Management
+            </DropdownMenuItem>
+          ) : null}
         </DropdownMenuGroup>
 
         <DropdownMenuSeparator />
