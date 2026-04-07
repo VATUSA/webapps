@@ -2,7 +2,6 @@
 
 import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
-import { redirect } from "next/navigation"
 import {
   cobaltRequest,
   getEventById,
@@ -27,6 +26,15 @@ function toUtcIsoFromDateTimeLocal(value: string) {
 
 function parseFacilitySlug(facility: string) {
   return facility.trim().toLowerCase()
+}
+
+function withEventDeletedFlag(path: string) {
+  const [pathname, query = ""] = path.split("?")
+  const params = new URLSearchParams(query)
+  params.set("eventDeleted", "1")
+  const nextQuery = params.toString()
+
+  return nextQuery ? `${pathname}?${nextQuery}` : pathname
 }
 
 function buildEventPayload(formData: FormData) {
@@ -168,3 +176,35 @@ export async function updateEventAction(
     }
   }
 }
+
+export async function deleteEventAction(formData: FormData): Promise<void> {
+  const eventId = readStringField(formData, "eventId")
+  const facilitySlug = parseFacilitySlug(readStringField(formData, "facilitySlug"))
+  const returnTo =
+    readStringField(formData, "returnTo") ||
+    `/facility/${facilitySlug}/staff/events`
+
+  if (!eventId) {
+    throw new Error("Event ID is required.")
+  }
+
+  const cobaltCookie = await getCobaltCookie()
+  if (!cobaltCookie) {
+    throw new Error("Missing Cobalt auth cookie.")
+  }
+
+  await cobaltRequest<unknown>(`event/${encodeURIComponent(eventId)}`, {
+    method: "DELETE",
+    cobaltCookie,
+    credentials: "omit",
+  })
+
+  revalidatePath(`/facility/${facilitySlug}/staff/events`)
+  revalidatePath(`/facility/${facilitySlug}/staff`)
+  revalidatePath(`/facility/${facilitySlug}/division/events`)
+  revalidatePath(`/facility/usa/division/events`)
+
+  const { redirect } = await import("next/navigation")
+  redirect(withEventDeletedFlag(returnTo))
+}
+

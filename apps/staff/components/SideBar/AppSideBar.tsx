@@ -215,6 +215,7 @@ const artccNavMain = [
       { title: "Pending Transfers", url: "/facility/:id/transfers" },
       { title: "Facility Staff POCs", url: "/facility/:id/staff-roles" },
       { title: "Action Log", url: "/facility/:id/log" },
+      { title: "News", url: "/facility/:id/sr/news" },
     ],
   },
   {
@@ -259,6 +260,7 @@ const usaNavMain = [
     icon: <FaPeopleGroup />,
     items: [
       { title: "Division Events", url: "/facility/:id/division/events" },
+      { title: "News", url: "/facility/:id/sr/news" },
       { title: "Division Staff", url: "/facility/:id/division/staff" },
     ],
   },
