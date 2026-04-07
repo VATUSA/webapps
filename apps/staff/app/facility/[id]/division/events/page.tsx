@@ -71,16 +71,14 @@ export default async function Page({ params }: DivisionEventsPageProps) {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink
-              render={<Link href={`/facility/${facilitySlug}/overview`} />}
+              render={<Link href={`/facility/${facilitySlug}/division/overview`} />}
             >
-              Overview
+              Division Overview
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>
-              {isDivision ? "Division Events" : "Events"}
-            </BreadcrumbPage>
+            <BreadcrumbPage>Division Events</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
