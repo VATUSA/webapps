@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import {
   cobaltRequest,
   getEventById,
@@ -28,8 +29,8 @@ function parseFacilitySlug(facility: string) {
   return facility.trim().toLowerCase()
 }
 
-function withEventDeletedFlag(path: string) {
-  const [pathname, query = ""] = path.split("?")
+function withEventDeletedFlag(path: string): string {
+  const [pathname = "", query = ""] = path.split("?")
   const params = new URLSearchParams(query)
   params.set("eventDeleted", "1")
   const nextQuery = params.toString()
@@ -180,9 +181,11 @@ export async function updateEventAction(
 export async function deleteEventAction(formData: FormData): Promise<void> {
   const eventId = readStringField(formData, "eventId")
   const facilitySlug = parseFacilitySlug(readStringField(formData, "facilitySlug"))
-  const returnTo =
-    readStringField(formData, "returnTo") ||
-    `/facility/${facilitySlug}/staff/events`
+  const requestedReturnTo = readStringField(formData, "returnTo")
+  const returnTo: string =
+    requestedReturnTo.length > 0
+      ? requestedReturnTo
+      : `/facility/${facilitySlug}/staff/events`
 
   if (!eventId) {
     throw new Error("Event ID is required.")
@@ -204,7 +207,6 @@ export async function deleteEventAction(formData: FormData): Promise<void> {
   revalidatePath(`/facility/${facilitySlug}/division/events`)
   revalidatePath(`/facility/usa/division/events`)
 
-  const { redirect } = await import("next/navigation")
   redirect(withEventDeletedFlag(returnTo))
 }
 

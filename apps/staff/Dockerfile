@@ -21,7 +21,7 @@ COPY --from=dependencies /app ./
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN pnpm --filter web build
+RUN pnpm --filter staff build
 
 FROM node:${NODE_VERSION} AS runner
 WORKDIR /app

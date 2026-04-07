@@ -39,7 +39,6 @@ cobalt.env
 
 # --- Unrelated app sources (optional but helpful for this image) ---
 apps/my_vatusa
-apps/staff
 
 # --- Test / docs artifacts ---
 **/__tests__

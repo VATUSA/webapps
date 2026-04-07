@@ -29,7 +29,7 @@ function buildNewsBasePath(facilitySlug: string) {
 }
 
 function withNewsDeletedFlag(path: string) {
-  const [pathname, query = ""] = path.split("?")
+  const [pathname = "", query = ""] = path.split("?")
   const params = new URLSearchParams(query)
   params.set("newsDeleted", "1")
   const nextQuery = params.toString()
