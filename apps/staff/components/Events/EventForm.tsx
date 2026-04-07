@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useActionState, useEffect, useRef } from "react"
+import { useActionState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { FormSaveButton } from "@/components/Form/FormSaveButton"
@@ -33,6 +33,31 @@ const initialState: EventActionState = {
   redirectTo: undefined,
 }
 
+const FACILITY_OPTIONS: Array<{ code: string; name: string }> = [
+  { code: "ZAB", name: "Albuquerque ARTCC" },
+  { code: "ZAK", name: "Anchorage ARTCC" },
+  { code: "ZTL", name: "Atlanta ARTCC" },
+  { code: "ZBW", name: "Boston ARTCC" },
+  { code: "ZAU", name: "Chicago ARTCC" },
+  { code: "ZOB", name: "Cleveland ARTCC" },
+  { code: "ZDV", name: "Denver ARTCC" },
+  { code: "ZFW", name: "Fort Worth ARTCC" },
+  { code: "HCF", name: "Honolulu ARTCC" },
+  { code: "ZHU", name: "Houston ARTCC" },
+  { code: "ZID", name: "Indianapolis ARTCC" },
+  { code: "ZJX", name: "Jacksonville ARTCC" },
+  { code: "ZKC", name: "Kansas City ARTCC" },
+  { code: "ZLA", name: "Los Angeles ARTCC" },
+  { code: "ZME", name: "Memphis ARTCC" },
+  { code: "ZMA", name: "Miami ARTCC" },
+  { code: "ZMP", name: "Minneapolis ARTCC" },
+  { code: "ZNY", name: "New York ARTCC" },
+  { code: "ZOA", name: "Oakland ARTCC" },
+  { code: "ZLC", name: "Salt Lake City ARTCC" },
+  { code: "ZSE", name: "Seattle ARTCC" },
+  { code: "ZDC", name: "Washington, D.C. ARTCC" },
+]
+
 function toDateTimeLocal(value?: string) {
   if (!value) return ""
 
@@ -46,13 +71,21 @@ function toDateTimeLocal(value?: string) {
   )}T${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`
 }
 
+function normalizeFacility(value?: string) {
+  return value?.trim().toUpperCase() ?? ""
+}
+
 export default function EventForm({ mode, facilityId, event }: EventFormProps) {
   const router = useRouter()
   const isEdit = mode === "edit"
+  const isUsaTeam = normalizeFacility(facilityId) === "USA"
+
   const title = isEdit ? "Edit Event" : "Create Event"
   const description = isEdit
     ? "Update the event details for this facility."
-    : "Create a new event for this facility."
+    : isUsaTeam
+      ? "Create a new event and choose which facility it belongs to."
+      : "Create a new event for this facility."
 
   const action = isEdit ? updateEventAction : createEventAction
   const [state, formAction] = useActionState(action, initialState)
@@ -78,6 +111,8 @@ export default function EventForm({ mode, facilityId, event }: EventFormProps) {
     }
   }, [state.success, state.redirectTo, router, isEdit])
 
+  const editFacility = normalizeFacility(event?.facility)
+
   return (
     <Card className="border-border/60">
       <CardHeader>
@@ -92,7 +127,36 @@ export default function EventForm({ mode, facilityId, event }: EventFormProps) {
         />
 
         <form action={formAction} className="space-y-5">
-          <input type="hidden" name="facility" value={facilityId} />
+          {isUsaTeam && !isEdit ? (
+            <div className="space-y-2">
+              <label htmlFor="facility" className="text-sm font-medium">
+                Facility
+              </label>
+              <select
+                id="facility"
+                name="facility"
+                required
+                defaultValue=""
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="" disabled>
+                  Select a facility
+                </option>
+                {FACILITY_OPTIONS.map((facility) => (
+                  <option key={facility.code} value={facility.code}>
+                    {facility.code} - {facility.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <input
+              type="hidden"
+              name="facility"
+              value={isEdit ? editFacility : facilityId}
+            />
+          )}
+
           {isEdit && event ? (
             <input type="hidden" name="eventId" value={String(event.id)} />
           ) : null}

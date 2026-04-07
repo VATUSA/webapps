@@ -9,6 +9,7 @@ import {
   BreadcrumbSeparator,
 } from "@workspace/ui/components/breadcrumb"
 import { getUpcomingEvents } from "@workspace/third-party/cobalt"
+import { redirect } from "next/navigation"
 
 type StaffPageProps = {
   params: Promise<{
@@ -22,7 +23,11 @@ function normalizeFacilityId(raw: string) {
 
 export default async function Page({ params }: StaffPageProps) {
   const { id } = await params
+
   const facilityId = normalizeFacilityId(id)
+  if (facilityId === "USA") {
+    redirect("/facility/usa/division/events")
+  }
 
   const upcomingEvents = await getUpcomingEvents(100)
   const facilityUpcomingCount = upcomingEvents.filter(

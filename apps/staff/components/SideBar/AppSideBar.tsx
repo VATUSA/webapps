@@ -15,8 +15,7 @@ import {
 } from "@workspace/ui/components/sidebar"
 import { FrameIcon, PieChartIcon, MapIcon } from "lucide-react"
 import { FaBuilding, FaPeopleGroup } from "react-icons/fa6"
-import { MdOutlineGroups3 } from "react-icons/md"
-import { MdAdminPanelSettings } from "react-icons/md"
+import { MdOutlineGroups3, MdAdminPanelSettings } from "react-icons/md"
 import { IoSchool } from "react-icons/io5"
 import { buildStaffSidebarCapabilities } from "@/lib/acl"
 import type { CobaltPermission } from "@/lib/session"
@@ -33,7 +32,16 @@ type Team = {
   id: string
 }
 
+type NavSectionKey =
+  | "overview"
+  | "srStaff"
+  | "artccStaff"
+  | "trainingStaff"
+  | "usaOverview"
+  | "divisionStaff"
+
 type NavItem = {
+  key: NavSectionKey
   title: string
   url: string
   icon?: React.ReactNode
@@ -44,212 +52,230 @@ type NavItem = {
   }[]
 }
 
+const teams = [
+  {
+    name: "VATUSA",
+    logo: <MdAdminPanelSettings />,
+    plan: "ARTCC",
+    id: "USA",
+  },
+  {
+    name: "Albuquerque ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZAB",
+  },
+  {
+    name: "Anchorage ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZAK",
+  },
+  {
+    name: "Atlanta ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZTL",
+  },
+  {
+    name: "Boston ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZBW",
+  },
+  {
+    name: "Chicago ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZAU",
+  },
+  {
+    name: "Cleveland ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZOB",
+  },
+  {
+    name: "Denver ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZDV",
+  },
+  {
+    name: "Fort Worth ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZFW",
+  },
+  {
+    name: "Honolulu ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "HCF",
+  },
+  {
+    name: "Houston ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZHU",
+  },
+  {
+    name: "Indianapolis ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZID",
+  },
+  {
+    name: "Jacksonville ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZJX",
+  },
+  {
+    name: "Kansas City ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZKC",
+  },
+  {
+    name: "Los Angeles ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZLA",
+  },
+  {
+    name: "Memphis ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZME",
+  },
+  {
+    name: "Miami ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZMA",
+  },
+  {
+    name: "Minneapolis ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZMP",
+  },
+  {
+    name: "New York ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZNY",
+  },
+  {
+    name: "Oakland ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZOA",
+  },
+  {
+    name: "Salt Lake City ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZLC",
+  },
+  {
+    name: "Seattle ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZSE",
+  },
+  {
+    name: "Washington, D.C. ARTCC",
+    logo: <FaBuilding />,
+    plan: "ARTCC",
+    id: "ZDC",
+  },
+] as const satisfies Team[]
+
+const artccNavMain = [
+  {
+    key: "overview",
+    title: "ARTCC Overview",
+    url: "#",
+    icon: <FaBuilding />,
+    items: [
+      { title: "ARTCC Dashboard", url: "/facility/:id/dashboard" },
+      { title: "Home Roster", url: "/facility/:id/roster" },
+      { title: "Visiting Roster", url: "/facility/:id/visitors" },
+      { title: "Staff Page", url: "/facility/:id/staff" },
+    ],
+  },
+  {
+    key: "srStaff",
+    title: "ARTCC Sr Staff",
+    url: "#",
+    icon: <MdOutlineGroups3 />,
+    items: [
+      { title: "SR Staff Dashboard", url: "/sr/dashboard" },
+      { title: "Pending Transfers", url: "/facility/:id/transfers" },
+      { title: "Facility Staff POCs", url: "/facility/:id/staff-roles" },
+      { title: "Action Log", url: "/facility/:id/log" },
+    ],
+  },
+  {
+    key: "artccStaff",
+    title: "ARTCC Staff",
+    url: "#",
+    icon: <FaPeopleGroup />,
+    items: [
+      { title: "Staff Dashboard", url: "/facility/:id/staff" },
+      { title: "Events", url: "/facility/:id/staff/events" },
+      { title: "Tech Config", url: "/facility/:id/staff/tech" },
+    ],
+  },
+  {
+    key: "trainingStaff",
+    title: "Training Staff",
+    url: "#",
+    icon: <IoSchool />,
+    items: [
+      { title: "Training Dashboard", url: "/facility/:id/training" },
+      { title: "Training Notes", url: "/facility/:id/training/notes" },
+      {
+        title: "Controller Promotion",
+        url: "/facility/:id/training/promotion",
+      },
+    ],
+  },
+] as const satisfies readonly NavItem[]
+
+const usaNavMain = [
+  {
+    key: "usaOverview",
+    title: "Overview",
+    url: "#",
+    icon: <MdAdminPanelSettings />,
+    items: [{ title: "Division Overview", url: "/facility/:id/overview" }],
+  },
+  {
+    key: "divisionStaff",
+    title: "Division Staff",
+    url: "#",
+    icon: <FaPeopleGroup />,
+    items: [
+      { title: "Division Events", url: "/facility/:id/division/events" },
+      { title: "Division Staff", url: "/facility/:id/division/staff" },
+    ],
+  },
+] as const satisfies readonly NavItem[]
+
 const data = {
   user: {
     name: "Web Ten",
     email: "m@example.com",
     avatar: "/avatars/shadcn.jpg",
   },
-  teams: [
-    {
-      name: "VATUSA",
-      logo: <MdAdminPanelSettings />,
-      plan: "ARTCC",
-      id: "USA",
-    },
-    {
-      name: "Albuquerque ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZAB",
-    },
-    {
-      name: "Anchorage ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZAK",
-    },
-    {
-      name: "Atlanta ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZTL",
-    },
-    {
-      name: "Boston ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZBW",
-    },
-    {
-      name: "Chicago ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZAU",
-    },
-    {
-      name: "Cleveland ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZOB",
-    },
-    {
-      name: "Denver ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZDV",
-    },
-    {
-      name: "Fort Worth ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZFW",
-    },
-    {
-      name: "Honolulu ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "HCF",
-    },
-    {
-      name: "Houston ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZHU",
-    },
-    {
-      name: "Indianapolis ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZID",
-    },
-    {
-      name: "Jacksonville ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZJX",
-    },
-    {
-      name: "Kansas City ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZKC",
-    },
-    {
-      name: "Los Angeles ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZLA",
-    },
-    {
-      name: "Memphis ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZME",
-    },
-    {
-      name: "Miami ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZMA",
-    },
-    {
-      name: "Minneapolis ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZMP",
-    },
-    {
-      name: "New York ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZNY",
-    },
-    {
-      name: "Oakland ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZOA",
-    },
-    {
-      name: "Salt Lake City ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZLC",
-    },
-    {
-      name: "Seattle ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZSE",
-    },
-    {
-      name: "Washington, D.C. ARTCC",
-      logo: <FaBuilding />,
-      plan: "ARTCC",
-      id: "ZDC",
-    },
-  ] as const satisfies Team[],
-  navMain: [
-    {
-      title: "ARTCC Overview",
-      url: "#",
-      icon: <FaBuilding />,
-      items: [
-        { title: "ARTCC Dashboard", url: "/facility/:id/dashboard" },
-        { title: "Home Roster", url: "/facility/:id/roster" },
-        { title: "Visiting Roster", url: "/facility/:id/visitors" },
-        { title: "Staff Page", url: "/facility/:id/staff" },
-      ],
-    },
-    {
-      title: "ARTCC Sr Staff",
-      url: "#",
-      icon: <MdOutlineGroups3 />,
-      items: [
-        { title: "SR Staff Dashboard", url: "/sr/dashboard" },
-        { title: "Pending Transfers", url: "/facility/:id/transfers" },
-        { title: "Facility Staff POCs", url: "/facility/:id/staff-roles" },
-        { title: "Action Log", url: "/facility/:id/log" },
-      ],
-    },
-    {
-      title: "ARTCC Staff",
-      url: "#",
-      icon: <FaPeopleGroup />,
-      items: [
-        { title: "Staff Dashboard", url: "/facility/:id/staff" },
-        { title: "Events", url: "/facility/:id/staff/events" },
-        { title: "Tech Config", url: "/facility/:id/staff/tech" },
-      ],
-    },
-    {
-      title: "Training Staff",
-      url: "#",
-      icon: <IoSchool />,
-      items: [
-        { title: "Training Dashboard", url: "/facility/:id/training" },
-        { title: "Training Notes", url: "/facility/:id/training/notes" },
-        { title: "Controller Promotion", url: "/facility/:id/training/promotion" },
-      ],
-    },
-  ] as const satisfies NavItem[],
+  teams,
   projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: <FrameIcon />,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: <PieChartIcon />,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: <MapIcon />,
-    },
+    { name: "Design Engineering", url: "#", icon: <FrameIcon /> },
+    { name: "Sales & Marketing", url: "#", icon: <PieChartIcon /> },
+    { name: "Travel", url: "#", icon: <MapIcon /> },
   ],
 }
 
@@ -267,17 +293,53 @@ function replaceIdInUrls(
   }))
 }
 
+function norm(value: string | undefined) {
+  return value?.trim().toLowerCase() ?? ""
+}
+
+function hasPermission(
+  perms: CobaltPermission[] | undefined,
+  object: string,
+  action?: string
+) {
+  if (!Array.isArray(perms)) return false
+  const obj = norm(object)
+  const act = action ? norm(action) : ""
+
+  return perms.some((p) => {
+    if (norm(p.object) !== obj) return false
+    if (!act) return true
+    return norm(p.action) === act
+  })
+}
+
+function buildUsaSidebarCapabilities(globalPermissions: CobaltPermission[]) {
+  const isSuperAdmin = hasPermission(globalPermissions, "superadmin", "usage")
+  const isDivisionManagement = hasPermission(
+    globalPermissions,
+    "division_management_role"
+  )
+  const isDivisionStaff = hasPermission(
+    globalPermissions,
+    "division_staff_role"
+  )
+  const isDivision = isDivisionManagement || isDivisionStaff
+
+  return {
+    canSeeUsaOverview: isSuperAdmin || isDivision,
+    canSeeDivisionStaff: isSuperAdmin || isDivision,
+  }
+}
 
 const TEAM_STORAGE_KEY = "staff.activeTeamId"
 
-function getTeamFromPathname(pathname: string, teams: readonly Team[]) {
+function getTeamFromPathname(pathname: string, allTeams: readonly Team[]) {
   const match = pathname.match(/^\/facility\/([^/]+)(?:\/|$)/i)
   const idFromUrl = match?.[1]?.toUpperCase()
   if (!idFromUrl) return null
 
-  return teams.find((t) => t.id.toUpperCase() === idFromUrl) ?? null
+  return allTeams.find((t) => t.id.toUpperCase() === idFromUrl) ?? null
 }
-
 
 function swapFacilityInPath(pathname: string, newTeamId: string) {
   const newSlug = newTeamId.toLowerCase()
@@ -286,9 +348,8 @@ function swapFacilityInPath(pathname: string, newTeamId: string) {
     return pathname.replace(/^\/facility\/[^/]+/i, `/facility/${newSlug}`)
   }
 
-  return `/facility/${newSlug}/staff/dashboard`
+  return `/facility/${newSlug}/overview`
 }
-
 
 export function AppSideBar({
   globalPermissions,
@@ -330,6 +391,8 @@ export function AppSideBar({
     [pathname, router]
   )
 
+  const isUsaTeam = activeTeam.id.toUpperCase() === "USA"
+
   const capabilities = React.useMemo(
     () =>
       buildStaffSidebarCapabilities({
@@ -340,17 +403,31 @@ export function AppSideBar({
     [globalPermissions, facilityPermissions, activeTeam.id]
   )
 
+  const usaCapabilities = React.useMemo(
+    () => buildUsaSidebarCapabilities(globalPermissions),
+    [globalPermissions]
+  )
+
+  const navSource = isUsaTeam ? usaNavMain : artccNavMain
+
   const permittedNavMain = React.useMemo(
     () =>
-      data.navMain.filter((item) => {
-        if (item.title === "ARTCC Overview") return capabilities.canSeeOverview
-        if (item.title === "ARTCC Sr Staff") return capabilities.canSeeSrStaff
-        if (item.title === "ARTCC Staff") return capabilities.canSeeArtccStaff
-        if (item.title === "Training Staff")
-          return capabilities.canSeeTrainingStaff
+      navSource.filter((item) => {
+        if (!isUsaTeam) {
+          if (item.key === "overview") return capabilities.canSeeOverview
+          if (item.key === "srStaff") return capabilities.canSeeSrStaff
+          if (item.key === "artccStaff") return capabilities.canSeeArtccStaff
+          if (item.key === "trainingStaff")
+            return capabilities.canSeeTrainingStaff
+          return false
+        }
+
+        if (item.key === "usaOverview") return usaCapabilities.canSeeUsaOverview
+        if (item.key === "divisionStaff")
+          return usaCapabilities.canSeeDivisionStaff
         return false
       }),
-    [capabilities]
+    [navSource, isUsaTeam, capabilities, usaCapabilities]
   )
 
   const updatedNavMain = replaceIdInUrls(
@@ -378,4 +455,3 @@ export function AppSideBar({
     </Sidebar>
   )
 }
-

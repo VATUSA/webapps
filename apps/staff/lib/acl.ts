@@ -66,6 +66,8 @@ export type StaffSidebarCapabilities = {
   canSeeSrStaff: boolean
   canSeeArtccStaff: boolean
   canSeeTrainingStaff: boolean
+  canSeeUsaOverview: boolean
+  canSeeDivisionStaff: boolean
 }
 
 export function buildStaffSidebarCapabilities(input: {
@@ -128,5 +130,9 @@ export function buildStaffSidebarCapabilities(input: {
       isFacilitySenior ||
       isFacilityJunior ||
       isFacilityTraining,
+
+    // USA-specific visibility
+    canSeeUsaOverview: isSuperAdmin || isDivision,
+    canSeeDivisionStaff: isSuperAdmin || isDivision,
   }
 }
