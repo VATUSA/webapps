@@ -26,7 +26,7 @@ export default async function Page({ params }: OverviewPageProps) {
 
   const facilityId = normalizeFacilityId(id)
   if (facilityId === "USA") {
-    redirect("/facility/usa/division/events")
+    redirect("/facility/usa/division/overview")
   }
 
   const facilitySlug = facilityId.toLowerCase()

@@ -3,7 +3,6 @@
 import * as React from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { NavMain } from "@/components/SideBar/NavMain"
-import { NavProjects } from "@/components/SideBar/NavProjects"
 import { NavUser } from "@/components/SideBar/NavUser"
 import { NavSwitcher } from "@/components/SideBar/NavSwitcher"
 import {
@@ -446,7 +445,6 @@ export function AppSideBar({
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={updatedNavMain} />
-        <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
