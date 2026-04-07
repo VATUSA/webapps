@@ -13,7 +13,7 @@ services:
       retries: 20
       start_period: 10s
     ports:
-      - 3306:3306
+      - 13306:3306
     volumes:
       - mysql_data:/var/lib/mysql
   cobalt:
