@@ -11,6 +11,8 @@ import {
 
 export type EventActionState = {
   error: string | null
+  success: string | null
+  redirectTo?: string
 }
 
 function readStringField(formData: FormData, key: string) {
@@ -85,59 +87,84 @@ export async function createEventAction(
   _prevState: EventActionState,
   formData: FormData
 ): Promise<EventActionState> {
-  const payload = buildEventPayload(formData)
-  const cobaltCookie = await getCobaltCookie()
-
-  if (!cobaltCookie) {
-    return { error: "Missing Cobalt auth cookie." }
-  }
-
   try {
+    const payload = buildEventPayload(formData)
+    const cobaltCookie = await getCobaltCookie()
+
+    if (!cobaltCookie) {
+      return {
+        error: "Missing Cobalt auth cookie.",
+        success: null,
+      }
+    }
+
     await cobaltRequest<unknown>("event/create", {
       method: "POST",
       body: payload,
       cobaltCookie,
       credentials: "omit",
     })
-  } catch (error) {
-    return { error: getReadableErrorMessage(error) }
-  }
 
-  const facilitySlug = parseFacilitySlug(payload.facility)
-  revalidatePath(`/facility/${facilitySlug}/staff/events`)
-  revalidatePath(`/facility/${facilitySlug}/staff`)
-  redirect(`/facility/${facilitySlug}/staff/events`)
+    const facilitySlug = parseFacilitySlug(payload.facility)
+    revalidatePath(`/facility/${facilitySlug}/staff/events`)
+    revalidatePath(`/facility/${facilitySlug}/staff`)
+
+    return {
+      error: null,
+      success: "Event created successfully.",
+      redirectTo: `/facility/${facilitySlug}/staff/events`,
+    }
+  } catch (error) {
+    return {
+      error: getReadableErrorMessage(error),
+      success: null,
+    }
+  }
 }
 
 export async function updateEventAction(
   _prevState: EventActionState,
   formData: FormData
 ): Promise<EventActionState> {
-  const eventId = readStringField(formData, "eventId")
-  if (!eventId) {
-    return { error: "Event ID is required." }
-  }
-
-  const payload = buildEventPayload(formData)
-  const cobaltCookie = await getCobaltCookie()
-
-  if (!cobaltCookie) {
-    return { error: "Missing Cobalt auth cookie." }
-  }
-
   try {
+    const eventId = readStringField(formData, "eventId")
+    if (!eventId) {
+      return {
+        error: "Event ID is required.",
+        success: null,
+      }
+    }
+
+    const payload = buildEventPayload(formData)
+    const cobaltCookie = await getCobaltCookie()
+
+    if (!cobaltCookie) {
+      return {
+        error: "Missing Cobalt auth cookie.",
+        success: null,
+      }
+    }
+
     await cobaltRequest<unknown>(`event/${encodeURIComponent(eventId)}`, {
       method: "POST",
       body: payload,
       cobaltCookie,
       credentials: "omit",
     })
-  } catch (error) {
-    return { error: getReadableErrorMessage(error) }
-  }
 
-  const facilitySlug = parseFacilitySlug(payload.facility)
-  revalidatePath(`/facility/${facilitySlug}/staff/events`)
-  revalidatePath(`/facility/${facilitySlug}/staff`)
-  redirect(`/facility/${facilitySlug}/staff/events`)
+    const facilitySlug = parseFacilitySlug(payload.facility)
+    revalidatePath(`/facility/${facilitySlug}/staff/events`)
+    revalidatePath(`/facility/${facilitySlug}/staff`)
+
+    return {
+      error: null,
+      success: "Event saved successfully.",
+      redirectTo: `/facility/${facilitySlug}/staff/events`,
+    }
+  } catch (error) {
+    return {
+      error: getReadableErrorMessage(error),
+      success: null,
+    }
+  }
 }

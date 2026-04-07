@@ -1,7 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { useActionState } from "react"
+import { useActionState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import { FormSaveButton } from "@/components/Form/FormSaveButton"
 import { FormErrorToast } from "@/components/Form/FormErrorToast"
 import {
@@ -27,6 +29,8 @@ type EventFormProps = {
 
 const initialState: EventActionState = {
   error: null,
+  success: null,
+  redirectTo: undefined,
 }
 
 function toDateTimeLocal(value?: string) {
@@ -43,6 +47,7 @@ function toDateTimeLocal(value?: string) {
 }
 
 export default function EventForm({ mode, facilityId, event }: EventFormProps) {
+  const router = useRouter()
   const isEdit = mode === "edit"
   const title = isEdit ? "Edit Event" : "Create Event"
   const description = isEdit
@@ -51,6 +56,27 @@ export default function EventForm({ mode, facilityId, event }: EventFormProps) {
 
   const action = isEdit ? updateEventAction : createEventAction
   const [state, formAction] = useActionState(action, initialState)
+
+  const lastSuccessRef = React.useRef<string | null>(null)
+
+  useEffect(() => {
+    if (!state.success) {
+      lastSuccessRef.current = null
+      return
+    }
+
+    if (state.success !== lastSuccessRef.current) {
+      lastSuccessRef.current = state.success
+
+      toast.success(isEdit ? "Event saved" : "Event created", {
+        description: state.success,
+      })
+
+      if (state.redirectTo) {
+        router.push(state.redirectTo)
+      }
+    }
+  }, [state.success, state.redirectTo, router, isEdit])
 
   return (
     <Card className="border-border/60">
