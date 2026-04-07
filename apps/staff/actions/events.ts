@@ -1,13 +1,17 @@
 "use server"
 
+import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import {
-  createEvent,
   cobaltRequest,
   getEventById,
   type CobaltEvent,
 } from "@workspace/third-party/cobalt"
+
+export type EventActionState = {
+  error: string | null
+}
 
 function readStringField(formData: FormData, key: string) {
   const value = formData.get(key)
@@ -54,6 +58,18 @@ function buildEventPayload(formData: FormData) {
   }
 }
 
+async function getCobaltCookie() {
+  const cookieStore = await cookies()
+  return cookieStore.get("vatusa-cobalt-token")?.value
+}
+
+function getReadableErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message
+  }
+  return "Something went wrong while saving the event."
+}
+
 export async function fetchEventForEdit(
   id: number | string
 ): Promise<CobaltEvent | null> {
@@ -65,10 +81,27 @@ export async function fetchEventForEdit(
   }
 }
 
-export async function createEventAction(formData: FormData) {
+export async function createEventAction(
+  _prevState: EventActionState,
+  formData: FormData
+): Promise<EventActionState> {
   const payload = buildEventPayload(formData)
+  const cobaltCookie = await getCobaltCookie()
 
-  await createEvent(payload)
+  if (!cobaltCookie) {
+    return { error: "Missing Cobalt auth cookie." }
+  }
+
+  try {
+    await cobaltRequest<unknown>("event/create", {
+      method: "POST",
+      body: payload,
+      cobaltCookie,
+      credentials: "omit",
+    })
+  } catch (error) {
+    return { error: getReadableErrorMessage(error) }
+  }
 
   const facilitySlug = parseFacilitySlug(payload.facility)
   revalidatePath(`/facility/${facilitySlug}/staff/events`)
@@ -76,17 +109,32 @@ export async function createEventAction(formData: FormData) {
   redirect(`/facility/${facilitySlug}/staff/events`)
 }
 
-export async function updateEventAction(formData: FormData) {
+export async function updateEventAction(
+  _prevState: EventActionState,
+  formData: FormData
+): Promise<EventActionState> {
   const eventId = readStringField(formData, "eventId")
-  if (!eventId) throw new Error("Event ID is required.")
+  if (!eventId) {
+    return { error: "Event ID is required." }
+  }
 
   const payload = buildEventPayload(formData)
+  const cobaltCookie = await getCobaltCookie()
 
-  // If your backend uses a different method/path for event updates, adjust this one call.
-  await cobaltRequest<unknown>(`event/${encodeURIComponent(eventId)}`, {
-    method: "POST",
-    body: payload,
-  })
+  if (!cobaltCookie) {
+    return { error: "Missing Cobalt auth cookie." }
+  }
+
+  try {
+    await cobaltRequest<unknown>(`event/${encodeURIComponent(eventId)}`, {
+      method: "POST",
+      body: payload,
+      cobaltCookie,
+      credentials: "omit",
+    })
+  } catch (error) {
+    return { error: getReadableErrorMessage(error) }
+  }
 
   const facilitySlug = parseFacilitySlug(payload.facility)
   revalidatePath(`/facility/${facilitySlug}/staff/events`)

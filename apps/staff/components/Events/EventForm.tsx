@@ -1,4 +1,9 @@
-import { Button } from "@workspace/ui/components/button"
+"use client"
+
+import * as React from "react"
+import { useActionState } from "react"
+import { FormSaveButton } from "@/components/Form/FormSaveButton"
+import { FormErrorToast } from "@/components/Form/FormErrorToast"
 import {
   Card,
   CardContent,
@@ -8,12 +13,20 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { type CobaltEvent } from "@workspace/third-party/cobalt"
-import { createEventAction, updateEventAction } from "@/actions/events"
+import {
+  createEventAction,
+  updateEventAction,
+  type EventActionState,
+} from "@/actions/events"
 
 type EventFormProps = {
   mode: "create" | "edit"
   facilityId: string
   event?: CobaltEvent | null
+}
+
+const initialState: EventActionState = {
+  error: null,
 }
 
 function toDateTimeLocal(value?: string) {
@@ -36,6 +49,9 @@ export default function EventForm({ mode, facilityId, event }: EventFormProps) {
     ? "Update the event details for this facility."
     : "Create a new event for this facility."
 
+  const action = isEdit ? updateEventAction : createEventAction
+  const [state, formAction] = useActionState(action, initialState)
+
   return (
     <Card className="border-border/60">
       <CardHeader>
@@ -44,10 +60,12 @@ export default function EventForm({ mode, facilityId, event }: EventFormProps) {
       </CardHeader>
 
       <CardContent>
-        <form
-          action={isEdit ? updateEventAction : createEventAction}
-          className="space-y-5"
-        >
+        <FormErrorToast
+          error={state.error}
+          title={isEdit ? "Failed to update event" : "Failed to create event"}
+        />
+
+        <form action={formAction} className="space-y-5">
           <input type="hidden" name="facility" value={facilityId} />
           {isEdit && event ? (
             <input type="hidden" name="eventId" value={String(event.id)} />
@@ -122,9 +140,9 @@ export default function EventForm({ mode, facilityId, event }: EventFormProps) {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button type="submit">
+            <FormSaveButton>
               {isEdit ? "Save Changes" : "Create Event"}
-            </Button>
+            </FormSaveButton>
           </div>
         </form>
       </CardContent>

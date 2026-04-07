@@ -373,12 +373,18 @@ export async function getEventById(
   )
 }
 
-export async function createEvent(payload: CreateEventInput): Promise<unknown> {
+export async function createEvent(
+  payload: CreateEventInput,
+  cobaltCookie?: string
+): Promise<unknown> {
   return cobaltRequest<unknown>("event/create", {
     method: "POST",
     body: payload,
+    cobaltCookie,
+    credentials: cobaltCookie ? "omit" : undefined,
   })
 }
+
 
 /* ============================================================================
  * News

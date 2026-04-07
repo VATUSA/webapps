@@ -254,7 +254,7 @@ const data = {
 }
 
 function replaceIdInUrls(
-  items: typeof data.navMain,
+  items: readonly NavItem[],
   facilityId: string
 ): NavItem[] {
   return items.map((item) => ({
@@ -266,6 +266,7 @@ function replaceIdInUrls(
     })),
   }))
 }
+
 
 const TEAM_STORAGE_KEY = "staff.activeTeamId"
 
