@@ -184,7 +184,9 @@ export async function whoami(): Promise<string> {
 export async function whoamiWithCookies(
   cobaltCookie?: string
 ): Promise<string> {
-  if (!cobaltCookie) return "-1"
+  if (!cobaltCookie) {
+    throw Error("Missing Cobalt cookie")
+  }
 
   return cobaltRequest<string>("login/whoami", {
     method: "GET",
@@ -200,11 +202,46 @@ export async function loginAs(cid: number | string): Promise<unknown> {
 }
 
 export type CobaltSession = {
-  [key: string]: unknown
+  user: {
+    cid: number
+    network_user: {
+      first_name: string
+      last_name: string
+      email: string
+      rating: number
+      region: string
+      division: string
+      subdivision: string
+      pilot_rating: number
+      military_rating: number
+    }
+    division_user: {
+      display_name: string
+      controller_rating: number
+      instructor_rating: number
+      facility: string
+      visiting_facilities: []
+      discord_id: null
+      last_promotion_timestamp: null
+      last_transfer_timestamp: null
+    }
+  }
+  global_permissions: []
+  facility_permissions: []
 }
 
-export async function getMySession(): Promise<CobaltSession> {
-  return cobaltRequest<CobaltSession>("my/session", { method: "GET" })
+export async function getMySession(
+  cobaltCookie?: string
+): Promise<CobaltSession> {
+  if (!cobaltCookie) {
+    throw Error("Missing Cobalt cookie")
+  }
+
+  return cobaltRequest<CobaltSession>("my/session", {
+    method: "GET",
+    cobaltCookie,
+    credentials: "omit",
+  })
 }
 
 /* ============================================================================

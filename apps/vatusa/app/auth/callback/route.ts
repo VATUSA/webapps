@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { getSession } from "@/lib/session"
-import { cobalt, vatusa } from "@workspace/third-party"
+import { cobalt } from "@workspace/third-party"
 import { cookies } from "next/headers"
 
 /**
@@ -17,15 +17,13 @@ export async function GET() {
 
   if (cobaltCookie) {
     const cid = await cobalt.whoamiWithCookies(cobaltCookie)
-    const cobaltInfo = await cobalt.getMySession()
-    console.log(cobaltInfo) // TODO use somewhere
-    const info = await vatusa.getUserInfo(cid)
+    const cobaltInfo = await cobalt.getMySession(cobaltCookie)
 
     const session = await getSession()
     session.isLoggedIn = true
     session.cid = cid
-    session.name = `${info.data.fname} ${info.data.lname}`
-    session.roles = info.data.roles
+    session.name = `${cobaltInfo.user.network_user.first_name} ${cobaltInfo.user.network_user.last_name}`
+    session.roles = cobaltInfo.global_permissions
     await session.save()
   } else {
     // If the cookie is undefined, then either the login did not succeed, or this
