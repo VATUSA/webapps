@@ -11,4 +11,5 @@ jobs:
     uses: vatusa/gitops/.github/workflows/common-release.yml@main
     with:
       image-name: 'portal'
+      kustomization-folder: 'webapps'
     secrets: inherit
