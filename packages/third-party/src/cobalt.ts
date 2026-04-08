@@ -9,6 +9,11 @@ export type CobaltRequestOptions = {
   credentials?: RequestCredentials
   next?: NextFetchRequestConfig
   /**
+   * Raw cobalt cookie value (without cookie name).
+   * Adds: Cookie: vatusa-cobalt-token=<value>
+   */
+  cobaltCookie?: string
+  /**
    * Optional bearer token if your backend accepts it.
    */
   bearerToken?: string
@@ -67,16 +72,15 @@ function toUrl(path: string): string {
   return `${getBaseUrl()}/${cleanPath}`
 }
 
-async function buildHeaders(options: CobaltRequestOptions): Promise<Headers> {
+function buildHeaders(options: CobaltRequestOptions): Headers {
   const headers = new Headers(options.headers ?? {})
 
   if (options.body !== undefined && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json")
   }
 
-  const cobaltCookie = await (window as any).cookieStorage.getItem("vatusa-cobalt-token")?.value
-  if (cobaltCookie) {
-    headers.set("Cookie", `vatusa-cobalt-token=${cobaltCookie}`)
+  if (options.cobaltCookie) {
+    headers.set("Cookie", `vatusa-cobalt-token=${options.cobaltCookie}`)
   }
 
   if (options.bearerToken && !headers.has("Authorization")) {
@@ -109,7 +113,7 @@ export async function cobaltRequest<T>(
     method,
     cache: options.cache ?? "no-store",
     credentials: options.credentials ?? "include",
-    headers: await buildHeaders(options),
+    headers: buildHeaders(options),
     body:
       options.body === undefined
         ? undefined
@@ -177,6 +181,20 @@ export async function whoami(): Promise<string> {
   return cobaltRequest<string>("login/whoami", { method: "GET" })
 }
 
+export async function whoamiWithCookies(
+  cobaltCookie?: string
+): Promise<string> {
+  if (!cobaltCookie) {
+    throw Error("Missing Cobalt cookie")
+  }
+
+  return cobaltRequest<string>("login/whoami", {
+    method: "GET",
+    cobaltCookie,
+    credentials: "omit",
+  })
+}
+
 export async function loginAs(cid: number | string): Promise<unknown> {
   return cobaltRequest<unknown>(`login/as/${encodeURIComponent(String(cid))}`, {
     method: "GET",
@@ -212,9 +230,16 @@ export type CobaltSession = {
   facility_permissions: []
 }
 
-export async function getMySession(): Promise<CobaltSession> {
+export async function getMySession(
+  cobaltCookie?: string
+): Promise<CobaltSession> {
+  if (!cobaltCookie) {
+    throw Error("Missing Cobalt cookie")
+  }
+
   return cobaltRequest<CobaltSession>("my/session", {
     method: "GET",
+    cobaltCookie,
     credentials: "omit",
   })
 }
