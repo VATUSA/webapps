@@ -12,12 +12,9 @@ import { cookies } from "next/headers"
  * with that data. Then redirects to the homepage.
  */
 export async function GET() {
-  const cookieStorage = await cookies()
-  const cobaltCookie = cookieStorage.get("vatusa-cobalt-token")?.value
-
-  if (cobaltCookie) {
-    const cid = await cobalt.whoamiWithCookies(cobaltCookie)
-    const cobaltInfo = await cobalt.getMySession(cobaltCookie)
+  const cid = await cobalt.whoami()
+  if (cid != "-1") {
+    const cobaltInfo = await cobalt.getMySession()
 
     const session = await getSession()
     session.isLoggedIn = true
