@@ -17,149 +17,59 @@ const mockStaff: StaffEntry[] = [
     id: "vatusa1",
     position: "VATUSA1 - Division Director",
     name: "Brandon Barrett",
-    email: "vatusa1@portal.net",
+    email: "vatusa1@vatusa.net",
   },
   {
     id: "vatusa2",
     position: "VATUSA2 - Deputy Director Air Traffic Services",
     name: "Brandon Wening",
-    email: "vatusa2@portal.net",
+    email: "vatusa2@vatusa.net",
   },
   {
     id: "vatusa3",
     position: "VATUSA3 - Deputy Director Training Services",
     name: "Brin Brody",
-    email: "vatusa3@portal.net",
+    email: "vatusa3@vatusa.net",
   },
   {
     id: "vatusa4",
     position: "VATUSA4 - Deputy Director Support Services",
     name: "Jared West",
-    email: "vatusa4@portal.net",
+    email: "vatusa4@vatusa.net",
   },
   {
     id: "vatusa5",
     position: "VATUSA5 - Events Manafer",
     name: "Dan Michael Bonaga",
-    email: "vatusa5@portal.net",
+    email: "vatusa5@vatusa.net",
   },
   {
     id: "vatusa6",
     position: "VATUSA6 - Technical Manager",
     name: "Matt Boulanger",
-    email: "vatusa6@portal.net",
+    email: "vatusa6@vatusa.net",
   },
   {
     id: "vatusa7",
     position: "VATUSA7 - Social Media Manager",
     name: "Jason Calder",
-    email: "vatusa7@portal.net",
+    email: "vatusa7@vatusa.net",
   },
   {
     id: "vatusa8",
     position: "VATUSA8 - Training Services Manager",
     name: "Ashar Hussain",
-    email: "vatusa8@portal.net",
+    email: "vatusa8@vatusa.net",
   },
   {
     id: "vatusa9",
     position: "VATUSA9 - Training Content and Curriculum Manager",
     name: "Andrew Selder",
-    email: "vatusa9@portal.net",
+    email: "vatusa9@vatusa.net",
   },
 ]
 
-const mockFacilityRosters: FacilityRoster[] = [
-  {
-    id: "zdc",
-    facility: "Washington, D.C. ARTCC",
-    staff: [
-      {
-        id: "zdc-atm",
-        position: "Air Traffic Manager (ATM)",
-        name: "Justin McElvaney",
-        email: "atm@zdcartcc.org",
-      },
-      {
-        id: "zdc-datm",
-        position: "Deputy Air Traffic Manager (DATM)",
-        name: "Junzhe Yan",
-        email: "datm@zdcartcc.org",
-      },
-      {
-        id: "zdc-ta",
-        position: "Training Administrator (TA)",
-        name: "Jackson Smith",
-        email: "ta@zdcartcc.org",
-      },
-    ],
-    members: [
-      {
-        id: "zdc-1155655",
-        name: "Robert Shearman Jr",
-        cid: 1155655,
-        facility: "ZDC",
-      },
-      {
-        id: "zdc-1652726",
-        name: "Carson Berget",
-        cid: 1652726,
-        facility: "ZDC",
-      },
-      { id: "zdc-1340265", name: "Junzhe Yan", cid: 1340265, facility: "ZDC" },
-      {
-        id: "zdc-1471203",
-        name: "Jackson Smith",
-        cid: 1471203,
-        facility: "ZDC",
-      },
-    ],
-  },
-  {
-    id: "zab",
-    facility: "Albuquerque ARTCC",
-    staff: [
-      {
-        id: "zab-atm",
-        position: "Air Traffic Manager (ATM)",
-        name: "Mia Turner",
-        email: "atm@zabartcc.org",
-      },
-      {
-        id: "zab-ta",
-        position: "Training Administrator (TA)",
-        name: "Ethan Ross",
-        email: "ta@zabartcc.org",
-      },
-    ],
-    members: [
-      { id: "zab-100001", name: "John Smith", cid: 100001, facility: "ZAB" },
-      { id: "zab-100005", name: "Emma Davis", cid: 100005, facility: "ZAB" },
-    ],
-  },
-  {
-    id: "ztl",
-    facility: "Atlanta ARTCC",
-    staff: [
-      {
-        id: "ztl-atm",
-        position: "Air Traffic Manager (ATM)",
-        name: "Noah Ellis",
-        email: "atm@ztlartcc.org",
-      },
-      {
-        id: "ztl-fe",
-        position: "Facility Engineer (FE)",
-        name: "Ava Brooks",
-        email: "fe@ztlartcc.org",
-      },
-    ],
-    members: [
-      { id: "ztl-100002", name: "Maria Garcia", cid: 100002, facility: "ZTL" },
-      { id: "ztl-100009", name: "Lucas Hall", cid: 100009, facility: "ZTL" },
-    ],
-  },
-]
+const mockFacilityRosters: FacilityRoster[] = []
 
 export default function MembersStaffContent() {
   const [activeTab, setActiveTab] = React.useState<ActiveTab>("staff")
