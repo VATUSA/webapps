@@ -8,7 +8,7 @@ on:
         default: ''
 jobs:
   common-release:
-    uses: vatusa/gitops/.github/workflows/common-release.yml@main
+    uses: portal/gitops/.github/workflows/common-release.yml@main
     with:
       image-name: 'portal'
       kustomization-folder: 'webapps'

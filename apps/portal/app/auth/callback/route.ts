@@ -13,11 +13,11 @@ import type { CobaltSession } from "@workspace/third-party/cobalt"
  *
  * Persisted session fields include:
  * - `isLoggedIn`, `cid`, `name`
- * - legacy `roles` (for existing vatusa UI/features)
+ * - legacy `roles` (for existing portal UI/features)
  * - canonical Cobalt payload (`session.cobalt`) used by ACL-aware apps
  *
  * Behavior:
- * - If `vatusa-cobalt-token` exists: hydrate and save session.
+ * - If `portal-cobalt-token` exists: hydrate and save session.
  * - If missing: destroy existing session (logout or failed callback case).
  * - Always redirect to `/` when finished.
  */

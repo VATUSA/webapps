@@ -4,10 +4,9 @@ on:
     branches: [master]
 jobs:
   common-ci:
-    uses: vatusa/gitops/.github/workflows/common-ci.yml@main
+    uses: portal/gitops/.github/workflows/common-ci.yml@main
     with:
-      image-name: 'portal'
-      kustomization-folder: 'webapps'
-      relative-path: 'apps/vatusa/'
+      image-name: "portal"
+      kustomization-folder: "webapps"
+      relative-path: "apps/vatusa/"
     secrets: inherit
-

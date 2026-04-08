@@ -7,7 +7,7 @@ RUN corepack enable
 FROM base AS dependencies
 # Copy workspace manifests first for layer caching
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-COPY apps/vatusa/package.json apps/vatusa/package.json
+COPY apps/portal/package.json apps/portal/package.json
 COPY packages/ui/package.json packages/ui/package.json
 COPY packages/eslint-config/package.json packages/eslint-config/package.json
 COPY packages/typescript-config/package.json packages/typescript-config/package.json
@@ -33,10 +33,10 @@ ENV HOSTNAME=0.0.0.0
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Monorepo standalone output paths
-COPY --from=builder --chown=node:node /app/apps/vatusa/.next/standalone ./
-COPY --from=builder --chown=node:node /app/apps/vatusa/.next/static ./apps/vatusa/.next/static
-COPY --from=builder --chown=node:node /app/apps/vatusa/public ./apps/vatusa/public
+COPY --from=builder --chown=node:node /app/apps/portal/.next/standalone ./
+COPY --from=builder --chown=node:node /app/apps/portal/.next/static ./apps/portal/.next/static
+COPY --from=builder --chown=node:node /app/apps/portal/public ./apps/portal/public
 
 USER node
 EXPOSE 3000
-CMD ["node", "apps/vatusa/server.js"]
+CMD ["node", "apps/portal/server.js"]

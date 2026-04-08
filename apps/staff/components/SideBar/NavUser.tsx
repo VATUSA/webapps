@@ -49,7 +49,7 @@ export function NavUser({
   const { isMobile } = useSidebar()
 
   const handleProfileClick = () => {
-    //TODO: Update to my vatusa profile
+    //TODO: Update to my portal profile
     window.location.href = "/profile"
   }
 

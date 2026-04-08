@@ -1,0 +1,19 @@
+{
+	# Keep local/proxied setups simple; TLS can be handled upstream if needed.
+	auto_https off
+}
+
+:80 {
+	handle /staff* {
+		reverse_proxy staff:3000
+	}
+
+	handle_path /coballt* {
+		reverse_proxy cobalt:8080
+	}
+
+	handle {
+		reverse_proxy vatusa:3000
+	}
+}
+

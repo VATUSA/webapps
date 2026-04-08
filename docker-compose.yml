@@ -1,3 +1,7 @@
+name: webapps-dev
+
+# Development compose (kept as default for local workflows).
+# Production stack lives in docker-compose.prod.yml.
 services:
   cobalt_mysql:
     image: mysql:9

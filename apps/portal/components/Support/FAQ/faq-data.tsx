@@ -93,7 +93,7 @@ export const faqCategories: FAQCategory[] = [
     title: "Data & Web Services",
     items: [
       {
-        id: "web-error-vatusa-site",
+        id: "web-error-portal-site",
         question: "I noticed an error on the VATUSA website, who do I contact?",
         answer:
           "Submit a support ticket with steps to reproduce, screenshots, browser/device details, and relevant page URL.",

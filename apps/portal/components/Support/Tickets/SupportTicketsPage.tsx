@@ -20,7 +20,7 @@ import { mockTickets } from "@/components/Support/Tickets/MockTickets"
 import NewTicketForm from "@/components/Support/Tickets/NewTicketForm"
 import TicketTable from "@/components/Support/Tickets/TicketTable"
 
-const STORAGE_KEY = "vatusa-support-tickets:v1"
+const STORAGE_KEY = "portal-support-tickets:v1"
 
 function buildTicketId(existing: SupportTicket[]): string {
   const maxSeq = existing.reduce((max, ticket) => {
