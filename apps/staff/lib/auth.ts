@@ -21,6 +21,26 @@ const STAFF_PERMISSION_OBJECTS = new Set([
   "user_sensitive_details",
 ])
 
+async function saveSessionIfWritable(
+  session: Awaited<ReturnType<typeof getSession>>
+) {
+  try {
+    await session.save()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+
+    if (
+      message.includes(
+        "Cookies can only be modified in a Server Action or Route Handler"
+      )
+    ) {
+      return
+    }
+
+    throw error
+  }
+}
+
 async function refreshCobaltSessionIfStale(
   session: Awaited<ReturnType<typeof getSession>>
 ) {
@@ -42,13 +62,13 @@ async function refreshCobaltSessionIfStale(
       credentials: "omit",
     })
     session.cobaltSyncedAt = now
-    await session.save()
+    await saveSessionIfWritable(session)
   } catch {
     // Keep stale data briefly for resilience, but fail closed if too old.
     if (!hasCobalt || age > MAX_STALE_MS) {
       session.cobalt = undefined
       session.cobaltSyncedAt = undefined
-      await session.save()
+      await saveSessionIfWritable(session)
     }
   }
 }
