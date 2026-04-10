@@ -8,6 +8,7 @@ jobs:
     with:
       image-name: "portal"
       relative-path: "apps/portal/"
+    secrets: inherit
   common-dev-ci-portal:
     uses: vatusa/gitops/.github/workflows/common-dev-ci.yml@main
     needs: common-build-portal
