@@ -1,4 +1,5 @@
 import Link from "next/link"
+import config from "package.json" with {type: 'json'};
 
 export default function Footer() {
   const year = new Date().getFullYear()
@@ -100,7 +101,13 @@ export default function Footer() {
 
       <div className="border-t border-border py-4">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 text-xs text-muted-foreground sm:flex-row">
-          <p>© {year} VATUSA. All rights reserved.</p>
+          <p>
+            © {year} VATUSA. All rights reserved.
+            <span className="mx-2 text-muted-foreground/70">•</span>
+            <span className="font-medium text-foreground/80">
+              v{config.version}
+            </span>
+          </p>
           <div className="flex items-center gap-4">
             <Link
               href="/info/privacy"
