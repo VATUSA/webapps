@@ -23,7 +23,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm --filter staff build
 
-FROM node:${NODE_VERSION} AS runner
+FROM node:${NODE_VERSION} AS app
 WORKDIR /app
 
 # Runtime defaults; override via env/.env/compose
