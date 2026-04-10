@@ -42,7 +42,7 @@ export default function PoliciesListTab({
                 className="group flex items-start justify-between gap-4 px-4 py-3 transition-colors hover:bg-accent/50"
               >
                 <Link href={item.href} className="min-w-0 flex-1">
-                  <p className="font-medium text-foreground">{item.title}</p>
+                  <p className="font-medium text-foreground">{item.id} - {item.title}</p>
                   <p className="text-sm text-muted-foreground transition-colors group-hover:text-foreground/80">
                     {item.summary}
                   </p>
