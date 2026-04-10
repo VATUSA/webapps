@@ -35,6 +35,7 @@ export async function GET() {
     session.cid = cid
     session.name = `${cobaltInfo.user.network_user.first_name} ${cobaltInfo.user.network_user.last_name}`
     session.roles = cobaltInfo.global_permissions
+    session.cobalt = cobaltInfo
     await session.save()
   } else {
     // No Cobalt cookie means auth did not complete or user logged out.
