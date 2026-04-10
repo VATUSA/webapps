@@ -7,9 +7,15 @@ on:
         required: false
         default: ''
 jobs:
-  common-release:
+  common-release-portal:
     uses: vatusa/gitops/.github/workflows/common-release.yml@main
     with:
       image-name: 'portal'
+      kustomization-folder: 'webapps'
+    secrets: inherit
+  common-release-staff:
+    uses: vatusa/gitops/.github/workflows/common-release.yml@main
+    with:
+      image-name: 'staff'
       kustomization-folder: 'webapps'
     secrets: inherit
