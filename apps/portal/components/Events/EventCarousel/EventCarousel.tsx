@@ -44,7 +44,7 @@ function EventSlide({ event }: { event: CobaltEvent }) {
                 <img
                   src={event.banner_image_url}
                   alt={event.title}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-contain object-center"
                   loading="lazy"
                   decoding="async"
                   referrerPolicy="no-referrer"
