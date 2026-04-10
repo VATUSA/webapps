@@ -58,18 +58,34 @@ export function isNoRowsNotFound(body: unknown): boolean {
   )
 }
 
-function getBaseUrl(): string {
-  const fromEnv =
-    process.env.NEXT_PUBLIC_COBALT_BASE_URL ??
-    process.env.COBALT_BASE_URL ??
-    DEFAULT_BASE_URL
+function normalizeBaseUrl(url: string): string {
+  return url.endsWith("/") ? url.slice(0, -1) : url
+}
 
-  return fromEnv.endsWith("/") ? fromEnv.slice(0, -1) : fromEnv
+/**
+ * Used for server-side cobalt API calls.
+ * Prefer internal-only hostnames here when available.
+ */
+function getApiBaseUrl(): string {
+  const fromEnv = process.env.COBALT_INTERNAL_BASE_URL ?? DEFAULT_BASE_URL
+
+  return normalizeBaseUrl(fromEnv)
+}
+
+/**
+ * Used for browser-facing auth redirects.
+ * Prefer externally reachable hostnames here.
+ */
+function getAuthBaseUrl(): string {
+  const fromEnv =
+    process.env.NEXT_PUBLIC_COBALT_EXTERNAL_BASE_URL ?? DEFAULT_BASE_URL
+
+  return normalizeBaseUrl(fromEnv)
 }
 
 function toUrl(path: string): string {
   const cleanPath = path.startsWith("/") ? path.slice(1) : path
-  return `${getBaseUrl()}/${cleanPath}`
+  return `${getApiBaseUrl()}/${cleanPath}`
 }
 
 function buildHeaders(options: CobaltRequestOptions): Headers {
@@ -167,14 +183,14 @@ export async function cobaltRequestOrNull<T>(
  * First URL of the login flow. Used to redirect users from the frontend.
  */
 export function getLoginUrl(): string {
-  return `${getBaseUrl()}/login`
+  return `${getAuthBaseUrl()}/login`
 }
 
 /**
  * Redirect users to this URL to clear their cobalt session.
  */
 export function getLogoutUrl(): string {
-  return `${getBaseUrl()}/login/logout`
+  return `${getAuthBaseUrl()}/login/logout`
 }
 
 export async function whoami(): Promise<string> {
