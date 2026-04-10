@@ -12,6 +12,7 @@ jobs:
     secrets: inherit
   common-ci-staff:
     uses: vatusa/gitops/.github/workflows/common-ci.yml@main
+    needs: common-ci-portal
     with:
       image-name: "staff"
       kustomization-folder: "webapps"
