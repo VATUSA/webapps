@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-const basePath = process.env.NEXT_BASE_PATH ?? ""
+const basePath = process.env.STAFF_NEXT_BASE_PATH ?? ""
 
 const nextConfig = {
   transpilePackages: ["@workspace/ui"],
