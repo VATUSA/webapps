@@ -12,22 +12,58 @@ const tabConfig = {
     emptyText: "No policy documents available.",
     items: [
       {
-        id: "gd-1",
-        title: "VATUSA Code of Conduct",
-        summary: "Core behavior and professionalism standards for all members.",
-        href: "/downloads/policies/code-of-conduct.pdf",
+        id: "DP001",
+        title: "General Division Policy",
+        summary:
+          "Provides a standard for the general administration of VATUSA Division.",
+        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/general-division-policy.pdff",
       },
       {
-        id: "gd-2",
-        title: "Controller Requirements",
-        summary: "Baseline requirements for controller activity and currency.",
-        href: "/downloads/policies/controller-requirements.pdf",
+        id: "DP002",
+        title: "General Training Policy",
+        summary: "Training Policy",
+        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/division-training-policy.pdf",
       },
       {
-        id: "gd-3",
-        title: "Visiting & Transfer Policy",
-        summary: "Guidance for controller transfers and visitor assignments.",
-        href: "/downloads/policies/visiting-transfer.pdf",
+        id: "DP003",
+        title: "General Events Policy",
+        summary:
+          "Establishes division-wide clarification and standardization of event processes and procedures.",
+        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/general-events-policy.pdf",
+      },
+      {
+        id: "GO61720",
+        title: "C3 Senior Controller Program\t",
+        summary:
+          "Facility staff members can nominate controllers to recieve a C3 rating following the outlined criteria.",
+        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/c3-senior-controller-program.pdf",
+      },
+      {
+        id: "7210.35C",
+        title: "VATUSA Air Traffic Control System Command Center",
+        summary:
+          "Prescribes the organization, functions, procedures, and policies of the VATUSA Air Traffic Control System Command Center.",
+        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/vatusa-command-center.pdf",
+      },
+      {
+        id: "7210.932",
+        title: "NTML Entry Codes",
+        summary: "Reference for NTML entry codes.",
+        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/ntml-entry-codes-reference.pdf",
+      },
+      {
+        id: "GRPFLT",
+        title: "Flight Notification and Staffing Request Guide",
+        summary:
+          "A brief guide on how to submit requests for staffing and group flight notifications for VA/VSO/group flight/streamers.",
+        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/group-flight-notification-staffing-guide.pdf",
+      },
+      {
+        id: "ORG",
+        title: "VATUSA Organizational Chart",
+        summary:
+          "This graphic defines the staff structure and chain-of-command of VATUSA.",
+        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/vatusa-organizational-chart.jpeg",
       },
     ],
   },
@@ -37,16 +73,29 @@ const tabConfig = {
     emptyText: "No media policy items available.",
     items: [
       {
-        id: "media-1",
-        title: "Branding Guidelines",
-        summary: "Official VATUSA branding and logo usage guidelines.",
-        href: "/downloads/policies/branding-guidelines.pdf",
+        id: "SMT001",
+        title: "Social Media Team Standard Operating Procedure",
+        summary: "",
+        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/social-media-team-standard-operating-procedure-.pdf",
       },
       {
-        id: "media-2",
-        title: "Media Kit",
-        summary: "Complete media kit with assets and templates.",
-        href: "/downloads/policies/media-kit.pdf",
+        id: "LA2021.1",
+        title: "VATUSA Logo Assets",
+        summary:
+          "VATUSA Logo Assets (Full Version w/ Alternate Color Schemes & Icon Version w/ Alternate Color Schemes in PNG & Vector Logo Files in AI & SVG)",
+        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/logo-assets.zip",
+      },
+      {
+        id: "BSG2021.1",
+        title: "VATUSA Brand Style Guide",
+        summary: "VATUSA Branding & Styling Guidelines v.2021.1",
+        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/brand-style-guide.pdf",
+      },
+      {
+        id: "PLA2021.1",
+        title: "VATUSA Public Logo Assets",
+        summary: "VATUSA Public Logo Assets",
+        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/vatusa-public-logo-assets.zip",
       },
     ],
   },
