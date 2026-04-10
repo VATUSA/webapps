@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { MailIcon } from "lucide-react"
 import {
   Card,
   CardContent,
@@ -9,70 +8,143 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
+import { fetchFacilityRoster } from "@/actions/roster"
 
-export type MemberEntry = {
+type FacilityOption = {
   id: string
-  name: string
-  cid: number
-  facility: string
+  label: string
 }
 
-export type FacilityStaffEntry = {
-  id: string
-  position: string
-  name: string
-  email?: string
-}
-
+// Kept for compatibility with current imports/caller shape.
 export type FacilityRoster = {
   id: string
   facility: string
-  staff: FacilityStaffEntry[]
-  members: MemberEntry[]
+  staff: unknown[]
+  members: unknown[]
+}
+
+type RosterUser = {
+  cid: number
+  network_user: {
+    first_name: string
+    last_name: string
+  }
+  division_user: {
+    display_name: string | null
+    facility: string
+    visiting_facilities: string[]
+  }
+}
+
+type CobaltFacilityRoster = {
+  home: RosterUser[]
+  visitors: RosterUser[] | null
 }
 
 type MembersSearchProps = {
-  rosters: FacilityRoster[]
+  facilities?: FacilityOption[]
+  rosters?: FacilityRoster[]
 }
 
-export default function MembersSearch({ rosters }: MembersSearchProps) {
+const DEFAULT_ARTCC_OPTIONS: FacilityOption[] = [
+  { id: "ZAB", label: "Albuquerque ARTCC (ZAB)" },
+  { id: "ZAN", label: "Anchorage ARTCC (ZAN)" },
+  { id: "ZAU", label: "Chicago ARTCC (ZAU)" },
+  { id: "ZBW", label: "Boston ARTCC (ZBW)" },
+  { id: "ZDC", label: "Washington ARTCC (ZDC)" },
+  { id: "ZDV", label: "Denver ARTCC (ZDV)" },
+  { id: "ZFW", label: "Fort Worth ARTCC (ZFW)" },
+  { id: "ZHU", label: "Houston ARTCC (ZHU)" },
+  { id: "ZID", label: "Indianapolis ARTCC (ZID)" },
+  { id: "ZJX", label: "Jacksonville ARTCC (ZJX)" },
+  { id: "ZKC", label: "Kansas City ARTCC (ZKC)" },
+  { id: "ZLA", label: "Los Angeles ARTCC (ZLA)" },
+  { id: "ZLC", label: "Salt Lake City ARTCC (ZLC)" },
+  { id: "ZMA", label: "Miami ARTCC (ZMA)" },
+  { id: "ZME", label: "Memphis ARTCC (ZME)" },
+  { id: "ZMP", label: "Minneapolis ARTCC (ZMP)" },
+  { id: "ZNY", label: "New York ARTCC (ZNY)" },
+  { id: "ZOA", label: "Oakland ARTCC (ZOA)" },
+  { id: "ZOB", label: "Cleveland ARTCC (ZOB)" },
+  { id: "ZSE", label: "Seattle ARTCC (ZSE)" },
+  { id: "ZTL", label: "Atlanta ARTCC (ZTL)" },
+]
+
+function getDisplayName(user: RosterUser): string {
+  const display = user.division_user.display_name?.trim()
+  if (display) return display
+  return `${user.network_user.first_name} ${user.network_user.last_name}`.trim()
+}
+
+function matchesQuery(user: RosterUser, q: string): boolean {
+  if (!q) return true
+
+  const displayName = getDisplayName(user).toLowerCase()
+  const cid = String(user.cid)
+
+  return displayName.includes(q) || cid.includes(q)
+}
+
+export default function MembersSearch({
+  facilities = DEFAULT_ARTCC_OPTIONS,
+}: MembersSearchProps) {
   const [selectedFacilityId, setSelectedFacilityId] = React.useState("")
   const [query, setQuery] = React.useState("")
+  const [isLoading, setIsLoading] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
+  const [roster, setRoster] = React.useState<CobaltFacilityRoster | null>(null)
 
-  const selectedRoster = React.useMemo(
-    () => rosters.find((roster) => roster.id === selectedFacilityId),
-    [rosters, selectedFacilityId]
+  const selectedFacility = React.useMemo(
+    () => facilities.find((facility) => facility.id === selectedFacilityId),
+    [facilities, selectedFacilityId]
   )
 
-  const filteredResults = React.useMemo(() => {
-    if (!selectedRoster) {
-      return { staff: [] as FacilityStaffEntry[], members: [] as MemberEntry[] }
+  React.useEffect(() => {
+    if (!selectedFacilityId) {
+      setRoster(null)
+      setError(null)
+      setIsLoading(false)
+      return
     }
 
-    const q = query.trim().toLowerCase()
-    if (!q) {
-      return {
-        staff: selectedRoster.staff,
-        members: selectedRoster.members,
+    let cancelled = false
+
+    async function loadRoster() {
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        const next = await fetchFacilityRoster(selectedFacilityId)
+        if (!cancelled) {
+          setRoster(next)
+        }
+      } catch {
+        if (!cancelled) {
+          setRoster(null)
+          setError("Could not load roster. Please try again.")
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false)
+        }
       }
     }
 
-    return {
-      staff: selectedRoster.staff.filter((staffEntry) => {
-        return (
-          staffEntry.name.toLowerCase().includes(q) ||
-          staffEntry.position.toLowerCase().includes(q) ||
-          (staffEntry.email ?? "").toLowerCase().includes(q)
-        )
-      }),
-      members: selectedRoster.members.filter((member) => {
-        return (
-          member.name.toLowerCase().includes(q) ||
-          String(member.cid).includes(q)
-        )
-      }),
+    void loadRoster()
+
+    return () => {
+      cancelled = true
     }
-  }, [query, selectedRoster])
+  }, [selectedFacilityId])
+
+  const filtered = React.useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const home = (roster?.home ?? []).filter((user) => matchesQuery(user, q))
+    const visitors = (roster?.visitors ?? []).filter((user) =>
+      matchesQuery(user, q)
+    )
+    return { home, visitors }
+  }, [query, roster])
 
   return (
     <Card className="border-border/60 bg-card/95">
@@ -83,107 +155,105 @@ export default function MembersSearch({ rosters }: MembersSearchProps) {
       <CardContent className="space-y-4">
         <div className="grid gap-3 md:grid-cols-2">
           <label className="space-y-2">
-            <span className="text-sm font-medium">Select a facility</span>
+            <span className="text-sm font-medium">Select an ARTCC</span>
             <select
-              className="h-9 w-full rounded-md border border-input bg-transparent px-2.5 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              className="h-9 w-full rounded-md border border-input bg-transparent px-2.5 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
               value={selectedFacilityId}
               onChange={(event) => {
                 setSelectedFacilityId(event.target.value)
                 setQuery("")
               }}
-              aria-label="Select facility"
+              aria-label="Select ARTCC"
             >
-              <option value="">Choose a facility...</option>
-              {rosters.map((roster) => (
-                <option key={roster.id} value={roster.id}>
-                  {roster.facility}
+              <option value="">Choose an ARTCC...</option>
+              {facilities.map((facility) => (
+                <option key={facility.id} value={facility.id}>
+                  {facility.label}
                 </option>
               ))}
             </select>
           </label>
 
           <label className="space-y-2">
-            <span className="text-sm font-medium">Search within facility</span>
+            <span className="text-sm font-medium">Search selected roster</span>
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by name, CID, position, or email..."
-              aria-label="Search within selected facility"
-              disabled={!selectedRoster}
+              placeholder="Search by name or CID..."
+              aria-label="Search selected roster"
+              disabled={!selectedFacilityId || isLoading}
             />
           </label>
         </div>
 
-        {!selectedRoster ? (
+        {!selectedFacilityId ? (
           <p className="rounded-md border border-dashed border-border/70 px-4 py-6 text-sm text-muted-foreground">
-            Select a facility to view and search staff and members.
+            Select an ARTCC to load and search home/visiting rosters.
+          </p>
+        ) : isLoading ? (
+          <p className="text-sm text-muted-foreground">Loading roster...</p>
+        ) : error ? (
+          <p className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            {error}
           </p>
         ) : (
           <div className="space-y-4">
             <h3 className="text-xl font-semibold tracking-tight text-foreground">
-              {selectedRoster.facility}
+              {selectedFacility?.label ?? selectedFacilityId}
             </h3>
 
             <section className="space-y-2">
-              <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Facility Staff
+              <h4 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+                Home Roster
               </h4>
-              {filteredResults.staff.length === 0 ? (
+              {filtered.home.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  No staff match your search.
+                  No home roster members match your search.
                 </p>
               ) : (
                 <ul className="divide-y divide-border/60 overflow-hidden rounded-md border border-border/60">
-                  {filteredResults.staff.map((staffEntry) => (
-                    <li
-                      key={staffEntry.id}
-                      className="group flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-accent/50 focus-within:bg-accent/50"
-                    >
-                      <div>
-                        <p className="font-medium text-foreground">
-                          {staffEntry.position}
-                        </p>
+                  {filtered.home.map((member) => {
+                    const name = getDisplayName(member)
+                    return (
+                      <li
+                        key={`home-${member.cid}`}
+                        className="group px-4 py-3 transition-colors focus-within:bg-accent/50 hover:bg-accent/50"
+                      >
+                        <p className="font-medium text-foreground">{name}</p>
                         <p className="text-sm text-muted-foreground transition-colors group-hover:text-foreground/80">
-                          {staffEntry.name}
+                          CID {member.cid}
                         </p>
-                      </div>
-                      {staffEntry.email ? (
-                        <a
-                          href={`mailto:${staffEntry.email}`}
-                          aria-label={`Email ${staffEntry.name}`}
-                          className="inline-flex size-8 items-center justify-center rounded-md border border-border/60 bg-transparent text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground group-hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-                        >
-                          <MailIcon className="size-4" />
-                          <span className="sr-only">Email {staffEntry.name}</span>
-                        </a>
-                      ) : null}
-                    </li>
-                  ))}
+                      </li>
+                    )
+                  })}
                 </ul>
               )}
             </section>
 
             <section className="space-y-2">
-              <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Facility Members
+              <h4 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+                Visiting Roster
               </h4>
-              {filteredResults.members.length === 0 ? (
+              {filtered.visitors.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  No members match your search.
+                  No visiting roster members match your search.
                 </p>
               ) : (
                 <ul className="divide-y divide-border/60 overflow-hidden rounded-md border border-border/60">
-                  {filteredResults.members.map((member) => (
-                    <li
-                      key={member.id}
-                      className="group px-4 py-3 transition-colors hover:bg-accent/50 focus-within:bg-accent/50"
-                    >
-                      <p className="font-medium text-foreground">{member.name}</p>
-                      <p className="text-sm text-muted-foreground transition-colors group-hover:text-foreground/80">
-                        CID {member.cid}
-                      </p>
-                    </li>
-                  ))}
+                  {filtered.visitors.map((member) => {
+                    const name = getDisplayName(member)
+                    return (
+                      <li
+                        key={`visitor-${member.cid}`}
+                        className="group px-4 py-3 transition-colors focus-within:bg-accent/50 hover:bg-accent/50"
+                      >
+                        <p className="font-medium text-foreground">{name}</p>
+                        <p className="text-sm text-muted-foreground transition-colors group-hover:text-foreground/80">
+                          CID {member.cid}
+                        </p>
+                      </li>
+                    )
+                  })}
                 </ul>
               )}
             </section>

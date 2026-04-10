@@ -480,3 +480,42 @@ export async function deleteNewsPost(id: number | string): Promise<unknown> {
     method: "DELETE",
   })
 }
+
+export type CobaltRosterUser = {
+  cid: number
+  network_user: {
+    first_name: string
+    last_name: string
+    email: string
+    rating: number
+    region: string
+    division: string
+    subdivision: string
+    pilot_rating: number
+    military_rating: number
+  }
+  division_user: {
+    display_name: string | null
+    controller_rating: number
+    instructor_rating: number
+    facility: string
+    visiting_facilities: string[]
+    discord_id: string | null
+    last_promotion_timestamp: number | null
+    last_transfer_timestamp: number | null
+  }
+}
+
+export type CobaltFacilityRoster = {
+  home: CobaltRosterUser[]
+  visitors: CobaltRosterUser[] | null
+}
+
+export async function getFacilityRoster(
+  facility: string
+): Promise<CobaltFacilityRoster> {
+  return cobaltRequest<CobaltFacilityRoster>(
+    `roster/${encodeURIComponent(facility.toUpperCase())}`,
+    { method: "GET" }
+  )
+}
