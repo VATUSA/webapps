@@ -4,7 +4,7 @@ const basePath = process.env.STAFF_NEXT_BASE_PATH ?? ""
 const nextConfig = {
   transpilePackages: ["@workspace/ui"],
   output: "standalone",
-  basePath,
+  assetPrefix: basePath,
 }
 
 export default nextConfig
