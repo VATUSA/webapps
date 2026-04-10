@@ -3,18 +3,27 @@ on:
   push:
     branches: [master]
 jobs:
-  common-ci-portal:
-    uses: vatusa/gitops/.github/workflows/common-ci.yml@main
+  common-build-portal:
+    uses: vatusa/gitops/.github/workflows/common-build.yml@main
+    with:
+      image-name: "portal"
+      relative-path: "apps/portal/"
+  common-dev-ci-portal:
+    uses: vatusa/gitops/.github/workflows/common-dev-ci.yml@main
     with:
       image-name: "portal"
       kustomization-folder: "webapps"
-      relative-path: "apps/portal/"
     secrets: inherit
-  common-ci-staff:
-    uses: vatusa/gitops/.github/workflows/common-ci.yml@main
-    needs: common-ci-portal
+  common-build-staff:
+    uses: vatusa/gitops/.github/workflows/common-build.yml@main
+    with:
+      image-name: "staff"
+      relative-path: "apps/staff/"
+    secrets: inherit
+  common-dev-ci-staff:
+    uses: vatusa/gitops/.github/workflows/common-dev-ci.yml@main
+    needs: common-dev-ci-portal
     with:
       image-name: "staff"
       kustomization-folder: "webapps"
-      relative-path: "apps/staff/"
     secrets: inherit
