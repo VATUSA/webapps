@@ -1,11 +1,6 @@
 "use client"
 
 import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@workspace/ui/components/avatar"
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -22,6 +17,10 @@ import {
 } from "@workspace/ui/components/sidebar"
 import { ChevronsUpDownIcon, LogOutIcon, UserIcon } from "lucide-react"
 import { cobalt } from "@workspace/third-party"
+import {
+  Avatar,
+  AvatarFallback,
+} from "@workspace/ui/components/avatar"
 
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -67,7 +66,8 @@ export function NavUser({
             }
           >
             <Avatar>
-              <AvatarImage src={user.avatar} alt={user.name} />
+              {/* Avatar photos are temporarily disabled until profile image support is implemented. */}
+              {/* <AvatarImage src={user.avatar} alt={user.name} /> */}
               <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
@@ -86,7 +86,8 @@ export function NavUser({
               <DropdownMenuLabel className="p-0 font-normal">
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar>
-                    <AvatarImage src={user.avatar} alt={user.name} />
+                    {/* Avatar photos are temporarily disabled until profile image support is implemented. */}
+                    {/* <AvatarImage src={user.avatar} alt={user.name} /> */}
                     <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
