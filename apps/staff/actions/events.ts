@@ -8,6 +8,7 @@ import {
   getEventById,
   type CobaltEvent,
 } from "@workspace/third-party/cobalt"
+import { requireLivePermissionOrThrow } from "@/lib/auth"
 
 export type EventActionState = {
   error: string | null
@@ -27,6 +28,10 @@ function toUtcIsoFromDateTimeLocal(value: string) {
 
 function parseFacilitySlug(facility: string) {
   return facility.trim().toLowerCase()
+}
+
+function normalizeFacilityId(value: string) {
+  return value.trim().toUpperCase()
 }
 
 function withEventDeletedFlag(path: string): string {
@@ -98,6 +103,13 @@ export async function createEventAction(
 ): Promise<EventActionState> {
   try {
     const payload = buildEventPayload(formData)
+    await requireLivePermissionOrThrow({
+      object: "event",
+      action: "write",
+      facilityId: payload.facility,
+      message: "You do not have permission to create events for this facility.",
+    })
+
     const cobaltCookie = await getCobaltCookie()
 
     if (!cobaltCookie) {
@@ -145,6 +157,13 @@ export async function updateEventAction(
     }
 
     const payload = buildEventPayload(formData)
+    await requireLivePermissionOrThrow({
+      object: "event",
+      action: "write",
+      facilityId: payload.facility,
+      message: "You do not have permission to edit events for this facility.",
+    })
+
     const cobaltCookie = await getCobaltCookie()
 
     if (!cobaltCookie) {
@@ -181,6 +200,7 @@ export async function updateEventAction(
 export async function deleteEventAction(formData: FormData): Promise<void> {
   const eventId = readStringField(formData, "eventId")
   const facilitySlug = parseFacilitySlug(readStringField(formData, "facilitySlug"))
+  const facilityId = normalizeFacilityId(facilitySlug)
   const requestedReturnTo = readStringField(formData, "returnTo")
   const returnTo: string =
     requestedReturnTo.length > 0
@@ -190,6 +210,13 @@ export async function deleteEventAction(formData: FormData): Promise<void> {
   if (!eventId) {
     throw new Error("Event ID is required.")
   }
+
+  await requireLivePermissionOrThrow({
+    object: "event",
+    action: "write",
+    facilityId,
+    message: "You do not have permission to delete events for this facility.",
+  })
 
   const cobaltCookie = await getCobaltCookie()
   if (!cobaltCookie) {
