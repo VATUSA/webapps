@@ -294,44 +294,6 @@ function replaceIdInUrls(
   }))
 }
 
-function norm(value: string | undefined) {
-  return value?.trim().toLowerCase() ?? ""
-}
-
-function hasPermission(
-  perms: CobaltPermission[] | undefined,
-  object: string,
-  action?: string
-) {
-  if (!Array.isArray(perms)) return false
-  const obj = norm(object)
-  const act = action ? norm(action) : ""
-
-  return perms.some((p) => {
-    if (norm(p.object) !== obj) return false
-    if (!act) return true
-    return norm(p.action) === act
-  })
-}
-
-function buildUsaSidebarCapabilities(globalPermissions: CobaltPermission[]) {
-  const isSuperAdmin = hasPermission(globalPermissions, "superadmin", "usage")
-  const isDivisionManagement = hasPermission(
-    globalPermissions,
-    "division_management_role"
-  )
-  const isDivisionStaff = hasPermission(
-    globalPermissions,
-    "division_staff_role"
-  )
-  const isDivision = isDivisionManagement || isDivisionStaff
-
-  return {
-    canSeeUsaOverview: isSuperAdmin || isDivision,
-    canSeeDivisionStaff: isSuperAdmin || isDivision,
-  }
-}
-
 const TEAM_STORAGE_KEY = "staff.activeTeamId"
 
 function getTeamFromPathname(pathname: string, allTeams: readonly Team[]) {
@@ -404,11 +366,6 @@ export function AppSideBar({
     [globalPermissions, facilityPermissions, activeTeam.id]
   )
 
-  const usaCapabilities = React.useMemo(
-    () => buildUsaSidebarCapabilities(globalPermissions),
-    [globalPermissions]
-  )
-
   const navSource = isUsaTeam ? usaNavMain : artccNavMain
 
   const permittedNavMain = React.useMemo(
@@ -423,12 +380,11 @@ export function AppSideBar({
           return false
         }
 
-        if (item.key === "usaOverview") return usaCapabilities.canSeeUsaOverview
-        if (item.key === "divisionStaff")
-          return usaCapabilities.canSeeDivisionStaff
+        if (item.key === "usaOverview") return capabilities.canSeeUsaOverview
+        if (item.key === "divisionStaff") return capabilities.canSeeDivisionStaff
         return false
       }),
-    [navSource, isUsaTeam, capabilities, usaCapabilities]
+    [navSource, isUsaTeam, capabilities]
   )
 
   const updatedNavMain = replaceIdInUrls(

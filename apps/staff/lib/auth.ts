@@ -3,23 +3,11 @@ import {
   cobaltRequest,
   type CobaltSession,
 } from "@workspace/third-party/cobalt"
-import { getSession, type CobaltPermission } from "@/lib/session"
+import { getSession } from "@/lib/session"
+import { hasAnyStaffAccess, hasScopedPermission } from "@/lib/acl"
 
 const REFRESH_TTL_MS = 5 * 60 * 1000
 const MAX_STALE_MS = 24 * 60 * 60 * 1000
-
-const STAFF_PERMISSION_OBJECTS = new Set([
-  "superadmin",
-  "system_api_role",
-  "division_management_role",
-  "division_staff_role",
-  "facility_senior_staff_role",
-  "facility_junior_staff_role",
-  "facility_training_role",
-  "news_post",
-  "event",
-  "user_sensitive_details",
-])
 
 async function saveSessionIfWritable(
   session: Awaited<ReturnType<typeof getSession>>
@@ -73,16 +61,90 @@ async function refreshCobaltSessionIfStale(
   }
 }
 
-function hasStaffAccess(perms: CobaltPermission[] | undefined): boolean {
-  if (!Array.isArray(perms)) return false
+async function syncSessionWithLiveCobalt(liveSession: CobaltSession) {
+  const session = await getSession()
+  session.cobalt = liveSession
+  session.cobaltSyncedAt = Date.now()
+  await saveSessionIfWritable(session)
+}
 
-  return perms.some(({ action, object }) => {
-    const o = object?.toLowerCase()
-    const a = action?.toLowerCase()
-
-    if (o === "superadmin" && a === "usage") return true
-    return STAFF_PERMISSION_OBJECTS.has(o ?? "")
+export function requirePermissionOrThrow(input: {
+  session: Awaited<ReturnType<typeof getSession>>
+  object: string
+  action?: string
+  facilityId?: string
+  requireFacility?: boolean
+  allowGlobalFallback?: boolean
+  message?: string
+}) {
+  const { session } = input
+  const allowed = hasScopedPermission({
+    globalPermissions: session.cobalt?.global_permissions ?? [],
+    facilityPermissions: session.cobalt?.facility_permissions ?? [],
+    object: input.object,
+    action: input.action,
+    facilityId: input.facilityId,
+    requireFacility: input.requireFacility,
+    allowGlobalFallback: input.allowGlobalFallback,
   })
+
+  if (allowed) return
+
+  const error = new Error(input.message ?? "Forbidden") as Error & {
+    status?: number
+  }
+  error.status = 403
+  throw error
+}
+
+function throwForbidden(message?: string): never {
+  const error = new Error(message ?? "Forbidden") as Error & {
+    status?: number
+  }
+  error.status = 403
+  throw error
+}
+
+export async function requireLivePermissionOrThrow(input: {
+  object: string
+  action?: string
+  facilityId?: string
+  requireFacility?: boolean
+  allowGlobalFallback?: boolean
+  message?: string
+}) {
+  const cookieStore = await cookies()
+  const cobaltCookie = cookieStore.get("vatusa-cobalt-token")?.value
+  if (!cobaltCookie) {
+    throwForbidden("Missing Cobalt auth cookie.")
+  }
+
+  let liveSession: CobaltSession
+  try {
+    liveSession = await cobaltRequest<CobaltSession>("my/session", {
+      method: "GET",
+      cobaltCookie,
+      credentials: "omit",
+    })
+  } catch {
+    throwForbidden("Unable to verify permissions with Cobalt.")
+  }
+
+  const allowed = hasScopedPermission({
+    globalPermissions: liveSession.global_permissions ?? [],
+    facilityPermissions: liveSession.facility_permissions ?? [],
+    object: input.object,
+    action: input.action,
+    facilityId: input.facilityId,
+    requireFacility: input.requireFacility,
+    allowGlobalFallback: input.allowGlobalFallback,
+  })
+
+  if (!allowed) {
+    // Keep session cookie ACLs in sync when live Cobalt denies the action.
+    await syncSessionWithLiveCobalt(liveSession)
+    throwForbidden(input.message)
+  }
 }
 
 export async function requireStaffSession() {
@@ -90,13 +152,11 @@ export async function requireStaffSession() {
 
   await refreshCobaltSessionIfStale(session)
 
-  const isAuthed = session.isLoggedIn === true
-  const allPermissions = [
-    ...(session.cobalt?.global_permissions ?? []),
-    ...(session.cobalt?.facility_permissions ?? []),
-  ]
-  const allowed = hasStaffAccess(allPermissions)
-
+  const isAuthed = session.isLoggedIn
+  const allowed = hasAnyStaffAccess({
+    globalPermissions: session.cobalt?.global_permissions ?? [],
+    facilityPermissions: session.cobalt?.facility_permissions ?? [],
+  })
 
   return { session, allowed: isAuthed && allowed }
 }

@@ -8,6 +8,7 @@ import {
   getNewsPostById,
   type CobaltNewsItem,
 } from "@workspace/third-party/cobalt"
+import { requireLivePermissionOrThrow } from "@/lib/auth"
 
 export type NewsActionState = {
   error: string | null
@@ -22,6 +23,10 @@ function readStringField(formData: FormData, key: string) {
 
 function normalizeFacilitySlug(value: string) {
   return value.trim().toLowerCase()
+}
+
+function normalizeFacilityId(value: string) {
+  return value.trim().toUpperCase()
 }
 
 function buildNewsBasePath(facilitySlug: string) {
@@ -85,6 +90,17 @@ export async function createNewsPostAction(
 ): Promise<NewsActionState> {
   try {
     const payload = buildNewsPayload(formData)
+    const facilitySlug = normalizeFacilitySlug(
+      readStringField(formData, "facilitySlug")
+    )
+    const facilityId = normalizeFacilityId(facilitySlug)
+    await requireLivePermissionOrThrow({
+      object: "news_post",
+      action: "write",
+      facilityId,
+      message: "You do not have permission to create news for this facility.",
+    })
+
     const cobaltCookie = await getCobaltCookie()
 
     if (!cobaltCookie) {
@@ -94,9 +110,6 @@ export async function createNewsPostAction(
       }
     }
 
-    const facilitySlug = normalizeFacilitySlug(
-      readStringField(formData, "facilitySlug")
-    )
     const returnTo =
       readStringField(formData, "returnTo") || buildNewsBasePath(facilitySlug)
 
@@ -136,6 +149,17 @@ export async function updateNewsPostAction(
     }
 
     const payload = buildNewsPayload(formData)
+    const facilitySlug = normalizeFacilitySlug(
+      readStringField(formData, "facilitySlug")
+    )
+    const facilityId = normalizeFacilityId(facilitySlug)
+    await requireLivePermissionOrThrow({
+      object: "news_post",
+      action: "write",
+      facilityId,
+      message: "You do not have permission to edit news for this facility.",
+    })
+
     const cobaltCookie = await getCobaltCookie()
 
     if (!cobaltCookie) {
@@ -145,9 +169,6 @@ export async function updateNewsPostAction(
       }
     }
 
-    const facilitySlug = normalizeFacilitySlug(
-      readStringField(formData, "facilitySlug")
-    )
     const returnTo =
       readStringField(formData, "returnTo") || buildNewsBasePath(facilitySlug)
 
@@ -178,12 +199,20 @@ export async function deleteNewsPostAction(formData: FormData): Promise<void> {
   const facilitySlug = normalizeFacilitySlug(
     readStringField(formData, "facilitySlug")
   )
+  const facilityId = normalizeFacilityId(facilitySlug)
   const returnTo =
     readStringField(formData, "returnTo") || buildNewsBasePath(facilitySlug)
 
   if (!newsId) {
     throw new Error("News post ID is required.")
   }
+
+  await requireLivePermissionOrThrow({
+    object: "news_post",
+    action: "write",
+    facilityId,
+    message: "You do not have permission to delete news for this facility.",
+  })
 
   const cobaltCookie = await getCobaltCookie()
   if (!cobaltCookie) {
