@@ -2,9 +2,12 @@
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
   "globalEnv": [
+    "NODE_ENV",
     "COBALT_INTERNAL_BASE_URL",
-    "NEXT_PUBLIC_COBALT_EXTERNAL_BASE_URL"
+    "NEXT_PUBLIC_COBALT_EXTERNAL_BASE_URL",
+    "VATUSA_DISCORD_INVITE_URL"
   ],
+  "globalPassThroughEnv": ["COOKIE_SECRET"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
