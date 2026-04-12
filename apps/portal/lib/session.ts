@@ -21,7 +21,6 @@ export interface UserSession {
   cobaltSyncedAt?: number
 }
 
-
 /**
  * Configuration for iron-session cookie behavior.
  *
@@ -38,6 +37,7 @@ export const sessionOptions: SessionOptions = {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
   },
+  ttl: 604800, // 7 days in seconds to match Cobalt
 }
 
 /**
