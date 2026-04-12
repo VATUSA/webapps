@@ -2,7 +2,6 @@ import { redirect } from "next/navigation"
 import { getSession } from "@/lib/session"
 import { cobalt } from "@workspace/third-party"
 import { cookies } from "next/headers"
-import type { CobaltSession } from "@workspace/third-party/cobalt"
 
 /**
  * Cobalt login callback handler.
