@@ -19,9 +19,9 @@ export default function NavBar({ session }: NavBarProps) {
   ])
   const myVatusaProfileUrl =
     process.env.NEXT_PUBLIC_MY_VATUSA_PROFILE_URL ??
-    "https://vatusa.net/my/profile"
+    "/my/profile"
   const staffAppUrl =
-    process.env.NEXT_PUBLIC_STAFF_APP_URL ?? "https://vatusa.net/staff"
+    process.env.NEXT_PUBLIC_STAFF_APP_URL ?? "/staff"
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-card/95 text-card-foreground shadow-sm backdrop-blur">
