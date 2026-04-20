@@ -5,10 +5,11 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import {
   cobaltRequest,
+  getNewsPage,
   getNewsPostById,
   type CobaltNewsItem,
 } from "@workspace/third-party/cobalt"
-import { requireLivePermissionOrThrow } from "@/lib/auth"
+import { requireLivePermissionOrThrow } from "@/lib/permissions"
 
 export type NewsActionState = {
   error: string | null
@@ -30,16 +31,20 @@ function normalizeFacilityId(value: string) {
 }
 
 function buildNewsBasePath(facilitySlug: string) {
-  return `/facility/${normalizeFacilitySlug(facilitySlug)}/sr/news`
+  return `/facility/${normalizeFacilitySlug(facilitySlug)}/news`
 }
 
-function withNewsDeletedFlag(path: string) {
-  const [pathname = "", query = ""] = path.split("?")
-  const params = new URLSearchParams(query)
-  params.set("newsDeleted", "1")
-  const nextQuery = params.toString()
+function buildNewsEditPath(facilitySlug: string, newsId: string) {
+  return `${buildNewsBasePath(facilitySlug)}/${encodeURIComponent(newsId)}/edit`
+}
 
-  return nextQuery ? `${pathname}?${nextQuery}` : pathname
+function buildNewsNewPath(facilitySlug: string) {
+  return `${buildNewsBasePath(facilitySlug)}/new`
+}
+
+function buildNewsPagePath(facilitySlug: string, page: number) {
+  const safePage = Number.isInteger(page) && page > 0 ? page : 1
+  return `${buildNewsBasePath(facilitySlug)}?page=${safePage}`
 }
 
 function buildNewsPayload(formData: FormData) {
@@ -61,7 +66,36 @@ function getReadableErrorMessage(error: unknown) {
   if (error instanceof Error && error.message.trim()) {
     return error.message
   }
+
   return "Something went wrong while saving the news post."
+}
+
+export async function fetchNewsPage(
+  page: number
+): Promise<{ page: number; hasPrev: boolean; hasNext: boolean; items: CobaltNewsItem[] }> {
+  const safePage = Number.isInteger(page) && page > 0 ? page : 1
+
+  try {
+    const [currentItems, nextItems] = await Promise.all([
+      getNewsPage(safePage),
+      getNewsPage(safePage + 1),
+    ])
+
+    return {
+      page: safePage,
+      hasPrev: safePage > 1,
+      hasNext: nextItems.length > 0,
+      items: currentItems,
+    }
+  } catch (error) {
+    console.error(`Server error fetching news page ${safePage}:`, error)
+    return {
+      page: safePage,
+      hasPrev: safePage > 1,
+      hasNext: false,
+      items: [],
+    }
+  }
 }
 
 export async function fetchNewsPostForEdit(
@@ -76,11 +110,12 @@ export async function fetchNewsPostForEdit(
 }
 
 function revalidateNewsPaths(facilitySlug: string, newsId?: string) {
-  const base = buildNewsBasePath(facilitySlug)
-  revalidatePath(base)
+  const basePath = buildNewsBasePath(facilitySlug)
+  revalidatePath(basePath)
+  revalidatePath(buildNewsNewPath(facilitySlug))
 
   if (newsId) {
-    revalidatePath(`${base}/${encodeURIComponent(newsId)}/edit`)
+    revalidatePath(buildNewsEditPath(facilitySlug, newsId))
   }
 }
 
@@ -102,7 +137,6 @@ export async function createNewsPostAction(
     })
 
     const cobaltCookie = await getCobaltCookie()
-
     if (!cobaltCookie) {
       return {
         error: "Missing Cobalt auth cookie.",
@@ -161,7 +195,6 @@ export async function updateNewsPostAction(
     })
 
     const cobaltCookie = await getCobaltCookie()
-
     if (!cobaltCookie) {
       return {
         error: "Missing Cobalt auth cookie.",
@@ -200,8 +233,9 @@ export async function deleteNewsPostAction(formData: FormData): Promise<void> {
     readStringField(formData, "facilitySlug")
   )
   const facilityId = normalizeFacilityId(facilitySlug)
+  const page = Number(readStringField(formData, "page"))
   const returnTo =
-    readStringField(formData, "returnTo") || buildNewsBasePath(facilitySlug)
+    readStringField(formData, "returnTo") || buildNewsPagePath(facilitySlug, page)
 
   if (!newsId) {
     throw new Error("News post ID is required.")
@@ -226,5 +260,6 @@ export async function deleteNewsPostAction(formData: FormData): Promise<void> {
   })
 
   revalidateNewsPaths(facilitySlug, newsId)
-  redirect(withNewsDeletedFlag(returnTo))
+  redirect(returnTo)
 }
+
