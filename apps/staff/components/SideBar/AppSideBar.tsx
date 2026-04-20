@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { NavMain } from "@/components/SideBar/NavMain"
+import { NavMain, type NavItem } from "@/components/SideBar/NavMain"
 import { NavUser } from "@/components/SideBar/NavUser"
 import { NavSwitcher } from "@/components/SideBar/NavSwitcher"
 import {
@@ -13,15 +13,15 @@ import {
   SidebarRail,
 } from "@workspace/ui/components/sidebar"
 import { FrameIcon, PieChartIcon, MapIcon } from "lucide-react"
-import { FaBuilding, FaPeopleGroup } from "react-icons/fa6"
+import { FaBuilding, FaNewspaper, FaPeopleGroup } from "react-icons/fa6"
 import { MdOutlineGroups3, MdAdminPanelSettings } from "react-icons/md"
 import { IoSchool } from "react-icons/io5"
-import { buildStaffSidebarCapabilities } from "@/lib/acl"
-import type { CobaltPermission } from "@/lib/session"
+import { GrDocumentUser } from "react-icons/gr"
+import { MdEventNote, MdSettings } from "react-icons/md"
+import { TbTransfer } from "react-icons/tb"
 
 type AppSideBarProps = React.ComponentProps<typeof Sidebar> & {
-  globalPermissions: CobaltPermission[]
-  facilityPermissions: CobaltPermission[]
+  userName?: string
 }
 
 type Team = {
@@ -29,26 +29,6 @@ type Team = {
   logo: React.ReactNode
   plan: string
   id: string
-}
-
-type NavSectionKey =
-  | "overview"
-  | "srStaff"
-  | "artccStaff"
-  | "trainingStaff"
-  | "usaOverview"
-  | "divisionStaff"
-
-type NavItem = {
-  key: NavSectionKey
-  title: string
-  url: string
-  icon?: React.ReactNode
-  isActive?: boolean
-  items?: {
-    title: string
-    url: string
-  }[]
 }
 
 const teams = [
@@ -192,50 +172,59 @@ const teams = [
   },
 ] as const satisfies Team[]
 
-const artccNavMain = [
+/**
+ * ARTCC Navigation Structure
+ * Combines roster, requests, training, events, role management, and facility config
+ */
+const getArtccNavMain = (): NavItem[] => [
+  // Roster Management Section
   {
-    key: "overview",
-    title: "ARTCC Overview",
-    url: "#",
-    icon: <FaBuilding />,
-    items: [
-      { title: "ARTCC Dashboard", url: "/facility/:id/dashboard" },
-      { title: "Home Roster", url: "/facility/:id/roster" },
-      { title: "Visiting Roster", url: "/facility/:id/visitors" },
-      { title: "Staff Page", url: "/facility/:id/staff" },
-    ],
-  },
-  {
-    key: "srStaff",
-    title: "ARTCC Sr Staff",
-    url: "#",
-    icon: <MdOutlineGroups3 />,
-    items: [
-      { title: "SR Staff Dashboard", url: "/sr/dashboard" },
-      { title: "Pending Transfers", url: "/facility/:id/transfers" },
-      { title: "Facility Staff POCs", url: "/facility/:id/staff-roles" },
-      { title: "Action Log", url: "/facility/:id/log" },
-      { title: "News", url: "/facility/:id/sr/news" },
-    ],
-  },
-  {
-    key: "artccStaff",
-    title: "ARTCC Staff",
-    url: "#",
+    title: "Roster",
+    url: "/facility/:id/roster",
     icon: <FaPeopleGroup />,
-    items: [
-      { title: "Staff Dashboard", url: "/facility/:id/staff" },
-      { title: "Events", url: "/facility/:id/staff/events" },
-      { title: "Tech Config", url: "/facility/:id/staff/tech" },
-    ],
+    isClickable: true,
   },
   {
-    key: "trainingStaff",
-    title: "Training Staff",
+    title: "Home",
+    url: "/facility/:id/roster/home",
+    icon: <FaBuilding />,
+    isClickable: true,
+  },
+  {
+    title: "Visitors",
+    url: "/facility/:id/roster/visit",
+    icon: <FaPeopleGroup />,
+    isClickable: true,
+  },
+  {
+    title: "Transfer Requests",
+    url: "/facility/:id/requests/transfer",
+    icon: <TbTransfer />,
+    isClickable: true,
+  },
+  {
+    title: "Visit Requests",
+    url: "/facility/:id/requests/visit",
+    icon: <GrDocumentUser />,
+    isClickable: true,
+  },
+
+  // Staff POCs
+  {
+    title: "Staff POCs",
+    url: "/facility/:id/staff/poc",
+    icon: <MdOutlineGroups3 />,
+    isClickable: true,
+  },
+
+  // Training Section
+  {
+    title: "Training",
     url: "#",
     icon: <IoSchool />,
+    isClickable: false,
     items: [
-      { title: "Training Dashboard", url: "/facility/:id/training" },
+      { title: "Training Dashboard", url: "/facility/:id/training/dashboard" },
       { title: "Training Notes", url: "/facility/:id/training/notes" },
       {
         title: "Controller Promotion",
@@ -243,28 +232,106 @@ const artccNavMain = [
       },
     ],
   },
-] as const satisfies readonly NavItem[]
 
-const usaNavMain = [
+  // Events Section
   {
-    key: "usaOverview",
-    title: "Overview",
+    title: "Events",
     url: "#",
-    icon: <MdAdminPanelSettings />,
-    items: [{ title: "Division Overview", url: "/facility/:id/overview" }],
-  },
-  {
-    key: "divisionStaff",
-    title: "Division Staff",
-    url: "#",
-    icon: <FaPeopleGroup />,
+    icon: <MdEventNote />,
+    isClickable: false,
     items: [
-      { title: "Division Events", url: "/facility/:id/division/events" },
-      { title: "News", url: "/facility/:id/sr/news" },
-      { title: "Division Staff", url: "/facility/:id/division/staff" },
+      { title: "Manage Events", url: "/facility/:id/events/manage" },
+      { title: "New Event", url: "/facility/:id/events/new" },
     ],
   },
-] as const satisfies readonly NavItem[]
+
+  // News Section
+  {
+    title: "News",
+    url: "#",
+    icon: <FaNewspaper />,
+    isClickable: false,
+    items: [
+      { title: "Manage Posts", url: "/facility/:id/news" },
+      { title: "New Post", url: "/facility/:id/news/new" },
+    ],
+  },
+
+  // Role Management Section
+  {
+    title: "Role Management",
+    url: "#",
+    icon: <MdAdminPanelSettings />,
+    isClickable: false,
+    items: [
+      { title: "Role Assignments", url: "/facility/:id/roles/assignments" },
+      { title: "Assign Role", url: "/facility/:id/roles/assignments/new" },
+    ],
+  },
+
+  // Facility Configuration Section
+  {
+    title: "Facility Config",
+    url: "#",
+    icon: <MdSettings />,
+    isClickable: false,
+    items: [
+      { title: "Basic Info", url: "/facility/:id/facility/info" },
+      { title: "Tech Config", url: "/facility/:id/facility/tech" },
+      {
+        title: "Notification Config",
+        url: "/facility/:id/facility/notification",
+      },
+      { title: "Discord Bot Config", url: "/facility/:id/facility/discord" },
+    ],
+  },
+]
+
+/**
+ * USA Division Navigation Structure
+ */
+const getUsaNavMain = (): NavItem[] => [
+  // Staff POCs
+  {
+    title: "Staff POCs",
+    url: "/facility/:id/staff/poc",
+    icon: <MdOutlineGroups3 />,
+    isClickable: true,
+  },
+  // Events Section
+  {
+    title: "Events",
+    url: "#",
+    icon: <MdEventNote />,
+    isClickable: false,
+    items: [
+      { title: "Manage Events", url: "/facility/:id/events/manage" },
+      { title: "New Event", url: "/facility/:id/events/new" },
+    ],
+  },
+  // News Section
+  {
+    title: "News",
+    url: "#",
+    icon: <FaNewspaper />,
+    isClickable: false,
+    items: [
+      { title: "Manage Posts", url: "/facility/:id/news" },
+      { title: "New Post", url: "/facility/:id/news/new" },
+    ],
+  },
+  // Role Management Section
+  {
+    title: "Role Management",
+    url: "#",
+    icon: <MdAdminPanelSettings />,
+    isClickable: false,
+    items: [
+      { title: "Role Assignments", url: "/facility/:id/roles/assignments" },
+      { title: "Assign Role", url: "/facility/:id/roles/assignments/new" },
+    ],
+  },
+]
 
 const data = {
   user: {
@@ -311,12 +378,11 @@ function swapFacilityInPath(pathname: string, newTeamId: string) {
     return pathname.replace(/^\/facility\/[^/]+/i, `/facility/${newSlug}`)
   }
 
-  return `/facility/${newSlug}/overview`
+  return `/facility/${newSlug}`
 }
 
 export function AppSideBar({
-  globalPermissions,
-  facilityPermissions,
+  userName,
   ...props
 }: AppSideBarProps) {
   const router = useRouter()
@@ -356,41 +422,17 @@ export function AppSideBar({
 
   const isUsaTeam = activeTeam.id.toUpperCase() === "USA"
 
-  const capabilities = React.useMemo(
-    () =>
-      buildStaffSidebarCapabilities({
-        globalPermissions,
-        facilityPermissions,
-        facilityId: activeTeam.id,
-      }),
-    [globalPermissions, facilityPermissions, activeTeam.id]
+  // Get navigation items based on facility type (all items visible to all users)
+  const navSource = isUsaTeam ? getUsaNavMain() : getArtccNavMain()
+
+  // Replace :id placeholder with actual facility ID
+  const updatedNavMain = React.useMemo(
+    () => replaceIdInUrls(navSource, activeTeam.id.toLowerCase()),
+    [navSource, activeTeam.id]
   )
 
-  const navSource = isUsaTeam ? usaNavMain : artccNavMain
-
-  const permittedNavMain = React.useMemo(
-    () =>
-      navSource.filter((item) => {
-        if (!isUsaTeam) {
-          if (item.key === "overview") return capabilities.canSeeOverview
-          if (item.key === "srStaff") return capabilities.canSeeSrStaff
-          if (item.key === "artccStaff") return capabilities.canSeeArtccStaff
-          if (item.key === "trainingStaff")
-            return capabilities.canSeeTrainingStaff
-          return false
-        }
-
-        if (item.key === "usaOverview") return capabilities.canSeeUsaOverview
-        if (item.key === "divisionStaff") return capabilities.canSeeDivisionStaff
-        return false
-      }),
-    [navSource, isUsaTeam, capabilities]
-  )
-
-  const updatedNavMain = replaceIdInUrls(
-    permittedNavMain,
-    activeTeam.id.toLowerCase()
-  )
+  // Prepare user data from session
+  const resolvedUserName = userName ?? "Staff User"
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -405,7 +447,7 @@ export function AppSideBar({
         <NavMain items={updatedNavMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={{ name: resolvedUserName }} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
