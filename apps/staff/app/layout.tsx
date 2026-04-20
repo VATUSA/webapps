@@ -11,7 +11,8 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@workspace/ui/components/sidebar"
-import { requireStaffSession } from "@/lib/auth"
+import { getSession } from "@/lib/session"
+import { requireStaffSession } from "@/lib/permissions"
 
 const fontSans = Inter({
   subsets: ["latin"],
@@ -46,7 +47,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const { allowed, session } = await requireStaffSession()
+  const session = await getSession()
+  const allowed = requireStaffSession(session as any)
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -59,10 +61,7 @@ export default async function RootLayout({
               <div className="flex min-h-screen flex-col">
                 <SidebarProvider>
                   <AppSideBar
-                    globalPermissions={session.cobalt?.global_permissions ?? []}
-                    facilityPermissions={
-                      session.cobalt?.facility_permissions ?? []
-                    }
+                    userName={session?.name}
                   />
 
                   <SidebarInset>
