@@ -46,6 +46,30 @@ export default async function Page() {
   const initials = getInitials(displayName)
   const cid = session.cid ?? String(cobaltUser?.cid ?? "—")
   const facility = cobaltUser?.division_user.facility ?? "—"
+  const cobalt = session.cobalt
+  const globalPermissions = Array.isArray(cobalt?.global_permissions)
+    ? cobalt.global_permissions
+    : (Array.isArray(cobalt?.global_permissions) ? cobalt.global_permissions : []);
+  const facilityPermissions = cobalt?.facility_permissions || {}
+
+  function getAction(permission: unknown) {
+    if (typeof permission === "string") {
+      const parts = permission.split(":")
+      return parts.length > 1 ? parts[parts.length - 1] : permission
+    }
+    if (permission && typeof permission === "object" && "action" in permission && typeof permission.action === "string") {
+      return permission.action
+    }
+    return "?"
+  }
+
+  function getPermissionLabel(permission: unknown) {
+    if (typeof permission === "string") return permission
+    if (permission && typeof permission === "object" && "object" in permission && typeof permission.object === "string" && "action" in permission && typeof permission.action === "string") {
+      return `${permission.object}:${permission.action}`
+    }
+    return JSON.stringify(permission)
+  }
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-4 pt-0">
@@ -75,28 +99,44 @@ export default async function Page() {
         </div>
       </section>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4">
         <Card className="border-border/60 shadow-sm">
-          <CardContent className="space-y-2 p-4">
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              Current Facility
+          <CardContent>
+            <h2 className="text-lg font-semibold tracking-tight">
+              Pre-production Information
+            </h2>
+            <p className="max-w-2xl text-sm leading-6 text-white/75">
+              The following is information based on your user and session. This will only be available on dev servers. Please provide this to a VATUSA dev should they ask for it.
             </p>
-            <h2 className="text-lg font-semibold">{facility}</h2>
-            <p className="text-sm text-muted-foreground">
-              Your current session is tied to this facility.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/60 shadow-sm">
-          <CardContent className="space-y-2 p-4">
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              Session
-            </p>
-            <h2 className="text-lg font-semibold">Signed in</h2>
-            <p className="text-sm text-muted-foreground">
-              You’re ready to use the staff portal.
-            </p>
+            <div className="mt-4">
+              <h3 className="font-semibold">Global Permissions</h3>
+              <ul className="list-disc list-inside text-xs text-white/80">
+                {globalPermissions.length === 0 && <li>None</li>}
+                {globalPermissions.map((perm: any, idx: number) => (
+                  <li key={idx}>
+                    {getPermissionLabel(perm)} <span className="text-white/50">({getAction(perm)})</span>
+                  </li>
+                ))}
+              </ul>
+              <h3 className="font-semibold mt-3">Facility Permissions</h3>
+              {Object.keys(facilityPermissions).length === 0 && <div className="text-xs text-white/80">None</div>}
+              {Object.entries(facilityPermissions).map(([fac, perms], idx) => {
+                const permsArr = Array.isArray(perms) ? perms : []
+                return (
+                  <div key={fac} className="mt-1">
+                    <div className="text-xs font-semibold text-white/70">{fac}</div>
+                    <ul className="list-disc list-inside text-xs text-white/80 ml-4">
+                      {permsArr.length === 0 && <li>None</li>}
+                      {permsArr.map((perm: any, idx) => (
+                        <li key={idx}>
+                          {getPermissionLabel(perm)} <span className="text-white/50">({getAction(perm)})</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )
+              })}
+            </div>
           </CardContent>
         </Card>
       </div>

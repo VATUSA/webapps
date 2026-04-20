@@ -21,10 +21,9 @@ import {
   type NewsActionState,
 } from "@/actions/news"
 
-
 type NewsFormProps = {
   mode: "create" | "edit"
-  facilitySlug: string
+  facilityId: string
   news?: CobaltNewsItem | null
 }
 
@@ -34,14 +33,11 @@ const initialState: NewsActionState = {
   redirectTo: undefined,
 }
 
-export default function NewsForm({
-  mode,
-  facilitySlug,
-  news,
-}: NewsFormProps) {
+export default function NewsForm({ mode, facilityId, news }: NewsFormProps) {
   const router = useRouter()
   const isEdit = mode === "edit"
-  const returnTo = `/facility/${facilitySlug}/sr/news`
+  const facilitySlug = facilityId.toLowerCase()
+  const returnTo = `/facility/${facilitySlug}/news`
   const action = isEdit ? updateNewsPostAction : createNewsPostAction
   const [state, formAction] = useActionState(action, initialState)
 
@@ -66,24 +62,21 @@ export default function NewsForm({
     }
   }, [state.success, state.redirectTo, router, isEdit])
 
-  const title = isEdit ? "Edit News Post" : "Create News Post"
-  const description = isEdit
-    ? "Update this news post."
-    : "Publish a new news post."
-
   return (
     <Card className="border-border/60 shadow-sm">
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <CardTitle>{isEdit ? "Edit News Post" : "Create News Post"}</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          {isEdit
+            ? "Update this news post for the selected facility."
+            : "Publish a new news post for the selected facility."}
+        </p>
       </CardHeader>
 
       <CardContent>
         <FormErrorToast
           error={state.error}
-          title={
-            isEdit ? "Failed to update news post" : "Failed to create news post"
-          }
+          title={isEdit ? "Failed to update news post" : "Failed to create news post"}
         />
 
         <form action={formAction} className="space-y-5">
@@ -131,3 +124,4 @@ export default function NewsForm({
     </Card>
   )
 }
+

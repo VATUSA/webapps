@@ -8,7 +8,6 @@ import {
   getEventById,
   type CobaltEvent,
 } from "@workspace/third-party/cobalt"
-import { requireLivePermissionOrThrow } from "@/lib/auth"
 
 export type EventActionState = {
   error: string | null
@@ -103,12 +102,6 @@ export async function createEventAction(
 ): Promise<EventActionState> {
   try {
     const payload = buildEventPayload(formData)
-    await requireLivePermissionOrThrow({
-      object: "event",
-      action: "write",
-      facilityId: payload.facility,
-      message: "You do not have permission to create events for this facility.",
-    })
 
     const cobaltCookie = await getCobaltCookie()
 
@@ -127,13 +120,14 @@ export async function createEventAction(
     })
 
     const facilitySlug = parseFacilitySlug(payload.facility)
-    revalidatePath(`/facility/${facilitySlug}/staff/events`)
-    revalidatePath(`/facility/${facilitySlug}/staff`)
+    revalidatePath(`/facility/${facilitySlug}/events/manage`)
+    revalidatePath(`/facility/${facilitySlug}/events/new`)
+    revalidatePath(`/facility/${facilitySlug}`)
 
     return {
       error: null,
       success: "Event created successfully.",
-      redirectTo: `/facility/${facilitySlug}/staff/events`,
+      redirectTo: `/facility/${facilitySlug}/events/manage`,
     }
   } catch (error) {
     return {
@@ -157,12 +151,6 @@ export async function updateEventAction(
     }
 
     const payload = buildEventPayload(formData)
-    await requireLivePermissionOrThrow({
-      object: "event",
-      action: "write",
-      facilityId: payload.facility,
-      message: "You do not have permission to edit events for this facility.",
-    })
 
     const cobaltCookie = await getCobaltCookie()
 
@@ -181,13 +169,14 @@ export async function updateEventAction(
     })
 
     const facilitySlug = parseFacilitySlug(payload.facility)
-    revalidatePath(`/facility/${facilitySlug}/staff/events`)
-    revalidatePath(`/facility/${facilitySlug}/staff`)
+    revalidatePath(`/facility/${facilitySlug}/events/manage`)
+    revalidatePath(`/facility/${facilitySlug}/events/new`)
+    revalidatePath(`/facility/${facilitySlug}`)
 
     return {
       error: null,
       success: "Event saved successfully.",
-      redirectTo: `/facility/${facilitySlug}/staff/events`,
+      redirectTo: `/facility/${facilitySlug}/events/manage`,
     }
   } catch (error) {
     return {
@@ -205,18 +194,11 @@ export async function deleteEventAction(formData: FormData): Promise<void> {
   const returnTo: string =
     requestedReturnTo.length > 0
       ? requestedReturnTo
-      : `/facility/${facilitySlug}/staff/events`
+      : `/facility/${facilitySlug}/events/manage`
 
   if (!eventId) {
     throw new Error("Event ID is required.")
   }
-
-  await requireLivePermissionOrThrow({
-    object: "event",
-    action: "write",
-    facilityId,
-    message: "You do not have permission to delete events for this facility.",
-  })
 
   const cobaltCookie = await getCobaltCookie()
   if (!cobaltCookie) {
@@ -229,8 +211,9 @@ export async function deleteEventAction(formData: FormData): Promise<void> {
     credentials: "omit",
   })
 
-  revalidatePath(`/facility/${facilitySlug}/staff/events`)
-  revalidatePath(`/facility/${facilitySlug}/staff`)
+  revalidatePath(`/facility/${facilitySlug}/events/manage`)
+  revalidatePath(`/facility/${facilitySlug}/events/new`)
+  revalidatePath(`/facility/${facilitySlug}`)
   revalidatePath(`/facility/${facilitySlug}/division/events`)
   revalidatePath(`/facility/usa/division/events`)
 
