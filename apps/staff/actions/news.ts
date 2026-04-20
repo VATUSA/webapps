@@ -9,7 +9,6 @@ import {
   getNewsPostById,
   type CobaltNewsItem,
 } from "@workspace/third-party/cobalt"
-import { requireLivePermissionOrThrow } from "@/lib/permissions"
 
 export type NewsActionState = {
   error: string | null
@@ -129,12 +128,6 @@ export async function createNewsPostAction(
       readStringField(formData, "facilitySlug")
     )
     const facilityId = normalizeFacilityId(facilitySlug)
-    await requireLivePermissionOrThrow({
-      object: "news_post",
-      action: "write",
-      facilityId,
-      message: "You do not have permission to create news for this facility.",
-    })
 
     const cobaltCookie = await getCobaltCookie()
     if (!cobaltCookie) {
@@ -187,12 +180,6 @@ export async function updateNewsPostAction(
       readStringField(formData, "facilitySlug")
     )
     const facilityId = normalizeFacilityId(facilitySlug)
-    await requireLivePermissionOrThrow({
-      object: "news_post",
-      action: "write",
-      facilityId,
-      message: "You do not have permission to edit news for this facility.",
-    })
 
     const cobaltCookie = await getCobaltCookie()
     if (!cobaltCookie) {
@@ -240,13 +227,6 @@ export async function deleteNewsPostAction(formData: FormData): Promise<void> {
   if (!newsId) {
     throw new Error("News post ID is required.")
   }
-
-  await requireLivePermissionOrThrow({
-    object: "news_post",
-    action: "write",
-    facilityId,
-    message: "You do not have permission to delete news for this facility.",
-  })
 
   const cobaltCookie = await getCobaltCookie()
   if (!cobaltCookie) {
