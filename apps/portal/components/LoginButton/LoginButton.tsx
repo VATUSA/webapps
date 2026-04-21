@@ -1,7 +1,6 @@
 "use client"
 
 import { ChevronDownIcon, LogOutIcon, UserIcon, ShieldIcon } from "lucide-react"
-import { buttonVariants } from "@workspace/ui/components/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
+import { buttonVariants } from "@workspace/ui/lib/button-variants"
 import { cn } from "@workspace/ui/lib/utils"
 
 type LoginDropdownProps = {

@@ -4,10 +4,17 @@ import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import {
+  CobaltHttpError,
   cobaltRequest,
   getEventById,
   type CobaltEvent,
+  type CobaltSession,
 } from "@workspace/third-party/cobalt"
+import { ACTION, OBJECT } from "@/lib/acl"
+import {
+  CobaltPermissionError,
+  requireLivePermissionOrThrow,
+} from "@/lib/auth"
 
 export type EventActionState = {
   error: string | null
@@ -78,11 +85,76 @@ async function getCobaltCookie() {
   return cookieStore.get("vatusa-cobalt-token")?.value
 }
 
-function getReadableErrorMessage(error: unknown) {
+function getReadableErrorMessage(
+  error: unknown,
+  facilityId?: string,
+  action?: "create" | "update" | "delete"
+) {
+  if (error instanceof CobaltPermissionError) {
+    if (error.failureKind === "verification_failed") {
+      return "Unable to verify permissions with Cobalt right now."
+    }
+
+    return facilityId
+      ? buildLiveEventPermissionMessage(facilityId)
+      : "You do not have live Cobalt permission to manage this event."
+  }
+
+  if (error instanceof CobaltHttpError && error.status === 403) {
+    return facilityId
+      ? buildEventEndpointRejectionMessage(action ?? "create", facilityId)
+      : "Cobalt rejected this event action after live permission verification."
+  }
+
   if (error instanceof Error && error.message.trim()) {
     return error.message
   }
   return "Something went wrong while saving the event."
+}
+
+function buildLiveEventPermissionMessage(facilityId: string) {
+  return `You do not have live Cobalt permission to manage events for ${normalizeFacilityId(
+    facilityId
+  )}.`
+}
+
+function buildEventEndpointRejectionMessage(
+  action: "create" | "update" | "delete",
+  facilityId: string
+) {
+  const facility = normalizeFacilityId(facilityId)
+
+  if (action === "update") {
+    return `Cobalt rejected event updates for ${facility} after live permission verification.`
+  }
+
+  if (action === "delete") {
+    return `Cobalt rejected event deletion for ${facility} after live permission verification.`
+  }
+
+  return `Cobalt rejected event creation for ${facility} after live permission verification.`
+}
+
+function logEventActionError(context: string, error: unknown) {
+  console.error(`Event action failed (${context}):`, error)
+}
+
+function logEventEndpointDiscrepancy(input: {
+  action: "create" | "update" | "delete"
+  facilityId: string
+  liveSession: CobaltSession
+  error: CobaltHttpError
+}) {
+  console.error("Event endpoint rejected request after live permission preflight.", {
+    action: input.action,
+    facilityId: normalizeFacilityId(input.facilityId),
+    cid: input.liveSession.user?.cid,
+    preflightAllowed: true,
+    status: input.error.status,
+    statusText: input.error.statusText,
+    url: input.error.url,
+    body: input.error.body,
+  })
 }
 
 export async function fetchEventForEdit(
@@ -100,17 +172,29 @@ export async function createEventAction(
   _prevState: EventActionState,
   formData: FormData
 ): Promise<EventActionState> {
+  let facilityIdForError = ""
+  let liveSession: CobaltSession | undefined
+
   try {
     const payload = buildEventPayload(formData)
-
+    facilityIdForError = payload.facility
     const cobaltCookie = await getCobaltCookie()
-
     if (!cobaltCookie) {
       return {
         error: "Missing Cobalt auth cookie.",
         success: null,
       }
     }
+
+    liveSession = await requireLivePermissionOrThrow({
+      object: OBJECT.event,
+      action: ACTION.write,
+      facilityId: payload.facility,
+      requireFacility: true,
+      allowGlobalFallback: false,
+      allowSuperAdmin: false,
+      message: buildLiveEventPermissionMessage(payload.facility),
+    })
 
     await cobaltRequest<unknown>("event/create", {
       method: "POST",
@@ -130,8 +214,22 @@ export async function createEventAction(
       redirectTo: `/facility/${facilitySlug}/events/manage`,
     }
   } catch (error) {
+    if (
+      error instanceof CobaltHttpError &&
+      error.status === 403 &&
+      liveSession &&
+      facilityIdForError
+    ) {
+      logEventEndpointDiscrepancy({
+        action: "create",
+        facilityId: facilityIdForError,
+        liveSession,
+        error,
+      })
+    }
+    logEventActionError("create", error)
     return {
-      error: getReadableErrorMessage(error),
+      error: getReadableErrorMessage(error, facilityIdForError, "create"),
       success: null,
     }
   }
@@ -141,6 +239,9 @@ export async function updateEventAction(
   _prevState: EventActionState,
   formData: FormData
 ): Promise<EventActionState> {
+  let facilityIdForError = ""
+  let liveSession: CobaltSession | undefined
+
   try {
     const eventId = readStringField(formData, "eventId")
     if (!eventId) {
@@ -150,7 +251,8 @@ export async function updateEventAction(
       }
     }
 
-    const payload = buildEventPayload(formData)
+    const submittedPayload = buildEventPayload(formData)
+    facilityIdForError = submittedPayload.facility
 
     const cobaltCookie = await getCobaltCookie()
 
@@ -159,6 +261,38 @@ export async function updateEventAction(
         error: "Missing Cobalt auth cookie.",
         success: null,
       }
+    }
+
+    const existingEvent = await getEventById(eventId)
+    if (!existingEvent) {
+      return {
+        error: "Event not found.",
+        success: null,
+      }
+    }
+
+    const targetFacility = normalizeFacilityId(existingEvent.facility ?? "")
+    facilityIdForError = targetFacility
+    if (!targetFacility) {
+      return {
+        error: "Event facility is required.",
+        success: null,
+      }
+    }
+
+    liveSession = await requireLivePermissionOrThrow({
+      object: OBJECT.event,
+      action: ACTION.write,
+      facilityId: targetFacility,
+      requireFacility: true,
+      allowGlobalFallback: false,
+      allowSuperAdmin: false,
+      message: buildLiveEventPermissionMessage(targetFacility),
+    })
+
+    const payload = {
+      ...submittedPayload,
+      facility: targetFacility,
     }
 
     await cobaltRequest<unknown>(`event/${encodeURIComponent(eventId)}`, {
@@ -179,8 +313,22 @@ export async function updateEventAction(
       redirectTo: `/facility/${facilitySlug}/events/manage`,
     }
   } catch (error) {
+    if (
+      error instanceof CobaltHttpError &&
+      error.status === 403 &&
+      liveSession &&
+      facilityIdForError
+    ) {
+      logEventEndpointDiscrepancy({
+        action: "update",
+        facilityId: facilityIdForError,
+        liveSession,
+        error,
+      })
+    }
+    logEventActionError("update", error)
     return {
-      error: getReadableErrorMessage(error),
+      error: getReadableErrorMessage(error, facilityIdForError, "update"),
       success: null,
     }
   }
@@ -188,13 +336,7 @@ export async function updateEventAction(
 
 export async function deleteEventAction(formData: FormData): Promise<void> {
   const eventId = readStringField(formData, "eventId")
-  const facilitySlug = parseFacilitySlug(readStringField(formData, "facilitySlug"))
-  const facilityId = normalizeFacilityId(facilitySlug)
   const requestedReturnTo = readStringField(formData, "returnTo")
-  const returnTo: string =
-    requestedReturnTo.length > 0
-      ? requestedReturnTo
-      : `/facility/${facilitySlug}/events/manage`
 
   if (!eventId) {
     throw new Error("Event ID is required.")
@@ -205,18 +347,61 @@ export async function deleteEventAction(formData: FormData): Promise<void> {
     throw new Error("Missing Cobalt auth cookie.")
   }
 
-  await cobaltRequest<unknown>(`event/${encodeURIComponent(eventId)}`, {
-    method: "DELETE",
-    cobaltCookie,
-    credentials: "omit",
-  })
+  const existingEvent = await getEventById(eventId)
+  if (!existingEvent) {
+    throw new Error("Event not found.")
+  }
 
-  revalidatePath(`/facility/${facilitySlug}/events/manage`)
-  revalidatePath(`/facility/${facilitySlug}/events/new`)
-  revalidatePath(`/facility/${facilitySlug}`)
-  revalidatePath(`/facility/${facilitySlug}/division/events`)
+  const targetFacility = normalizeFacilityId(existingEvent.facility ?? "")
+  if (!targetFacility) {
+    throw new Error("Event facility is required.")
+  }
+
+  const targetFacilitySlug = parseFacilitySlug(targetFacility)
+  const returnTo: string =
+    requestedReturnTo.length > 0
+      ? requestedReturnTo
+      : `/facility/${targetFacilitySlug}/events/manage`
+  let liveSession: CobaltSession | undefined
+
+  try {
+    liveSession = await requireLivePermissionOrThrow({
+      object: OBJECT.event,
+      action: ACTION.write,
+      facilityId: targetFacility,
+      requireFacility: true,
+      allowGlobalFallback: false,
+      allowSuperAdmin: false,
+      message: buildLiveEventPermissionMessage(targetFacility),
+    })
+
+    await cobaltRequest<unknown>(`event/${encodeURIComponent(eventId)}`, {
+      method: "DELETE",
+      cobaltCookie,
+      credentials: "omit",
+    })
+  } catch (error) {
+    if (
+      error instanceof CobaltHttpError &&
+      error.status === 403 &&
+      liveSession
+    ) {
+      logEventEndpointDiscrepancy({
+        action: "delete",
+        facilityId: targetFacility,
+        liveSession,
+        error,
+      })
+    }
+    logEventActionError("delete", error)
+    throw new Error(getReadableErrorMessage(error, targetFacility, "delete"))
+  }
+
+  revalidatePath(`/facility/${targetFacilitySlug}/events/manage`)
+  revalidatePath(`/facility/${targetFacilitySlug}/events/new`)
+  revalidatePath(`/facility/${targetFacilitySlug}`)
+  revalidatePath(`/facility/${targetFacilitySlug}/division/events`)
   revalidatePath(`/facility/usa/division/events`)
 
   redirect(withEventDeletedFlag(returnTo))
 }
-

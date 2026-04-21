@@ -14,6 +14,8 @@ import {
 import { getSession } from "@/lib/session"
 import { requireStaffSession } from "@/lib/permissions"
 import { DevBanner } from "@/components/Banner/DevBanner"
+import { normalizePermissionCollections } from "@/lib/acl"
+import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 
 const fontSans = Inter({
   subsets: ["latin"],
@@ -30,26 +32,15 @@ const fontMono = JetBrains_Mono({
   variable: "--font-mono",
 })
 
-function UnauthorizedView() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4">
-      <section className="w-full max-w-lg rounded-xl border bg-card p-8 text-center shadow-sm">
-        <h1 className="text-2xl font-semibold tracking-tight">Unauthorized</h1>
-        <p className="mt-3 text-sm text-muted-foreground">
-          You are not authorized to view this page.
-        </p>
-      </section>
-    </main>
-  )
-}
-
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   const session = await getSession()
-  const allowed = requireStaffSession(session as any)
+  const allowed = requireStaffSession(session)
+  const { globalPermissions, allFacilityPermissions } =
+    normalizePermissionCollections(session.cobalt)
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -64,6 +55,8 @@ export default async function RootLayout({
                 <SidebarProvider>
                   <AppSideBar
                     userName={session?.name}
+                    globalPermissions={globalPermissions}
+                    facilityPermissions={allFacilityPermissions}
                   />
 
                   <SidebarInset>
@@ -82,11 +75,16 @@ export default async function RootLayout({
                     </div>
                   </SidebarInset>
                 </SidebarProvider>
-                <Toaster />
               </div>
             ) : (
-              <UnauthorizedView />
+              <UnauthorizedPanel
+                message="You are not authorized to access the staff application."
+                backHref="/"
+                backLabel="Back to Staff Home"
+                toastMessage="You are not authorized to access the staff application."
+              />
             )}
+            <Toaster />
           </TooltipProvider>
         </ClientThemeProvider>
       </body>

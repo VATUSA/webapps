@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { buttonVariants } from "@workspace/ui/components/button"
+import { buttonVariants } from "@workspace/ui/lib/button-variants"
 import { cn } from "@workspace/ui/lib/utils"
 
 export function EventNotFoundActions() {

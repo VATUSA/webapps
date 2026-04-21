@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { usePathname, useRouter } from "next/navigation"
+import type { CobaltPermission } from "@workspace/third-party/cobalt"
 import { NavMain, type NavItem } from "@/components/SideBar/NavMain"
 import { NavUser } from "@/components/SideBar/NavUser"
 import { NavSwitcher } from "@/components/SideBar/NavSwitcher"
@@ -12,16 +13,22 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@workspace/ui/components/sidebar"
-import { FrameIcon, PieChartIcon, MapIcon } from "lucide-react"
 import { FaBuilding, FaNewspaper, FaPeopleGroup } from "react-icons/fa6"
-import { MdOutlineGroups3, MdAdminPanelSettings } from "react-icons/md"
+import { MdAdminPanelSettings } from "react-icons/md"
 import { IoSchool } from "react-icons/io5"
-import { GrDocumentUser } from "react-icons/gr"
 import { MdEventNote, MdSettings } from "react-icons/md"
-import { TbTransfer } from "react-icons/tb"
+import {
+  ACTION,
+  OBJECT,
+  hasAnyFacilityScopedPermission,
+  hasFacilityScopedPermission,
+  hasPermission,
+} from "@/lib/acl"
 
 type AppSideBarProps = React.ComponentProps<typeof Sidebar> & {
   userName?: string
+  globalPermissions?: CobaltPermission[]
+  facilityPermissions?: CobaltPermission[]
 }
 
 type Team = {
@@ -317,6 +324,20 @@ function replaceIdInUrls(
   }))
 }
 
+function filterCreateLinks(
+  items: readonly NavItem[],
+  input: { canCreateEvent: boolean; canCreateNews: boolean }
+): NavItem[] {
+  return items.map((item) => ({
+    ...item,
+    items: item.items?.filter((subItem) => {
+      if (subItem.title === "New Event") return input.canCreateEvent
+      if (subItem.title === "New Post") return input.canCreateNews
+      return true
+    }),
+  }))
+}
+
 const TEAM_STORAGE_KEY = "staff.activeTeamId"
 
 function getTeamFromPathname(pathname: string, allTeams: readonly Team[]) {
@@ -339,6 +360,8 @@ function swapFacilityInPath(pathname: string, newTeamId: string) {
 
 export function AppSideBar({
   userName,
+  globalPermissions = [],
+  facilityPermissions = [],
   ...props
 }: AppSideBarProps) {
   const router = useRouter()
@@ -377,12 +400,37 @@ export function AppSideBar({
   )
 
   const isUsaTeam = activeTeam.id.toUpperCase() === "USA"
+  const canCreateEvent = isUsaTeam
+    ? hasAnyFacilityScopedPermission({
+        globalPermissions,
+        facilityPermissions,
+        object: OBJECT.event,
+        action: ACTION.write,
+        allowSuperAdmin: false,
+      })
+    : hasFacilityScopedPermission({
+        globalPermissions,
+        facilityPermissions,
+        object: OBJECT.event,
+        action: ACTION.write,
+        facilityId: activeTeam.id,
+        allowSuperAdmin: false,
+      })
+  const canCreateNews = hasPermission(
+    globalPermissions,
+    OBJECT.newsPost,
+    ACTION.write
+  )
 
   const navSource = isUsaTeam ? getUsaNavMain() : getArtccNavMain()
 
   const updatedNavMain = React.useMemo(
-    () => replaceIdInUrls(navSource, activeTeam.id.toLowerCase()),
-    [navSource, activeTeam.id]
+    () =>
+      replaceIdInUrls(
+        filterCreateLinks(navSource, { canCreateEvent, canCreateNews }),
+        activeTeam.id.toLowerCase()
+      ),
+    [activeTeam.id, canCreateEvent, canCreateNews, navSource]
   )
 
   // Prepare user data from session

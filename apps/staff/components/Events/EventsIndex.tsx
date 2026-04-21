@@ -16,26 +16,33 @@ export default function EventsIndex({
   items,
   page,
   facilityId,
+  canCreateEvent,
+  newEventHref,
 }: {
   items: CobaltEvent[]
   page: number
   facilityId: string
+  canCreateEvent: boolean
+  newEventHref?: string
 }) {
   const hasPrevious = page > 1
   const hasNext = items.length === PAGE_SIZE
   const previousHref = `?page=${Math.max(1, page - 1)}`
   const nextHref = `?page=${page + 1}`
+  const resolvedNewEventHref = newEventHref ?? `/facility/${facilityId}/events/new`
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-end">
-        <Link
-          href={`/facility/${facilityId}/events/new`}
-          className="inline-flex h-9 items-center justify-center rounded-md border border-border/60 bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-        >
-          New Event
-        </Link>
-      </div>
+      {canCreateEvent ? (
+        <div className="flex items-center justify-end">
+          <Link
+            href={resolvedNewEventHref}
+            className="inline-flex h-9 items-center justify-center rounded-md border border-border/60 bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+          >
+            New Event
+          </Link>
+        </div>
+      ) : null}
 
       {items.length === 0 ? (
         <Card className="border-border/60 shadow-sm">
@@ -122,4 +129,3 @@ export default function EventsIndex({
     </div>
   )
 }
-

@@ -4,7 +4,11 @@ import {
   type CobaltSession,
 } from "@workspace/third-party/cobalt"
 import { getSession } from "@/lib/session"
-import { hasAnyStaffAccess, hasScopedPermission } from "@/lib/acl"
+import {
+  hasAnyStaffAccess,
+  hasScopedPermission,
+  normalizePermissionCollections,
+} from "@/lib/acl"
 
 const REFRESH_TTL_MS = 5 * 60 * 1000
 const MAX_STALE_MS = 24 * 60 * 60 * 1000
@@ -68,6 +72,92 @@ async function syncSessionWithLiveCobalt(liveSession: CobaltSession) {
   await saveSessionIfWritable(session)
 }
 
+type LiveSessionResult =
+  | { ok: true; liveSession: CobaltSession }
+  | { ok: false; message: string }
+
+export type LivePermissionCheckResult = {
+  allowed: boolean
+  message: string
+  liveSession?: CobaltSession
+  source: "live"
+  failureKind?: "permission_denied" | "verification_failed"
+}
+
+export class CobaltPermissionError extends Error {
+  status: number
+  failureKind: "permission_denied" | "verification_failed"
+
+  constructor(input: {
+    message: string
+    failureKind: "permission_denied" | "verification_failed"
+  }) {
+    super(input.message)
+    this.name = "CobaltPermissionError"
+    this.status = 403
+    this.failureKind = input.failureKind
+  }
+}
+
+function evaluatePermission(input: {
+  session?: Pick<CobaltSession, "global_permissions" | "facility_permissions"> | null
+  object: string
+  action?: string
+  facilityId?: string
+  requireFacility?: boolean
+  allowGlobalFallback?: boolean
+  allowSuperAdmin?: boolean
+}) {
+  const { globalPermissions, allFacilityPermissions } =
+    normalizePermissionCollections(input.session)
+
+  return hasScopedPermission({
+    globalPermissions,
+    facilityPermissions: allFacilityPermissions,
+    object: input.object,
+    action: input.action,
+    facilityId: input.facilityId,
+    requireFacility: input.requireFacility,
+    allowGlobalFallback: input.allowGlobalFallback,
+    allowSuperAdmin: input.allowSuperAdmin,
+  })
+}
+
+async function getLiveCobaltSessionResult(): Promise<LiveSessionResult> {
+  const cookieStore = await cookies()
+  const cobaltCookie = cookieStore.get("vatusa-cobalt-token")?.value
+  if (!cobaltCookie) {
+    return {
+      ok: false,
+      message: "Missing Cobalt auth cookie.",
+    }
+  }
+
+  try {
+    const liveSession = await cobaltRequest<CobaltSession>("my/session", {
+      method: "GET",
+      cobaltCookie,
+      credentials: "omit",
+    })
+    await syncSessionWithLiveCobalt(liveSession)
+    return { ok: true, liveSession }
+  } catch {
+    return {
+      ok: false,
+      message: "Unable to verify permissions with Cobalt right now.",
+    }
+  }
+}
+
+export async function getLiveCobaltSessionOrThrow(): Promise<CobaltSession> {
+  const result = await getLiveCobaltSessionResult()
+  if (result.ok) {
+    return result.liveSession
+  }
+
+  throwPermissionError(result.message, "verification_failed")
+}
+
 export function requirePermissionOrThrow(input: {
   session: Awaited<ReturnType<typeof getSession>>
   object: string
@@ -75,34 +165,75 @@ export function requirePermissionOrThrow(input: {
   facilityId?: string
   requireFacility?: boolean
   allowGlobalFallback?: boolean
+  allowSuperAdmin?: boolean
   message?: string
 }) {
   const { session } = input
+  const { globalPermissions, allFacilityPermissions } =
+    normalizePermissionCollections(session.cobalt)
   const allowed = hasScopedPermission({
-    globalPermissions: session.cobalt?.global_permissions ?? [],
-    facilityPermissions: session.cobalt?.facility_permissions ?? [],
+    globalPermissions,
+    facilityPermissions: allFacilityPermissions,
     object: input.object,
     action: input.action,
     facilityId: input.facilityId,
     requireFacility: input.requireFacility,
     allowGlobalFallback: input.allowGlobalFallback,
+    allowSuperAdmin: input.allowSuperAdmin,
   })
 
   if (allowed) return
 
-  const error = new Error(input.message ?? "Forbidden") as Error & {
-    status?: number
-  }
-  error.status = 403
-  throw error
+  throwPermissionError(input.message ?? "Forbidden", "permission_denied")
 }
 
-function throwForbidden(message?: string): never {
-  const error = new Error(message ?? "Forbidden") as Error & {
-    status?: number
+function throwPermissionError(
+  message: string,
+  failureKind: "permission_denied" | "verification_failed"
+): never {
+  throw new CobaltPermissionError({
+    message,
+    failureKind,
+  })
+}
+
+export async function checkLivePermission(input: {
+  object: string
+  action?: string
+  facilityId?: string
+  requireFacility?: boolean
+  allowGlobalFallback?: boolean
+  allowSuperAdmin?: boolean
+  message?: string
+}): Promise<LivePermissionCheckResult> {
+  const liveSessionResult = await getLiveCobaltSessionResult()
+
+  if (liveSessionResult.ok) {
+    const allowed = evaluatePermission({
+      session: liveSessionResult.liveSession,
+      object: input.object,
+      action: input.action,
+      facilityId: input.facilityId,
+      requireFacility: input.requireFacility,
+      allowGlobalFallback: input.allowGlobalFallback,
+      allowSuperAdmin: input.allowSuperAdmin,
+    })
+
+    return {
+      allowed,
+      message: allowed ? "" : (input.message ?? "Forbidden"),
+      liveSession: liveSessionResult.liveSession,
+      source: "live",
+      failureKind: allowed ? undefined : "permission_denied",
+    }
   }
-  error.status = 403
-  throw error
+
+  return {
+    allowed: false,
+    message: liveSessionResult.message,
+    source: "live",
+    failureKind: "verification_failed",
+  }
 }
 
 export async function requireLivePermissionOrThrow(input: {
@@ -111,51 +242,42 @@ export async function requireLivePermissionOrThrow(input: {
   facilityId?: string
   requireFacility?: boolean
   allowGlobalFallback?: boolean
+  allowSuperAdmin?: boolean
   message?: string
-}) {
-  const cookieStore = await cookies()
-  const cobaltCookie = cookieStore.get("vatusa-cobalt-token")?.value
-  if (!cobaltCookie) {
-    throwForbidden("Missing Cobalt auth cookie.")
+}): Promise<CobaltSession> {
+  const liveSessionResult = await getLiveCobaltSessionResult()
+  if (!liveSessionResult.ok) {
+    throwPermissionError(liveSessionResult.message, "verification_failed")
   }
 
-  let liveSession: CobaltSession
-  try {
-    liveSession = await cobaltRequest<CobaltSession>("my/session", {
-      method: "GET",
-      cobaltCookie,
-      credentials: "omit",
-    })
-  } catch {
-    throwForbidden("Unable to verify permissions with Cobalt.")
-  }
-
-  const allowed = hasScopedPermission({
-    globalPermissions: liveSession.global_permissions ?? [],
-    facilityPermissions: liveSession.facility_permissions ?? [],
+  const allowed = evaluatePermission({
+    session: liveSessionResult.liveSession,
     object: input.object,
     action: input.action,
     facilityId: input.facilityId,
     requireFacility: input.requireFacility,
     allowGlobalFallback: input.allowGlobalFallback,
+    allowSuperAdmin: input.allowSuperAdmin,
   })
 
   if (!allowed) {
-    // Keep session cookie ACLs in sync when live Cobalt denies the action.
-    await syncSessionWithLiveCobalt(liveSession)
-    throwForbidden(input.message)
+    throwPermissionError(input.message ?? "Forbidden", "permission_denied")
   }
+
+  return liveSessionResult.liveSession
 }
 
 export async function requireStaffSession() {
   const session = await getSession()
 
   await refreshCobaltSessionIfStale(session)
+  const { globalPermissions, allFacilityPermissions } =
+    normalizePermissionCollections(session.cobalt)
 
   const isAuthed = session.isLoggedIn
   const allowed = hasAnyStaffAccess({
-    globalPermissions: session.cobalt?.global_permissions ?? [],
-    facilityPermissions: session.cobalt?.facility_permissions ?? [],
+    globalPermissions,
+    facilityPermissions: allFacilityPermissions,
   })
 
   return { session, allowed: isAuthed && allowed }

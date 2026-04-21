@@ -252,8 +252,10 @@ export type CobaltSession = {
       last_transfer_timestamp: null
     }
   }
-  global_permissions: []
-  facility_permissions: []
+  global_permissions: CobaltPermission[]
+  facility_permissions:
+    | CobaltPermission[]
+    | Record<string, CobaltPermission[]>
 }
 
 export async function getMySession(
