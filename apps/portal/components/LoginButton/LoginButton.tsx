@@ -12,7 +12,6 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { cn } from "@workspace/ui/lib/utils"
-import { cobalt } from "@workspace/third-party"
 
 type LoginDropdownProps = {
   isLoggedIn: boolean
@@ -29,10 +28,14 @@ export default function LoginButton({
   staffAppUrl,
   canAccessStaffApp,
 }: LoginDropdownProps) {
+  const cobaltDefaultUrl =
+    process.env.NEXT_PUBLIC_COBALT_EXTERNAL_BASE_URL ??
+    "http://localhost:8000/cobalt"
+
   if (!isLoggedIn) {
     return (
       <a
-        href={cobalt.getLoginUrl()}
+        href={`${cobaltDefaultUrl}/login`}
         className={cn(
           buttonVariants({ variant: "default", size: "sm" }),
           "px-4"
@@ -86,7 +89,9 @@ export default function LoginButton({
         <DropdownMenuSeparator />
 
         <DropdownMenuItem
-          onClick={() => (window.location.href = cobalt.getLogoutUrl())}
+          onClick={() =>
+            (window.location.href = `${cobaltDefaultUrl}/login/logout`)
+          }
           className={cn(
             buttonVariants({ variant: "ghost", size: "sm" }),
             "h-9 w-full justify-start px-2"
