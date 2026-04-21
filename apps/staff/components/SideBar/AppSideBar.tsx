@@ -179,44 +179,18 @@ const teams = [
 const getArtccNavMain = (): NavItem[] => [
   // Roster Management Section
   {
-    title: "Roster",
-    url: "/facility/:id/roster",
+    title: "Roster Management",
+    url: "#",
     icon: <FaPeopleGroup />,
-    isClickable: true,
+    isClickable: false,
+    items: [
+      { title: "Full Roster", url: "/facility/:id/roster" },
+      { title: "Home", url: "/facility/:id/roster/home" },
+      { title: "Visitors", url: "/facility/:id/roster/visit" },
+      { title: "Transfer Requests", url: "/facility/:id/requests/transfer" },
+      { title: "Visit Requests", url: "/facility/:id/requests/visit" },
+    ],
   },
-  {
-    title: "Home",
-    url: "/facility/:id/roster/home",
-    icon: <FaBuilding />,
-    isClickable: true,
-  },
-  {
-    title: "Visitors",
-    url: "/facility/:id/roster/visit",
-    icon: <FaPeopleGroup />,
-    isClickable: true,
-  },
-  {
-    title: "Transfer Requests",
-    url: "/facility/:id/requests/transfer",
-    icon: <TbTransfer />,
-    isClickable: true,
-  },
-  {
-    title: "Visit Requests",
-    url: "/facility/:id/requests/visit",
-    icon: <GrDocumentUser />,
-    isClickable: true,
-  },
-
-  // Staff POCs
-  {
-    title: "Staff POCs",
-    url: "/facility/:id/staff/poc",
-    icon: <MdOutlineGroups3 />,
-    isClickable: true,
-  },
-
   // Training Section
   {
     title: "Training",
@@ -266,6 +240,7 @@ const getArtccNavMain = (): NavItem[] => [
     items: [
       { title: "Role Assignments", url: "/facility/:id/roles/assignments" },
       { title: "Assign Role", url: "/facility/:id/roles/assignments/new" },
+      { title: "Staff POCs", url: "/facility/:id/staff/poc" },
     ],
   },
 
@@ -291,13 +266,6 @@ const getArtccNavMain = (): NavItem[] => [
  * USA Division Navigation Structure
  */
 const getUsaNavMain = (): NavItem[] => [
-  // Staff POCs
-  {
-    title: "Staff POCs",
-    url: "/facility/:id/staff/poc",
-    icon: <MdOutlineGroups3 />,
-    isClickable: true,
-  },
   // Events Section
   {
     title: "Events",
@@ -329,23 +297,11 @@ const getUsaNavMain = (): NavItem[] => [
     items: [
       { title: "Role Assignments", url: "/facility/:id/roles/assignments" },
       { title: "Assign Role", url: "/facility/:id/roles/assignments/new" },
+      { title: "Staff POCs", url: "/facility/:id/roles/poc" },
     ],
   },
 ]
 
-const data = {
-  user: {
-    name: "Web Ten",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  teams,
-  projects: [
-    { name: "Design Engineering", url: "#", icon: <FrameIcon /> },
-    { name: "Sales & Marketing", url: "#", icon: <PieChartIcon /> },
-    { name: "Travel", url: "#", icon: <MapIcon /> },
-  ],
-}
 
 function replaceIdInUrls(
   items: readonly NavItem[],
@@ -388,10 +344,10 @@ export function AppSideBar({
   const router = useRouter()
   const pathname = usePathname()
 
-  const [activeTeam, setActiveTeam] = React.useState<Team>(data.teams[0])
+  const [activeTeam, setActiveTeam] = React.useState<Team>(teams[0])
 
   React.useEffect(() => {
-    const fromPath = getTeamFromPathname(pathname, data.teams)
+    const fromPath = getTeamFromPathname(pathname, teams)
     if (fromPath) {
       setActiveTeam((prev) => (prev.id === fromPath.id ? prev : fromPath))
       window.localStorage.setItem(TEAM_STORAGE_KEY, fromPath.id)
@@ -401,7 +357,7 @@ export function AppSideBar({
     const savedId = window.localStorage.getItem(TEAM_STORAGE_KEY)?.toUpperCase()
     if (!savedId) return
 
-    const savedTeam = data.teams.find((t) => t.id.toUpperCase() === savedId)
+    const savedTeam = teams.find((t) => t.id.toUpperCase() === savedId)
     if (savedTeam) {
       setActiveTeam((prev) => (prev.id === savedTeam.id ? prev : savedTeam))
     }
@@ -422,10 +378,8 @@ export function AppSideBar({
 
   const isUsaTeam = activeTeam.id.toUpperCase() === "USA"
 
-  // Get navigation items based on facility type (all items visible to all users)
   const navSource = isUsaTeam ? getUsaNavMain() : getArtccNavMain()
 
-  // Replace :id placeholder with actual facility ID
   const updatedNavMain = React.useMemo(
     () => replaceIdInUrls(navSource, activeTeam.id.toLowerCase()),
     [navSource, activeTeam.id]
@@ -438,7 +392,7 @@ export function AppSideBar({
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <NavSwitcher
-          teams={data.teams}
+          teams={teams}
           activeTeam={activeTeam}
           onTeamChangeAction={onTeamChangeAction}
         />

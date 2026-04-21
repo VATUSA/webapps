@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui/components/sidebar"
 import { getSession } from "@/lib/session"
 import { requireStaffSession } from "@/lib/permissions"
+import { DevBanner } from "@/components/Banner/DevBanner"
 
 const fontSans = Inter({
   subsets: ["latin"],
@@ -59,6 +60,7 @@ export default async function RootLayout({
           <TooltipProvider>
             {allowed ? (
               <div className="flex min-h-screen flex-col">
+                <DevBanner />
                 <SidebarProvider>
                   <AppSideBar
                     userName={session?.name}

@@ -70,7 +70,7 @@ export default function LoginButton({
 
         <DropdownMenuGroup>
           <DropdownMenuItem
-            onClick={() => (window.location.href = myVatusaProfileUrl)}
+            onClick={() => (window.open(myVatusaProfileUrl))}
           >
             <UserIcon className="size-4" />
             My VATUSA Profile
@@ -78,7 +78,7 @@ export default function LoginButton({
 
           {canAccessStaffApp ? (
             <DropdownMenuItem
-              onClick={() => (window.location.href = staffAppUrl)}
+              onClick={() => (window.open(staffAppUrl))}
             >
               <ShieldIcon className="size-4" />
               Staff Management

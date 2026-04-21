@@ -17,6 +17,7 @@ import {
 } from "@workspace/ui/components/sidebar"
 import { ChevronsUpDownIcon, LogOutIcon, UserIcon } from "lucide-react"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
+import { FaHome } from "react-icons/fa"
 
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -47,9 +48,13 @@ export function NavUser({
     "http://localhost:8000/cobalt"
 
   const handleProfileClick = () => {
-    //TODO: Update to my portal profile
-    window.location.href = "/profile"
+    window.open("/profile", "_blank")
   }
+
+  const handleHomeClick = () => {
+    window.open("/", "_blank")
+  }
+
 
   const handleLogoutClick = () => {
     window.location.href = `${cobaltDefaultUrl}/login/logout`
@@ -102,6 +107,10 @@ export function NavUser({
               <DropdownMenuItem onClick={handleProfileClick}>
                 <UserIcon />
                 Profile
+              </DropdownMenuItem>{" "}
+              <DropdownMenuItem onClick={handleHomeClick}>
+                <FaHome />
+                VATUSA
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleLogoutClick}>
                 <LogOutIcon />
