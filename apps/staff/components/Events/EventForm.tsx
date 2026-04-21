@@ -34,6 +34,8 @@ const initialState: EventActionState = {
 }
 
 const FACILITY_OPTIONS: Array<{ code: string; name: string }> = [
+  { code: "ZAE", name: "VATUSA" },
+  { code: "ZHQ", name: "VATUSA" },
   { code: "ZAB", name: "Albuquerque ARTCC" },
   { code: "ZAK", name: "Anchorage ARTCC" },
   { code: "ZTL", name: "Atlanta ARTCC" },
