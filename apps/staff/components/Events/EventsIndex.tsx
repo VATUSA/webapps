@@ -15,11 +15,11 @@ function formatDateTime(value: string) {
 export default function EventsIndex({
   items,
   page,
-  facilitySlug,
+  facilityId,
 }: {
   items: CobaltEvent[]
   page: number
-  facilitySlug: string
+  facilityId: string
 }) {
   const hasPrevious = page > 1
   const hasNext = items.length === PAGE_SIZE
@@ -30,7 +30,7 @@ export default function EventsIndex({
     <div className="space-y-4">
       <div className="flex items-center justify-end">
         <Link
-          href={`/facility/${facilitySlug}/events/new`}
+          href={`/facility/${facilityId}/events/new`}
           className="inline-flex h-9 items-center justify-center rounded-md border border-border/60 bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
         >
           New Event
@@ -74,11 +74,11 @@ export default function EventsIndex({
                       <td className="px-4 py-4 text-right">
                         <form action={deleteEventAction} className="inline-flex">
                           <input type="hidden" name="eventId" value={String(item.id)} />
-                          <input type="hidden" name="facilitySlug" value={facilitySlug} />
+                          <input type="hidden" name="facilityId" value={facilityId} />
                           <input
                             type="hidden"
                             name="returnTo"
-                            value={`/facility/${facilitySlug}/events/manage?page=${page}`}
+                            value={`/facility/${facilityId}/events/manage?page=${page}`}
                           />
                           <DeleteEventButton itemTitle={item.title} />
                         </form>

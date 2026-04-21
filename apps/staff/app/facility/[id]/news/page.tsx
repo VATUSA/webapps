@@ -25,7 +25,7 @@ export default async function FacilityNewsPage({
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <NewsIndex items={result.items} page={result.page} facilitySlug={id.toLowerCase()} />
+      <NewsIndex items={result.items} page={result.page} facilityId={id.toLowerCase()} />
     </main>
   )
 }

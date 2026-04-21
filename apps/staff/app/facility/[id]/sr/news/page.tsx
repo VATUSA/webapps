@@ -34,7 +34,6 @@ function parsePage(value: string | string[] | undefined) {
 export default async function Page({ params, searchParams }: DivisionNewsPageProps) {
   const { id } = await params
   const facilityId = normalizeFacilityId(id)
-  const facilitySlug = facilityId.toLowerCase()
   const query = await searchParams
   const page = parsePage(query?.page)
 
@@ -52,7 +51,7 @@ export default async function Page({ params, searchParams }: DivisionNewsPagePro
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink
-              render={<Link href={`/facility/${facilitySlug}/staff`} />}
+              render={<Link href={`/facility/${facilityId}/staff`} />}
             >
               SR Staff
             </BreadcrumbLink>
@@ -73,7 +72,7 @@ export default async function Page({ params, searchParams }: DivisionNewsPagePro
         </header>
 
         <Link
-          href={`/facility/${facilitySlug}/sr/news/new`}
+          href={`/facility/${facilityId}/sr/news/new`}
           className="inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-primary px-4 text-sm font-medium whitespace-nowrap text-primary-foreground transition-colors hover:bg-primary/80 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
         >
           Create Post
@@ -83,8 +82,7 @@ export default async function Page({ params, searchParams }: DivisionNewsPagePro
       <NewsIndex
         items={news}
         page={page}
-        facilitySlug={facilitySlug}
-        editBaseHref={`/facility/${facilitySlug}/sr/news`}
+        facilityId={facilityId}
       />
 
       <NewsDeleteSuccessToast />

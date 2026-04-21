@@ -52,11 +52,11 @@ function formatUpdatedDate(item: CobaltNewsItem) {
 export default function NewsIndex({
   items,
   page,
-  facilitySlug,
+  facilityId,
 }: {
   items: CobaltNewsItem[]
   page: number
-  facilitySlug: string
+  facilityId: string
 }) {
   const hasPrevious = page > 1
   const hasNext = items.length === PAGE_SIZE
@@ -67,7 +67,7 @@ export default function NewsIndex({
     <div className="space-y-4">
       <div className="flex items-center justify-end">
         <Link
-          href={`/facility/${facilitySlug}/news/new`}
+          href={`/facility/${facilityId}/news/new`}
           className="inline-flex h-9 items-center justify-center rounded-md border border-border/60 bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
         >
           New Post
@@ -100,7 +100,7 @@ export default function NewsIndex({
                     <tr key={item.id} className="align-top">
                       <td className="px-4 py-4 font-medium text-foreground">
                         <Link
-                          href={`/facility/${facilitySlug}/news/${item.id}/edit`}
+                          href={`/facility/${facilityId}/news/${item.id}/edit`}
                           className="underline-offset-4 transition-colors hover:text-primary hover:underline"
                         >
                           {item.title}
@@ -118,19 +118,19 @@ export default function NewsIndex({
                       <td className="px-4 py-4 text-right">
                         <div className="inline-flex items-center gap-2">
                           <Link
-                            href={`/facility/${facilitySlug}/news/${item.id}/edit`}
+                            href={`/facility/${facilityId}/news/${item.id}/edit`}
                             className="inline-flex h-8 items-center justify-center rounded-md border border-border/60 bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
                           >
                             Edit
                           </Link>
                           <form action={deleteNewsPostAction} className="inline-flex">
                             <input type="hidden" name="newsId" value={String(item.id)} />
-                            <input type="hidden" name="facilitySlug" value={facilitySlug} />
+                            <input type="hidden" name="facilityId" value={facilityId} />
                             <input type="hidden" name="page" value={String(page)} />
                             <input
                               type="hidden"
                               name="returnTo"
-                              value={`/facility/${facilitySlug}/news?page=${page}`}
+                              value={`/facility/${facilityId}/news?page=${page}`}
                             />
                             <DeleteNewsButton itemTitle={item.title} />
                           </form>

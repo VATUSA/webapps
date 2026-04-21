@@ -30,7 +30,7 @@ export default async function ManageEventsPage({
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <EventDeleteSuccessToast />
-      <EventsIndex items={items} page={page} facilitySlug={id.toLowerCase()} />
+      <EventsIndex items={items} page={page} facilityId={id.toLowerCase()} />
     </main>
   )
 }
