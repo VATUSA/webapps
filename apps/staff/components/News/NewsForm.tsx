@@ -76,7 +76,9 @@ export default function NewsForm({ mode, facilityId, news }: NewsFormProps) {
       <CardContent>
         <FormErrorToast
           error={state.error}
-          title={isEdit ? "Failed to update news post" : "Failed to create news post"}
+          title={
+            isEdit ? "Failed to update news post" : "Failed to create news post"
+          }
         />
 
         <form action={formAction} className="space-y-5">
@@ -124,4 +126,3 @@ export default function NewsForm({ mode, facilityId, news }: NewsFormProps) {
     </Card>
   )
 }
-
