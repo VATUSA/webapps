@@ -16,11 +16,7 @@ import {
   useSidebar,
 } from "@workspace/ui/components/sidebar"
 import { ChevronsUpDownIcon, LogOutIcon, UserIcon } from "lucide-react"
-import { cobalt } from "@workspace/third-party"
-import {
-  Avatar,
-  AvatarFallback,
-} from "@workspace/ui/components/avatar"
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -36,7 +32,6 @@ function getInitials(name: string) {
   return `${first[0] ?? ""}${second[0] ?? ""}`.toUpperCase()
 }
 
-
 export function NavUser({
   user,
 }: {
@@ -47,13 +42,17 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
 
+  const cobaltDefaultUrl =
+    process.env.NEXT_PUBLIC_COBALT_EXTERNAL_BASE_URL ??
+    "http://localhost:8000/cobalt"
+
   const handleProfileClick = () => {
     //TODO: Update to my portal profile
     window.location.href = "/profile"
   }
 
   const handleLogoutClick = () => {
-    window.location.href = cobalt.getLogoutUrl()
+    window.location.href = `${cobaltDefaultUrl}/login/logout`
   }
 
   return (
