@@ -33,7 +33,10 @@ export async function GET() {
     session.isLoggedIn = true
     session.cid = cid
     session.name = `${cobaltInfo.user.network_user.first_name} ${cobaltInfo.user.network_user.last_name}`
-    session.roles = cobaltInfo.global_permissions
+    session.roles = cobaltInfo.global_permissions.map((permission) => ({
+      role: permission.object,
+      facility: permission.facility ?? "",
+    }))
     session.cobalt = cobaltInfo
     await session.save()
   } else {

@@ -13,9 +13,14 @@ interface NavBarProps {
 }
 
 export default function NavBar({ session }: NavBarProps) {
+  const globalPermissions = session.cobalt?.global_permissions ?? []
+  const facilityPermissions = Array.isArray(session.cobalt?.facility_permissions)
+    ? session.cobalt.facility_permissions
+    : Object.values(session.cobalt?.facility_permissions ?? {}).flat()
+
   const isStaff = hasStaffAccess([
-    ...(session.cobalt?.global_permissions ?? []),
-    ...(session.cobalt?.facility_permissions ?? []),
+    ...globalPermissions,
+    ...facilityPermissions,
   ])
   const myVatusaProfileUrl =
     process.env.NEXT_PUBLIC_MY_VATUSA_PROFILE_URL ??
