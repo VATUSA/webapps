@@ -10,6 +10,8 @@ import {
 import { getNewsPage } from "@workspace/third-party/cobalt"
 import NewsIndex from "@/components/News/NewsIndex"
 import NewsDeleteSuccessToast from "@/components/News/NewsDeleteSuccessToast"
+import { getSession } from "@/lib/session"
+import { ACTION, OBJECT, hasPermission, normalizePermissionCollections } from "@/lib/acl"
 
 type DivisionNewsPageProps = {
   params: Promise<{
@@ -36,6 +38,13 @@ export default async function Page({ params, searchParams }: DivisionNewsPagePro
   const facilityId = normalizeFacilityId(id)
   const query = await searchParams
   const page = parsePage(query?.page)
+  const session = await getSession()
+  const { globalPermissions } = normalizePermissionCollections(session.cobalt)
+  const canCreatePost = hasPermission(
+    globalPermissions,
+    OBJECT.newsPost,
+    ACTION.write
+  )
 
   const news = await getNewsPage(page)
 
@@ -71,18 +80,21 @@ export default async function Page({ params, searchParams }: DivisionNewsPagePro
           </p>
         </header>
 
-        <Link
-          href={`/facility/${facilityId}/sr/news/new`}
-          className="inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-primary px-4 text-sm font-medium whitespace-nowrap text-primary-foreground transition-colors hover:bg-primary/80 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
-        >
-          Create Post
-        </Link>
+        {canCreatePost ? (
+          <Link
+            href={`/facility/${facilityId}/sr/news/new`}
+            className="inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-primary px-4 text-sm font-medium whitespace-nowrap text-primary-foreground transition-colors hover:bg-primary/80 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+          >
+            Create Post
+          </Link>
+        ) : null}
       </div>
 
       <NewsIndex
         items={news}
         page={page}
         facilityId={facilityId}
+        canCreatePost={false}
       />
 
       <NewsDeleteSuccessToast />

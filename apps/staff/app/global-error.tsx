@@ -2,8 +2,8 @@
 
 import * as React from "react"
 import { HomeIcon, RefreshCcwIcon, TriangleAlertIcon } from "lucide-react"
-import { buttonVariants } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
+import { buttonVariants } from "@workspace/ui/lib/button-variants"
 import { cn } from "@workspace/ui/lib/utils"
 
 type GlobalErrorProps = {

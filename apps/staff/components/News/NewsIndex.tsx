@@ -53,10 +53,12 @@ export default function NewsIndex({
   items,
   page,
   facilityId,
+  canCreatePost,
 }: {
   items: CobaltNewsItem[]
   page: number
   facilityId: string
+  canCreatePost: boolean
 }) {
   const hasPrevious = page > 1
   const hasNext = items.length === PAGE_SIZE
@@ -66,12 +68,14 @@ export default function NewsIndex({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-end">
-        <Link
-          href={`/facility/${facilityId}/news/new`}
-          className="inline-flex h-9 items-center justify-center rounded-md border border-border/60 bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-        >
-          New Post
-        </Link>
+        {canCreatePost ? (
+          <Link
+            href={`/facility/${facilityId}/news/new`}
+            className="inline-flex h-9 items-center justify-center rounded-md border border-border/60 bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+          >
+            New Post
+          </Link>
+        ) : null}
       </div>
 
       {items.length === 0 ? (
@@ -125,7 +129,7 @@ export default function NewsIndex({
                           </Link>
                           <form action={deleteNewsPostAction} className="inline-flex">
                             <input type="hidden" name="newsId" value={String(item.id)} />
-                            <input type="hidden" name="facilityId" value={facilityId} />
+                            <input type="hidden" name="facilitySlug" value={facilityId} />
                             <input type="hidden" name="page" value={String(page)} />
                             <input
                               type="hidden"
@@ -175,4 +179,3 @@ export default function NewsIndex({
     </div>
   )
 }
-

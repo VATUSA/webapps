@@ -12,6 +12,13 @@ import { CobaltEvent, getUpcomingEvents } from "@workspace/third-party/cobalt"
 import { deleteEventAction } from "@/actions/events"
 import DeleteEventButton from "@/components/Events/DeleteEventButton"
 import EventDeleteSuccessToast from "@/components/Events/EventDeleteSuccessToast"
+import { getSession } from "@/lib/session"
+import {
+  ACTION,
+  OBJECT,
+  hasFacilityScopedPermission,
+  normalizePermissionCollections,
+} from "@/lib/acl"
 
 type EventsPageProps = {
   params: Promise<{
@@ -51,6 +58,17 @@ export default async function Page({ params }: EventsPageProps) {
   const { id } = await params
   const facilityId = normalizeFacilityId(id)
   const facilitySlug = facilityId.toLowerCase()
+  const session = await getSession()
+  const { globalPermissions, allFacilityPermissions } =
+    normalizePermissionCollections(session.cobalt)
+  const canCreateEvent = hasFacilityScopedPermission({
+    globalPermissions,
+    facilityPermissions: allFacilityPermissions,
+    object: OBJECT.event,
+    action: ACTION.write,
+    facilityId,
+    allowSuperAdmin: false,
+  })
 
   const events = await getUpcomingEvents(100)
   const facilityEvents = events
@@ -91,12 +109,14 @@ export default async function Page({ params }: EventsPageProps) {
           </p>
         </header>
 
-        <Link
-          href={`/facility/${facilitySlug}/staff/events/new`}
-          className="inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-primary px-4 text-sm font-medium whitespace-nowrap text-primary-foreground transition-colors hover:bg-primary/80 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
-        >
-          New Event
-        </Link>
+        {canCreateEvent ? (
+          <Link
+            href={`/facility/${facilitySlug}/staff/events/new`}
+            className="inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-primary px-4 text-sm font-medium whitespace-nowrap text-primary-foreground transition-colors hover:bg-primary/80 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+          >
+            New Event
+          </Link>
+        ) : null}
       </div>
 
       {facilityEvents.length === 0 ? (

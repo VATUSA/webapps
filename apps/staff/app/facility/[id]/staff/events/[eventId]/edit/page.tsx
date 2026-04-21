@@ -9,7 +9,11 @@ import {
   BreadcrumbSeparator,
 } from "@workspace/ui/components/breadcrumb"
 import EventForm from "@/components/Events/EventForm"
+import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 import { fetchEventForEdit } from "@/actions/events"
+import { ACTION, OBJECT } from "@/lib/acl"
+import { checkLivePermission } from "@/lib/auth"
+import { buildStaffHomeHref } from "@/lib/navigation"
 
 type EditEventPageProps = {
   params: Promise<{
@@ -30,8 +34,29 @@ export default async function Page({ params }: EditEventPageProps) {
   const event = await fetchEventForEdit(eventId)
   if (!event) notFound()
 
-  if (normalizeFacilityId(event.facility ?? "") !== facilityId) {
+  const eventFacilityId = normalizeFacilityId(event.facility ?? "")
+  if (eventFacilityId !== facilityId) {
     notFound()
+  }
+
+  const permissionCheck = await checkLivePermission({
+    object: OBJECT.event,
+    action: ACTION.write,
+    facilityId: eventFacilityId,
+    requireFacility: true,
+    allowGlobalFallback: false,
+    allowSuperAdmin: false,
+    message: `You do not have live Cobalt permission to manage events for ${eventFacilityId}.`,
+  })
+
+  if (!permissionCheck.allowed) {
+    return (
+      <UnauthorizedPanel
+        message={permissionCheck.message}
+        backHref={buildStaffHomeHref(facilityId)}
+        toastMessage={permissionCheck.message}
+      />
+    )
   }
 
   return (

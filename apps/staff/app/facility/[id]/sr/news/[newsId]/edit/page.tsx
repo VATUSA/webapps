@@ -9,7 +9,11 @@ import {
   BreadcrumbSeparator,
 } from "@workspace/ui/components/breadcrumb"
 import NewsForm from "@/components/News/NewsForm"
+import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 import { fetchNewsPostForEdit } from "@/actions/news"
+import { ACTION, OBJECT } from "@/lib/acl"
+import { checkLivePermission } from "@/lib/auth"
+import { buildStaffHomeHref } from "@/lib/navigation"
 
 type SrNewsEditPageProps = {
   params: Promise<{
@@ -25,6 +29,23 @@ function normalizeFacilityId(raw: string) {
 export default async function Page({ params }: SrNewsEditPageProps) {
   const { id, newsId } = await params
   const facilityId = normalizeFacilityId(id)
+
+  const permissionCheck = await checkLivePermission({
+    object: OBJECT.newsPost,
+    action: ACTION.write,
+    allowGlobalFallback: false,
+    message: "You do not have live Cobalt permission to publish global news posts.",
+  })
+
+  if (!permissionCheck.allowed) {
+    return (
+      <UnauthorizedPanel
+        message={permissionCheck.message}
+        backHref={buildStaffHomeHref(facilityId)}
+        toastMessage={permissionCheck.message}
+      />
+    )
+  }
 
   const news = await fetchNewsPostForEdit(newsId)
   if (!news) notFound()
@@ -66,7 +87,7 @@ export default async function Page({ params }: SrNewsEditPageProps) {
           Edit News Post
         </h1>
         <p className="text-sm text-muted-foreground">
-          Update this all-teams news post.
+          Update this post in the shared Cobalt news feed.
         </p>
       </header>
 

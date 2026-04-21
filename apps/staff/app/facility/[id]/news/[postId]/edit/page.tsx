@@ -1,6 +1,10 @@
 import { notFound } from "next/navigation"
 import NewsForm from "@/components/News/NewsForm"
+import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 import { fetchNewsPostForEdit } from "@/actions/news"
+import { ACTION, OBJECT } from "@/lib/acl"
+import { checkLivePermission } from "@/lib/auth"
+import { buildStaffHomeHref } from "@/lib/navigation"
 
 export default async function EditNewsPage({
   params,
@@ -12,6 +16,23 @@ export default async function EditNewsPage({
 
   if (!Number.isInteger(newsId) || newsId <= 0) {
     notFound()
+  }
+
+  const permissionCheck = await checkLivePermission({
+    object: OBJECT.newsPost,
+    action: ACTION.write,
+    allowGlobalFallback: false,
+    message: "You do not have live Cobalt permission to publish global news posts.",
+  })
+
+  if (!permissionCheck.allowed) {
+    return (
+      <UnauthorizedPanel
+        message={permissionCheck.message}
+        backHref={buildStaffHomeHref(id)}
+        toastMessage={permissionCheck.message}
+      />
+    )
   }
 
   const news = await fetchNewsPostForEdit(newsId)

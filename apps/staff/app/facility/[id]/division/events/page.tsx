@@ -9,6 +9,14 @@ import {
   BreadcrumbSeparator,
 } from "@workspace/ui/components/breadcrumb"
 import { CobaltEvent, getUpcomingEvents } from "@workspace/third-party/cobalt"
+import { getSession } from "@/lib/session"
+import {
+  ACTION,
+  OBJECT,
+  hasAnyFacilityScopedPermission,
+  hasFacilityScopedPermission,
+  normalizePermissionCollections,
+} from "@/lib/acl"
 
 type DivisionEventsPageProps = {
   params: Promise<{
@@ -49,6 +57,25 @@ export default async function Page({ params }: DivisionEventsPageProps) {
   const facilityId = normalizeFacilityId(id)
   const facilitySlug = facilityId.toLowerCase()
   const isDivision = facilityId === "USA"
+  const session = await getSession()
+  const { globalPermissions, allFacilityPermissions } =
+    normalizePermissionCollections(session.cobalt)
+  const canCreateEvent = isDivision
+    ? hasAnyFacilityScopedPermission({
+        globalPermissions,
+        facilityPermissions: allFacilityPermissions,
+        object: OBJECT.event,
+        action: ACTION.write,
+        allowSuperAdmin: false,
+      })
+    : hasFacilityScopedPermission({
+        globalPermissions,
+        facilityPermissions: allFacilityPermissions,
+        object: OBJECT.event,
+        action: ACTION.write,
+        facilityId,
+        allowSuperAdmin: false,
+      })
 
   const events = await getUpcomingEvents(100)
   const divisionEvents = isDivision
@@ -96,12 +123,14 @@ export default async function Page({ params }: DivisionEventsPageProps) {
         </header>
 
         <div className="flex items-center gap-2">
-          <Link
-            href={`/facility/${facilitySlug}/staff/events/new`}
-            className="inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-primary px-4 text-sm font-medium whitespace-nowrap text-primary-foreground transition-colors hover:bg-primary/80 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
-          >
-            New Event
-          </Link>
+          {canCreateEvent ? (
+            <Link
+              href={`/facility/${facilitySlug}/staff/events/new`}
+              className="inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-primary px-4 text-sm font-medium whitespace-nowrap text-primary-foreground transition-colors hover:bg-primary/80 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+            >
+              New Event
+            </Link>
+          ) : null}
         </div>
       </div>
 

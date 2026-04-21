@@ -1,13 +1,13 @@
-import type { CobaltPermission } from "@/lib/session"
+import type { CobaltPermission, CobaltSession } from "@workspace/third-party/cobalt"
 
-const ACTION = {
+export const ACTION = {
   read: "read",
   write: "write",
   manageUnowned: "manage_unowned",
   usage: "usage",
 } as const
 
-const OBJECT = {
+export const OBJECT = {
   superadmin: "superadmin",
   systemApiRole: "system_api_role",
   divisionManagementRole: "division_management_role",
@@ -25,6 +25,12 @@ const ACTION_IMPLIES: Record<string, readonly string[]> = {
   [ACTION.write]: [ACTION.read],
 }
 
+export type NormalizedCobaltPermissions = {
+  globalPermissions: CobaltPermission[]
+  facilityPermissionsByFacility: Record<string, CobaltPermission[]>
+  allFacilityPermissions: CobaltPermission[]
+}
+
 function norm(value: string | undefined) {
   return value?.trim().toLowerCase() ?? ""
 }
@@ -33,12 +39,106 @@ function normFacility(value: string | undefined) {
   return value?.trim().toUpperCase() ?? ""
 }
 
-function hasPermission(
+function isPermission(value: unknown): value is CobaltPermission {
+  if (!value || typeof value !== "object") return false
+
+  const candidate = value as Partial<CobaltPermission>
+  return (
+    typeof candidate.object === "string" &&
+    candidate.object.trim().length > 0 &&
+    typeof candidate.action === "string" &&
+    candidate.action.trim().length > 0
+  )
+}
+
+function normalizePermission(
+  permission: CobaltPermission,
+  facilityId?: string
+): CobaltPermission {
+  const facility = normFacility(permission.facility) || normFacility(facilityId)
+
+  return {
+    action: permission.action,
+    object: permission.object,
+    facility: facility || undefined,
+  }
+}
+
+export function isSuperAdmin(perms: CobaltPermission[] | undefined): boolean {
+  if (!Array.isArray(perms)) return false
+
+  return perms.some((permission) => {
+    return (
+      norm(permission.object) === OBJECT.superadmin &&
+      norm(permission.action) === ACTION.usage
+    )
+  })
+}
+
+type RawPermissionSource = Pick<
+  Partial<CobaltSession>,
+  "global_permissions" | "facility_permissions"
+>
+
+export function normalizePermissionCollections(
+  source?: RawPermissionSource | null
+): NormalizedCobaltPermissions {
+  const globalPermissions = Array.isArray(source?.global_permissions)
+    ? source.global_permissions.filter(isPermission).map((permission) =>
+        normalizePermission(permission)
+      )
+    : []
+
+  const facilityPermissionsByFacility: Record<string, CobaltPermission[]> = {}
+  const allFacilityPermissions: CobaltPermission[] = []
+
+  const rawFacilityPermissions = source?.facility_permissions
+
+  if (Array.isArray(rawFacilityPermissions)) {
+    for (const permission of rawFacilityPermissions) {
+      if (!isPermission(permission)) continue
+
+      const normalized = normalizePermission(permission)
+      allFacilityPermissions.push(normalized)
+
+      const facilityId = normFacility(normalized.facility)
+      if (!facilityId) continue
+
+      facilityPermissionsByFacility[facilityId] ??= []
+      facilityPermissionsByFacility[facilityId].push(normalized)
+    }
+  } else if (rawFacilityPermissions && typeof rawFacilityPermissions === "object") {
+    for (const [facilityKey, permissions] of Object.entries(rawFacilityPermissions)) {
+      if (!Array.isArray(permissions)) continue
+
+      const facilityId = normFacility(facilityKey)
+      if (!facilityId) continue
+
+      for (const permission of permissions) {
+        if (!isPermission(permission)) continue
+
+        const normalized = normalizePermission(permission, facilityId)
+        facilityPermissionsByFacility[facilityId] ??= []
+        facilityPermissionsByFacility[facilityId].push(normalized)
+        allFacilityPermissions.push(normalized)
+      }
+    }
+  }
+
+  return {
+    globalPermissions,
+    facilityPermissionsByFacility,
+    allFacilityPermissions,
+  }
+}
+
+export function hasPermission(
   perms: CobaltPermission[] | undefined,
   object: string,
   action?: string
 ) {
   if (!Array.isArray(perms)) return false
+  if (isSuperAdmin(perms)) return true
   const obj = norm(object)
   const act = action ? norm(action) : ""
 
@@ -76,6 +176,64 @@ function hasFacilityPermission(
   })
 }
 
+export function hasFacilityScopedPermission(input: {
+  globalPermissions: CobaltPermission[]
+  facilityPermissions: CobaltPermission[]
+  facilityId: string
+  object: string
+  action?: string
+  allowSuperAdmin?: boolean
+}) {
+  const globalPermissions = input.globalPermissions ?? []
+  const facilityPermissions = input.facilityPermissions ?? []
+
+  if (
+    input.allowSuperAdmin !== false &&
+    (isSuperAdmin(globalPermissions) || isSuperAdmin(facilityPermissions))
+  ) {
+    return true
+  }
+
+  return hasFacilityPermission(
+    facilityPermissions,
+    input.facilityId,
+    input.object,
+    input.action
+  )
+}
+
+export function hasAnyFacilityScopedPermission(input: {
+  globalPermissions: CobaltPermission[]
+  facilityPermissions: CobaltPermission[]
+  object: string
+  action?: string
+  allowSuperAdmin?: boolean
+}) {
+  const globalPermissions = input.globalPermissions ?? []
+  const facilityPermissions = input.facilityPermissions ?? []
+  const object = input.object
+  const action = input.action
+
+  if (
+    input.allowSuperAdmin !== false &&
+    (isSuperAdmin(globalPermissions) || isSuperAdmin(facilityPermissions))
+  ) {
+    return true
+  }
+
+  return facilityPermissions.some((permission) => {
+    const facilityId = normFacility(permission.facility)
+    if (!facilityId) return false
+
+    return hasFacilityPermission(
+      facilityPermissions,
+      facilityId,
+      object,
+      action
+    )
+  })
+}
+
 export function hasScopedPermission(input: {
   globalPermissions: CobaltPermission[]
   facilityPermissions: CobaltPermission[]
@@ -84,12 +242,20 @@ export function hasScopedPermission(input: {
   facilityId?: string
   requireFacility?: boolean
   allowGlobalFallback?: boolean
+  allowSuperAdmin?: boolean
 }) {
   const globalPermissions = input.globalPermissions ?? []
   const facilityPermissions = input.facilityPermissions ?? []
   const object = input.object
   const action = input.action
   const facilityId = input.facilityId
+
+  if (
+    input.allowSuperAdmin !== false &&
+    (isSuperAdmin(globalPermissions) || isSuperAdmin(facilityPermissions))
+  ) {
+    return true
+  }
 
   if (facilityId) {
     if (
@@ -130,13 +296,10 @@ export function hasAnyStaffAccess(input: {
   const facilityPermissions = input.facilityPermissions ?? []
 
   const allPermissions = [...globalPermissions, ...facilityPermissions]
+  if (isSuperAdmin(allPermissions)) return true
+
   return allPermissions.some((p) => {
     const object = norm(p.object)
-    const action = norm(p.action)
-
-    if (object === OBJECT.superadmin) {
-      return action === ACTION.usage
-    }
 
     return (
       object === OBJECT.systemApiRole ||
@@ -159,6 +322,8 @@ export type StaffSidebarCapabilities = {
   canSeeTrainingStaff: boolean
   canSeeUsaOverview: boolean
   canSeeDivisionStaff: boolean
+  canCreateEvent: boolean
+  canCreateNews: boolean
 }
 
 export function buildStaffSidebarCapabilities(input: {
@@ -210,21 +375,28 @@ export function buildStaffSidebarCapabilities(input: {
     facilityId,
   })
 
-  const canManageEvents = hasScopedPermission({
+  const canManageEvents = hasFacilityScopedPermission({
+    globalPermissions,
+    facilityPermissions,
+    facilityId,
+    object: OBJECT.event,
+    action: ACTION.write,
+    allowSuperAdmin: false,
+  })
+
+  const canManageAnyEvent = hasAnyFacilityScopedPermission({
     globalPermissions,
     facilityPermissions,
     object: OBJECT.event,
     action: ACTION.write,
-    facilityId,
+    allowSuperAdmin: false,
   })
 
-  const canManageNews = hasScopedPermission({
+  const canManageNews = hasPermission(
     globalPermissions,
-    facilityPermissions,
-    object: OBJECT.newsPost,
-    action: ACTION.write,
-    facilityId,
-  })
+    OBJECT.newsPost,
+    ACTION.write
+  )
 
   const hasStaffAccess = hasAnyStaffAccess({
     globalPermissions,
@@ -254,5 +426,8 @@ export function buildStaffSidebarCapabilities(input: {
     // USA-specific visibility
     canSeeUsaOverview: isSuperAdmin || isDivision || hasStaffAccess,
     canSeeDivisionStaff: isSuperAdmin || isDivision,
+    canCreateEvent:
+      normFacility(facilityId) === "USA" ? canManageAnyEvent : canManageEvents,
+    canCreateNews: canManageNews,
   }
 }

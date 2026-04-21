@@ -68,8 +68,8 @@ export default function NewsForm({ mode, facilityId, news }: NewsFormProps) {
         <CardTitle>{isEdit ? "Edit News Post" : "Create News Post"}</CardTitle>
         <p className="text-sm text-muted-foreground">
           {isEdit
-            ? "Update this news post for the selected facility."
-            : "Publish a new news post for the selected facility."}
+            ? "Update this post in the shared Cobalt news feed."
+            : "Publish a new post to the shared Cobalt news feed from this staff area."}
         </p>
       </CardHeader>
 

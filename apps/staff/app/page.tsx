@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { getSession } from "@/lib/session"
+import { normalizePermissionCollections } from "@/lib/acl"
 
 function getDisplayName({
   name,
@@ -45,12 +46,12 @@ export default async function Page() {
 
   const initials = getInitials(displayName)
   const cid = session.cid ?? String(cobaltUser?.cid ?? "—")
-  const facility = cobaltUser?.division_user.facility ?? "—"
   const cobalt = session.cobalt
-  const globalPermissions = Array.isArray(cobalt?.global_permissions)
-    ? cobalt.global_permissions
-    : (Array.isArray(cobalt?.global_permissions) ? cobalt.global_permissions : []);
-  const facilityPermissions = cobalt?.facility_permissions || {}
+  const {
+    globalPermissions,
+    facilityPermissionsByFacility,
+    allFacilityPermissions,
+  } = normalizePermissionCollections(cobalt)
 
   function getAction(permission: unknown) {
     if (typeof permission === "string") {
@@ -112,22 +113,24 @@ export default async function Page() {
               <h3 className="font-semibold">Global Permissions</h3>
               <ul className="list-disc list-inside text-xs text-white/80">
                 {globalPermissions.length === 0 && <li>None</li>}
-                {globalPermissions.map((perm: any, idx: number) => (
+                {globalPermissions.map((perm: unknown, idx: number) => (
                   <li key={idx}>
                     {getPermissionLabel(perm)} <span className="text-white/50">({getAction(perm)})</span>
                   </li>
                 ))}
               </ul>
               <h3 className="font-semibold mt-3">Facility Permissions</h3>
-              {Object.keys(facilityPermissions).length === 0 && <div className="text-xs text-white/80">None</div>}
-              {Object.entries(facilityPermissions).map(([fac, perms], idx) => {
+              {Object.keys(facilityPermissionsByFacility).length === 0 && (
+                <div className="text-xs text-white/80">None</div>
+              )}
+              {Object.entries(facilityPermissionsByFacility).map(([fac, perms]) => {
                 const permsArr = Array.isArray(perms) ? perms : []
                 return (
                   <div key={fac} className="mt-1">
                     <div className="text-xs font-semibold text-white/70">{fac}</div>
                     <ul className="list-disc list-inside text-xs text-white/80 ml-4">
                       {permsArr.length === 0 && <li>None</li>}
-                      {permsArr.map((perm: any, idx) => (
+                      {permsArr.map((perm: unknown, idx) => (
                         <li key={idx}>
                           {getPermissionLabel(perm)} <span className="text-white/50">({getAction(perm)})</span>
                         </li>
@@ -136,6 +139,15 @@ export default async function Page() {
                   </div>
                 )
               })}
+              <h3 className="font-semibold mt-3">All Facility Permissions</h3>
+              <ul className="list-disc list-inside text-xs text-white/80">
+                {allFacilityPermissions.length === 0 && <li>None</li>}
+                {allFacilityPermissions.map((perm: unknown, idx: number) => (
+                  <li key={idx}>
+                    {getPermissionLabel(perm)} <span className="text-white/50">({getAction(perm)})</span>
+                  </li>
+                ))}
+              </ul>
             </div>
             {/* Raw session JSON for debugging (dev only) */}
             {process.env.NODE_ENV === "development" && cobalt && (
