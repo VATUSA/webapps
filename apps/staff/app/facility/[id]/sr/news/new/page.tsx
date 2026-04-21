@@ -22,7 +22,6 @@ function normalizeFacilityId(raw: string) {
 export default async function Page({ params }: SrNewsNewPageProps) {
   const { id } = await params
   const facilityId = normalizeFacilityId(id)
-  const facilitySlug = facilityId.toLowerCase()
 
   return (
     <main className="space-y-4">
@@ -36,7 +35,7 @@ export default async function Page({ params }: SrNewsNewPageProps) {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink
-              render={<Link href={`/facility/${facilitySlug}/staff`} />}
+              render={<Link href={`/facility/${facilityId}/staff`} />}
             >
               SR Staff
             </BreadcrumbLink>
@@ -44,7 +43,7 @@ export default async function Page({ params }: SrNewsNewPageProps) {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink
-              render={<Link href={`/facility/${facilitySlug}/sr/news`} />}
+              render={<Link href={`/facility/${facilityId}/sr/news`} />}
             >
               News
             </BreadcrumbLink>
@@ -65,7 +64,7 @@ export default async function Page({ params }: SrNewsNewPageProps) {
         </p>
       </header>
 
-      <NewsForm mode="create" facilitySlug={facilitySlug} />
+      <NewsForm mode="create" facilityId={facilityId} />
     </main>
   )
 }

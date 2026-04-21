@@ -19,11 +19,9 @@ export default async function EditNewsPage({
     notFound()
   }
 
-  const facilitySlug = id.toLowerCase()
-
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <NewsForm mode="edit" facilityId={facilitySlug} news={news} />
+      <NewsForm mode="edit" facilityId={id} news={news} />
     </main>
   )
 }
