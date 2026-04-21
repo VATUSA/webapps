@@ -25,7 +25,6 @@ function normalizeFacilityId(raw: string) {
 export default async function Page({ params }: SrNewsEditPageProps) {
   const { id, newsId } = await params
   const facilityId = normalizeFacilityId(id)
-  const facilitySlug = facilityId.toLowerCase()
 
   const news = await fetchNewsPostForEdit(newsId)
   if (!news) notFound()
@@ -42,7 +41,7 @@ export default async function Page({ params }: SrNewsEditPageProps) {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink
-              render={<Link href={`/facility/${facilitySlug}/staff`} />}
+              render={<Link href={`/facility/${facilityId}/staff`} />}
             >
               SR Staff
             </BreadcrumbLink>
@@ -50,7 +49,7 @@ export default async function Page({ params }: SrNewsEditPageProps) {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink
-              render={<Link href={`/facility/${facilitySlug}/sr/news`} />}
+              render={<Link href={`/facility/${facilityId}/sr/news`} />}
             >
               News
             </BreadcrumbLink>
@@ -73,7 +72,7 @@ export default async function Page({ params }: SrNewsEditPageProps) {
 
       <NewsForm
         mode="edit"
-        facilitySlug={facilitySlug}
+        facilityId={facilityId}
         news={news}
       />
     </main>
