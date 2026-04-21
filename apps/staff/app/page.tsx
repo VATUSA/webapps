@@ -137,6 +137,15 @@ export default async function Page() {
                 )
               })}
             </div>
+            {/* Raw session JSON for debugging (dev only) */}
+            {process.env.NODE_ENV === "development" && cobalt && (
+              <div className="mt-6">
+                <h3 className="font-semibold">Raw Cobalt Session JSON</h3>
+                <pre className="whitespace-pre-wrap break-all rounded bg-black/80 p-3 text-xs text-green-200 border border-white/10 overflow-x-auto max-w-full">
+                  {JSON.stringify(cobalt, null, 2)}
+                </pre>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
