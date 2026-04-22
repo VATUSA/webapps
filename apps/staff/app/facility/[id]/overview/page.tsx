@@ -32,12 +32,12 @@ export default async function Page({ params }: OverviewPageProps) {
   const { id } = await params
 
   const facilityId = normalizeFacilityId(id)
-  if (facilityId === "USA") {
-    redirect("/facility/usa/division/overview")
+  if (facilityId === "ZHQ") {
+    redirect("/facility/zhq/division/overview")
   }
 
   const facilitySlug = facilityId.toLowerCase()
-  const isDivision = facilityId === "USA"
+  const isDivision = facilityId === "ZHQ"
 
   const events = await getUpcomingEvents(100)
   const scopedEvents = isDivision

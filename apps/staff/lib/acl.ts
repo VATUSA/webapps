@@ -384,14 +384,6 @@ export function buildStaffSidebarCapabilities(input: {
     allowSuperAdmin: false,
   })
 
-  const canManageAnyEvent = hasAnyFacilityScopedPermission({
-    globalPermissions,
-    facilityPermissions,
-    object: OBJECT.event,
-    action: ACTION.write,
-    allowSuperAdmin: false,
-  })
-
   const canManageNews = hasPermission(
     globalPermissions,
     OBJECT.newsPost,
@@ -423,11 +415,10 @@ export function buildStaffSidebarCapabilities(input: {
       isFacilityJunior ||
       isFacilityTraining,
 
-    // USA-specific visibility
+    // Headquarters-specific visibility
     canSeeUsaOverview: isSuperAdmin || isDivision || hasStaffAccess,
     canSeeDivisionStaff: isSuperAdmin || isDivision,
-    canCreateEvent:
-      normFacility(facilityId) === "USA" ? canManageAnyEvent : canManageEvents,
+    canCreateEvent: canManageEvents,
     canCreateNews: canManageNews,
   }
 }

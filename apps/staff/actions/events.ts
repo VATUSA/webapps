@@ -401,7 +401,7 @@ export async function deleteEventAction(formData: FormData): Promise<void> {
   revalidatePath(`/facility/${targetFacilitySlug}/events/new`)
   revalidatePath(`/facility/${targetFacilitySlug}`)
   revalidatePath(`/facility/${targetFacilitySlug}/division/events`)
-  revalidatePath(`/facility/usa/division/events`)
+  revalidatePath(`/facility/zhq/division/events`)
 
   redirect(withEventDeletedFlag(returnTo))
 }

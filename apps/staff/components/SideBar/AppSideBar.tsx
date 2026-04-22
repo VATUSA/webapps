@@ -20,7 +20,6 @@ import { MdEventNote, MdSettings } from "react-icons/md"
 import {
   ACTION,
   OBJECT,
-  hasAnyFacilityScopedPermission,
   hasFacilityScopedPermission,
   hasPermission,
 } from "@/lib/acl"
@@ -43,7 +42,7 @@ const teams = [
     name: "VATUSA",
     logo: <MdAdminPanelSettings />,
     plan: "ARTCC",
-    id: "USA",
+    id: "ZHQ",
   },
   {
     name: "Albuquerque ARTCC",
@@ -270,9 +269,9 @@ const getArtccNavMain = (): NavItem[] => [
 ]
 
 /**
- * USA Division Navigation Structure
+ * Headquarters Navigation Structure
  */
-const getUsaNavMain = (): NavItem[] => [
+const getZhqNavMain = (): NavItem[] => [
   // Events Section
   {
     title: "Events",
@@ -399,30 +398,22 @@ export function AppSideBar({
     [pathname, router]
   )
 
-  const isUsaTeam = activeTeam.id.toUpperCase() === "USA"
-  const canCreateEvent = isUsaTeam
-    ? hasAnyFacilityScopedPermission({
-        globalPermissions,
-        facilityPermissions,
-        object: OBJECT.event,
-        action: ACTION.write,
-        allowSuperAdmin: false,
-      })
-    : hasFacilityScopedPermission({
-        globalPermissions,
-        facilityPermissions,
-        object: OBJECT.event,
-        action: ACTION.write,
-        facilityId: activeTeam.id,
-        allowSuperAdmin: false,
-      })
+  const isZhqTeam = activeTeam.id.toUpperCase() === "ZHQ"
+  const canCreateEvent = hasFacilityScopedPermission({
+    globalPermissions,
+    facilityPermissions,
+    object: OBJECT.event,
+    action: ACTION.write,
+    facilityId: activeTeam.id,
+    allowSuperAdmin: false,
+  })
   const canCreateNews = hasPermission(
     globalPermissions,
     OBJECT.newsPost,
     ACTION.write
   )
 
-  const navSource = isUsaTeam ? getUsaNavMain() : getArtccNavMain()
+  const navSource = isZhqTeam ? getZhqNavMain() : getArtccNavMain()
 
   const updatedNavMain = React.useMemo(
     () =>

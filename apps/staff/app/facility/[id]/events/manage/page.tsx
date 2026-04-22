@@ -6,7 +6,6 @@ import { getSession } from "@/lib/session"
 import {
   ACTION,
   OBJECT,
-  hasAnyFacilityScopedPermission,
   hasFacilityScopedPermission,
   normalizePermissionCollections,
 } from "@/lib/acl"
@@ -40,27 +39,17 @@ export default async function ManageEventsPage({
   const session = await getSession()
   const { globalPermissions, allFacilityPermissions } =
     normalizePermissionCollections(session.cobalt)
-  const canCreateEvent =
-    facilityId === "USA"
-      ? hasAnyFacilityScopedPermission({
-          globalPermissions,
-          facilityPermissions: allFacilityPermissions,
-          object: OBJECT.event,
-          action: ACTION.write,
-          allowSuperAdmin: false,
-        })
-      : hasFacilityScopedPermission({
-          globalPermissions,
-          facilityPermissions: allFacilityPermissions,
-          object: OBJECT.event,
-          action: ACTION.write,
-          facilityId,
-          allowSuperAdmin: false,
-        })
-  const items =
-    facilityId === "USA"
-      ? allEvents
-      : allEvents.filter((item) => item.facility?.toUpperCase() === facilityId)
+  const canCreateEvent = hasFacilityScopedPermission({
+    globalPermissions,
+    facilityPermissions: allFacilityPermissions,
+    object: OBJECT.event,
+    action: ACTION.write,
+    facilityId,
+    allowSuperAdmin: false,
+  })
+  const items = allEvents.filter(
+    (item) => item.facility?.toUpperCase() === facilityId
+  )
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 pt-0">

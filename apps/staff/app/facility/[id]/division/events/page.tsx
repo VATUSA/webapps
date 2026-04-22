@@ -14,7 +14,6 @@ import { getSession } from "@/lib/session"
 import {
   ACTION,
   OBJECT,
-  hasAnyFacilityScopedPermission,
   hasFacilityScopedPermission,
   normalizePermissionCollections,
 } from "@/lib/acl"
@@ -63,26 +62,18 @@ export default async function Page({ params }: DivisionEventsPageProps) {
   const { id } = await params
   const facilityId = normalizeFacilityId(id)
   const facilitySlug = facilityId.toLowerCase()
-  const isDivision = facilityId === "USA"
+  const isDivision = facilityId === "ZHQ"
   const session = await getSession()
   const { globalPermissions, allFacilityPermissions } =
     normalizePermissionCollections(session.cobalt)
-  const canCreateEvent = isDivision
-    ? hasAnyFacilityScopedPermission({
-        globalPermissions,
-        facilityPermissions: allFacilityPermissions,
-        object: OBJECT.event,
-        action: ACTION.write,
-        allowSuperAdmin: false,
-      })
-    : hasFacilityScopedPermission({
-        globalPermissions,
-        facilityPermissions: allFacilityPermissions,
-        object: OBJECT.event,
-        action: ACTION.write,
-        facilityId,
-        allowSuperAdmin: false,
-      })
+  const canCreateEvent = hasFacilityScopedPermission({
+    globalPermissions,
+    facilityPermissions: allFacilityPermissions,
+    object: OBJECT.event,
+    action: ACTION.write,
+    facilityId,
+    allowSuperAdmin: false,
+  })
 
   const events = await getUpcomingEvents(100)
   const divisionEvents = isDivision
