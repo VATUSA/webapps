@@ -165,12 +165,14 @@ export default async function Page({ params }: EventsPageProps) {
 
                       <td className="px-4 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Link
-                            href={`/facility/${facilitySlug}/staff/events/${event.id}/edit`}
-                            className="inline-flex h-8 items-center justify-center rounded-md border border-border bg-background px-3 text-sm font-medium whitespace-nowrap text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
-                          >
-                            Edit
-                          </Link>
+                          {canCreateEvent ? (
+                            <Link
+                              href={`/facility/${facilitySlug}/staff/events/${event.id}/edit`}
+                              className="inline-flex h-8 items-center justify-center rounded-md border border-border bg-background px-3 text-sm font-medium whitespace-nowrap text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+                            >
+                              Edit
+                            </Link>
+                          ) : null}
 
                           <form action={deleteEventAction}>
                             <input

@@ -162,6 +162,17 @@ export default async function Page({ params }: DivisionEventsPageProps) {
                       event.facility ?? ""
                     )
                     const eventFacilitySlug = eventFacility.toLowerCase()
+                    const canEditEvent =
+                      !!eventFacility &&
+                      (isDivision
+                        ? hasFacilityScopedPermission({
+                            globalPermissions,
+                            facilityPermissions: allFacilityPermissions,
+                            object: OBJECT.event,
+                            action: ACTION.write,
+                            facilityId: eventFacility,
+                          })
+                        : canCreateEvent)
 
                     return (
                       <tr key={event.id} className="align-top">
@@ -190,16 +201,20 @@ export default async function Page({ params }: DivisionEventsPageProps) {
                         </td>
 
                         <td className="px-4 py-4 text-right">
-                          {eventFacility ? (
+                          {canEditEvent ? (
                             <Link
                               href={`/facility/${eventFacilitySlug}/staff/events/${event.id}/edit`}
                               className="inline-flex h-8 items-center justify-center rounded-md border border-border bg-background px-3 text-sm font-medium whitespace-nowrap text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
                             >
                               Edit
                             </Link>
-                          ) : (
+                          ) : !eventFacility ? (
                             <span className="text-xs text-muted-foreground">
                               N/A
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              —
                             </span>
                           )}
                         </td>
