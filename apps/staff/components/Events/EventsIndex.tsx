@@ -92,7 +92,7 @@ export default function EventsIndex({
                             <Link
                               href={
                                 buildEditHref?.(item) ??
-                                `/facility/${facilityId}/staff/events/${item.id}/edit`
+                                `/facility/${facilityId}/events/${item.id}/edit`
                               }
                               className="inline-flex h-8 items-center justify-center rounded-md border border-border/60 bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
                             >

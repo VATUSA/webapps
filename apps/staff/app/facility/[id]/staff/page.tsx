@@ -10,7 +10,6 @@ import {
   BreadcrumbSeparator,
 } from "@workspace/ui/components/breadcrumb"
 import { getUpcomingEvents } from "@workspace/third-party/cobalt"
-import { redirect } from "next/navigation"
 import { createStaffPageMetadata } from "@/lib/metadata"
 
 export const metadata: Metadata = createStaffPageMetadata({
