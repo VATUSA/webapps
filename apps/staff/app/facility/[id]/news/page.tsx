@@ -1,15 +1,12 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
+import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 import NewsIndex from "@/components/News/NewsIndex"
 import { fetchNewsPage } from "@/actions/news"
-import { getSession } from "@/lib/session"
-import {
-  ACTION,
-  OBJECT,
-  hasScopedPermission,
-  normalizePermissionCollections,
-} from "@/lib/acl"
+import { ACTION, OBJECT } from "@/lib/acl"
+import { checkLivePermission } from "@/lib/auth"
 import { createStaffPageMetadata } from "@/lib/metadata"
+import { buildStaffHomeHref } from "@/lib/navigation"
 
 export const metadata: Metadata = createStaffPageMetadata({
   title: "Manage News Posts",
@@ -32,16 +29,23 @@ export default async function FacilityNewsPage({
   const query = await searchParams
   const page = parsePositiveInt(query.page)
   const facilityId = id.trim().toUpperCase()
-  const session = await getSession()
-  const { globalPermissions, allFacilityPermissions } =
-    normalizePermissionCollections(session.cobalt)
-  const canCreatePost = hasScopedPermission({
-    globalPermissions,
-    facilityPermissions: allFacilityPermissions,
+
+  const permissionCheck = await checkLivePermission({
     object: OBJECT.newsPost,
     action: ACTION.write,
     facilityId,
+    message: `You do not have live Cobalt permission to publish news posts for ${facilityId}.`,
   })
+
+  if (!permissionCheck.allowed) {
+    return (
+      <UnauthorizedPanel
+        message={permissionCheck.message}
+        backHref={buildStaffHomeHref(facilityId)}
+        toastMessage={permissionCheck.message}
+      />
+    )
+  }
 
   const result = await fetchNewsPage(page)
   if (result.items.length === 0 && page > 1) {
@@ -54,7 +58,8 @@ export default async function FacilityNewsPage({
         items={result.items}
         page={result.page}
         facilityId={facilityId.toLowerCase()}
-        canCreatePost={canCreatePost}
+        canCreatePost
+        canManagePost
       />
     </main>
   )

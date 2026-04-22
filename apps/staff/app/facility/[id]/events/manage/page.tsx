@@ -1,15 +1,12 @@
 import { getEventsPage } from "@workspace/third-party/cobalt"
 import type { Metadata } from "next"
+import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 import EventDeleteSuccessToast from "@/components/Events/EventDeleteSuccessToast"
 import EventsIndex from "@/components/Events/EventsIndex"
-import { getSession } from "@/lib/session"
-import {
-  ACTION,
-  OBJECT,
-  hasFacilityScopedPermission,
-  normalizePermissionCollections,
-} from "@/lib/acl"
+import { ACTION, OBJECT } from "@/lib/acl"
+import { checkLivePermission } from "@/lib/auth"
 import { createStaffPageMetadata } from "@/lib/metadata"
+import { buildStaffHomeHref } from "@/lib/navigation"
 
 export const metadata: Metadata = createStaffPageMetadata({
   title: "Manage Events",
@@ -33,19 +30,27 @@ export default async function ManageEventsPage({
   const { id } = await params
   const query = await searchParams
   const page = parsePositiveInt(query.page)
+  const facilityId = id.trim().toUpperCase()
+  const facilitySlug = facilityId.toLowerCase()
 
-  const allEvents = await getEventsPage(page)
-  const facilityId = id.toUpperCase()
-  const session = await getSession()
-  const { globalPermissions, allFacilityPermissions } =
-    normalizePermissionCollections(session.cobalt)
-  const canCreateEvent = hasFacilityScopedPermission({
-    globalPermissions,
-    facilityPermissions: allFacilityPermissions,
+  const permissionCheck = await checkLivePermission({
     object: OBJECT.event,
     action: ACTION.write,
     facilityId,
+    message: `You do not have live Cobalt permission to manage events for ${facilityId}.`,
   })
+
+  if (!permissionCheck.allowed) {
+    return (
+      <UnauthorizedPanel
+        message={permissionCheck.message}
+        backHref={buildStaffHomeHref(facilityId)}
+        toastMessage={permissionCheck.message}
+      />
+    )
+  }
+
+  const allEvents = await getEventsPage(page)
   const items = allEvents.filter(
     (item) => item.facility?.toUpperCase() === facilityId
   )
@@ -56,9 +61,10 @@ export default async function ManageEventsPage({
       <EventsIndex
         items={items}
         page={page}
-        facilityId={id.toLowerCase()}
-        canCreateEvent={canCreateEvent}
-        canEditEvent={canCreateEvent}
+        facilityId={facilitySlug}
+        canCreateEvent
+        canEditEvent
+        canDeleteEvent
       />
     </main>
   )

@@ -18,6 +18,7 @@ export default function EventsIndex({
   facilityId,
   canCreateEvent,
   canEditEvent,
+  canDeleteEvent,
   newEventHref,
   buildEditHref,
 }: {
@@ -26,6 +27,7 @@ export default function EventsIndex({
   facilityId: string
   canCreateEvent: boolean
   canEditEvent?: boolean
+  canDeleteEvent?: boolean
   newEventHref?: string
   buildEditHref?: (item: CobaltEvent) => string
 }) {
@@ -35,6 +37,7 @@ export default function EventsIndex({
   const nextHref = `?page=${page + 1}`
   const resolvedNewEventHref = newEventHref ?? `/facility/${facilityId}/events/new`
   const resolvedCanEditEvent = canEditEvent ?? canCreateEvent
+  const resolvedCanDeleteEvent = canDeleteEvent ?? resolvedCanEditEvent
 
   return (
     <div className="space-y-4">
@@ -97,16 +100,18 @@ export default function EventsIndex({
                             </Link>
                           ) : null}
 
-                          <form action={deleteEventAction} className="inline-flex">
-                            <input type="hidden" name="eventId" value={String(item.id)} />
-                            <input type="hidden" name="facilityId" value={facilityId} />
-                            <input
-                              type="hidden"
-                              name="returnTo"
-                              value={`/facility/${facilityId}/events/manage?page=${page}`}
-                            />
-                            <DeleteEventButton itemTitle={item.title} />
-                          </form>
+                          {resolvedCanDeleteEvent ? (
+                            <form action={deleteEventAction} className="inline-flex">
+                              <input type="hidden" name="eventId" value={String(item.id)} />
+                              <input type="hidden" name="facilityId" value={facilityId} />
+                              <input
+                                type="hidden"
+                                name="returnTo"
+                                value={`/facility/${facilityId}/events/manage?page=${page}`}
+                              />
+                              <DeleteEventButton itemTitle={item.title} />
+                            </form>
+                          ) : null}
                         </div>
                       </td>
                     </tr>

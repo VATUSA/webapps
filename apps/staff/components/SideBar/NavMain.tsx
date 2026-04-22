@@ -21,6 +21,7 @@ import Link from "next/link"
 export type NavItem = {
   title: string
   url: string
+  permissionGate?: "events_manage" | "news_manage"
   icon?: React.ReactNode
   isActive?: boolean
   isClickable?: boolean

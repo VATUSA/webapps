@@ -9,16 +9,13 @@ import {
   BreadcrumbSeparator,
 } from "@workspace/ui/components/breadcrumb"
 import { getNewsPage } from "@workspace/third-party/cobalt"
+import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 import NewsIndex from "@/components/News/NewsIndex"
 import NewsDeleteSuccessToast from "@/components/News/NewsDeleteSuccessToast"
-import { getSession } from "@/lib/session"
-import {
-  ACTION,
-  OBJECT,
-  hasScopedPermission,
-  normalizePermissionCollections,
-} from "@/lib/acl"
+import { ACTION, OBJECT } from "@/lib/acl"
+import { checkLivePermission } from "@/lib/auth"
 import { createStaffPageMetadata } from "@/lib/metadata"
+import { buildStaffHomeHref } from "@/lib/navigation"
 
 export const metadata: Metadata = createStaffPageMetadata({
   title: "SR News",
@@ -48,18 +45,26 @@ function parsePage(value: string | string[] | undefined) {
 export default async function Page({ params, searchParams }: DivisionNewsPageProps) {
   const { id } = await params
   const facilityId = normalizeFacilityId(id)
+  const facilitySlug = facilityId.toLowerCase()
   const query = await searchParams
   const page = parsePage(query?.page)
-  const session = await getSession()
-  const { globalPermissions, allFacilityPermissions } =
-    normalizePermissionCollections(session.cobalt)
-  const canCreatePost = hasScopedPermission({
-    globalPermissions,
-    facilityPermissions: allFacilityPermissions,
+
+  const permissionCheck = await checkLivePermission({
     object: OBJECT.newsPost,
     action: ACTION.write,
     facilityId,
+    message: `You do not have live Cobalt permission to publish news posts for ${facilityId}.`,
   })
+
+  if (!permissionCheck.allowed) {
+    return (
+      <UnauthorizedPanel
+        message={permissionCheck.message}
+        backHref={buildStaffHomeHref(facilityId)}
+        toastMessage={permissionCheck.message}
+      />
+    )
+  }
 
   const news = await getNewsPage(page)
 
@@ -95,21 +100,20 @@ export default async function Page({ params, searchParams }: DivisionNewsPagePro
           </p>
         </header>
 
-        {canCreatePost ? (
-          <Link
-            href={`/facility/${facilityId}/sr/news/new`}
-            className="inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-primary px-4 text-sm font-medium whitespace-nowrap text-primary-foreground transition-colors hover:bg-primary/80 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
-          >
-            Create Post
-          </Link>
-        ) : null}
+        <Link
+          href={`/facility/${facilitySlug}/sr/news/new`}
+          className="inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-primary px-4 text-sm font-medium whitespace-nowrap text-primary-foreground transition-colors hover:bg-primary/80 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+        >
+          Create Post
+        </Link>
       </div>
 
       <NewsIndex
         items={news}
         page={page}
-        facilityId={facilityId}
-        canCreatePost={canCreatePost}
+        facilityId={facilitySlug}
+        canCreatePost
+        canManagePost
       />
 
       <NewsDeleteSuccessToast />

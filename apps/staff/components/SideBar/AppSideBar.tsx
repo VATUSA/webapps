@@ -217,6 +217,7 @@ const getArtccNavMain = (): NavItem[] => [
   {
     title: "Events",
     url: "#",
+    permissionGate: "events_manage",
     icon: <MdEventNote />,
     isClickable: false,
     items: [
@@ -229,6 +230,7 @@ const getArtccNavMain = (): NavItem[] => [
   {
     title: "News",
     url: "#",
+    permissionGate: "news_manage",
     icon: <FaNewspaper />,
     isClickable: false,
     items: [
@@ -276,6 +278,7 @@ const getZhqNavMain = (): NavItem[] => [
   {
     title: "Events",
     url: "#",
+    permissionGate: "events_manage",
     icon: <MdEventNote />,
     isClickable: false,
     items: [
@@ -287,6 +290,7 @@ const getZhqNavMain = (): NavItem[] => [
   {
     title: "News",
     url: "#",
+    permissionGate: "news_manage",
     icon: <FaNewspaper />,
     isClickable: false,
     items: [
@@ -323,18 +327,25 @@ function replaceIdInUrls(
   }))
 }
 
-function filterCreateLinks(
+function filterNavByPermissions(
   items: readonly NavItem[],
-  input: { canCreateEvent: boolean; canCreateNews: boolean }
+  input: { canManageEvents: boolean; canManageNews: boolean }
 ): NavItem[] {
-  return items.map((item) => ({
-    ...item,
-    items: item.items?.filter((subItem) => {
-      if (subItem.title === "New Event") return input.canCreateEvent
-      if (subItem.title === "New Post") return input.canCreateNews
-      return true
-    }),
-  }))
+  return items.filter((item) => {
+    if (item.permissionGate === "events_manage" && !input.canManageEvents) {
+      return false
+    }
+
+    if (item.permissionGate === "news_manage" && !input.canManageNews) {
+      return false
+    }
+
+    if (!item.isClickable && Array.isArray(item.items) && item.items.length === 0) {
+      return false
+    }
+
+    return true
+  })
 }
 
 const TEAM_STORAGE_KEY = "staff.activeTeamId"
@@ -399,14 +410,14 @@ export function AppSideBar({
   )
 
   const isZhqTeam = activeTeam.id.toUpperCase() === "ZHQ"
-  const canCreateEvent = hasFacilityScopedPermission({
+  const canManageEvents = hasFacilityScopedPermission({
     globalPermissions,
     facilityPermissions,
     object: OBJECT.event,
     action: ACTION.write,
     facilityId: activeTeam.id,
   })
-  const canCreateNews = hasScopedPermission({
+  const canManageNews = hasScopedPermission({
     globalPermissions,
     facilityPermissions,
     object: OBJECT.newsPost,
@@ -419,10 +430,10 @@ export function AppSideBar({
   const updatedNavMain = React.useMemo(
     () =>
       replaceIdInUrls(
-        filterCreateLinks(navSource, { canCreateEvent, canCreateNews }),
+        filterNavByPermissions(navSource, { canManageEvents, canManageNews }),
         activeTeam.id.toLowerCase()
       ),
-    [activeTeam.id, canCreateEvent, canCreateNews, navSource]
+    [activeTeam.id, canManageEvents, canManageNews, navSource]
   )
 
   // Prepare user data from session
