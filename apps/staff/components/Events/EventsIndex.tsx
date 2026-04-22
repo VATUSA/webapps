@@ -17,19 +17,24 @@ export default function EventsIndex({
   page,
   facilityId,
   canCreateEvent,
+  canEditEvent,
   newEventHref,
+  buildEditHref,
 }: {
   items: CobaltEvent[]
   page: number
   facilityId: string
   canCreateEvent: boolean
+  canEditEvent?: boolean
   newEventHref?: string
+  buildEditHref?: (item: CobaltEvent) => string
 }) {
   const hasPrevious = page > 1
   const hasNext = items.length === PAGE_SIZE
   const previousHref = `?page=${Math.max(1, page - 1)}`
   const nextHref = `?page=${page + 1}`
   const resolvedNewEventHref = newEventHref ?? `/facility/${facilityId}/events/new`
+  const resolvedCanEditEvent = canEditEvent ?? canCreateEvent
 
   return (
     <div className="space-y-4">
@@ -79,16 +84,30 @@ export default function EventsIndex({
                         {formatDateTime(item.end_timestamp)}
                       </td>
                       <td className="px-4 py-4 text-right">
-                        <form action={deleteEventAction} className="inline-flex">
-                          <input type="hidden" name="eventId" value={String(item.id)} />
-                          <input type="hidden" name="facilityId" value={facilityId} />
-                          <input
-                            type="hidden"
-                            name="returnTo"
-                            value={`/facility/${facilityId}/events/manage?page=${page}`}
-                          />
-                          <DeleteEventButton itemTitle={item.title} />
-                        </form>
+                        <div className="inline-flex items-center gap-2">
+                          {resolvedCanEditEvent ? (
+                            <Link
+                              href={
+                                buildEditHref?.(item) ??
+                                `/facility/${facilityId}/staff/events/${item.id}/edit`
+                              }
+                              className="inline-flex h-8 items-center justify-center rounded-md border border-border/60 bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+                            >
+                              Edit
+                            </Link>
+                          ) : null}
+
+                          <form action={deleteEventAction} className="inline-flex">
+                            <input type="hidden" name="eventId" value={String(item.id)} />
+                            <input type="hidden" name="facilityId" value={facilityId} />
+                            <input
+                              type="hidden"
+                              name="returnTo"
+                              value={`/facility/${facilityId}/events/manage?page=${page}`}
+                            />
+                            <DeleteEventButton itemTitle={item.title} />
+                          </form>
+                        </div>
                       </td>
                     </tr>
                   ))}

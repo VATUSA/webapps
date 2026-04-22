@@ -58,6 +58,7 @@ export default async function ManageEventsPage({
         page={page}
         facilityId={id.toLowerCase()}
         canCreateEvent={canCreateEvent}
+        canEditEvent={canCreateEvent}
       />
     </main>
   )
