@@ -1,4 +1,5 @@
 import Link from "next/link"
+import type { Metadata } from "next"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -18,6 +19,12 @@ import {
 import { EVENT_FACILITY_IDS } from "@/lib/facilities"
 import { checkLivePermission } from "@/lib/auth"
 import { buildStaffHomeHref } from "@/lib/navigation"
+import { createStaffPageMetadata } from "@/lib/metadata"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "Create Event",
+  description: "Create a new event for this facility.",
+})
 
 type NewEventPageProps = {
   params: Promise<{

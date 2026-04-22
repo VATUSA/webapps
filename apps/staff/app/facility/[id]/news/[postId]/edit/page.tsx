@@ -1,10 +1,17 @@
 import { notFound } from "next/navigation"
+import type { Metadata } from "next"
 import NewsForm from "@/components/News/NewsForm"
 import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 import { fetchNewsPostForEdit } from "@/actions/news"
 import { ACTION, OBJECT } from "@/lib/acl"
 import { checkLivePermission } from "@/lib/auth"
+import { createStaffPageMetadata } from "@/lib/metadata"
 import { buildStaffHomeHref } from "@/lib/navigation"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "Edit News Post",
+  description: "Update an existing post in the shared Cobalt news feed.",
+})
 
 export default async function EditNewsPage({
   params,

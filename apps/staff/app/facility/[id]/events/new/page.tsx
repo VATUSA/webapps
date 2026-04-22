@@ -1,4 +1,5 @@
 import EventForm from "@/components/Events/EventForm"
+import type { Metadata } from "next"
 import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 import {
   ACTION,
@@ -9,6 +10,12 @@ import {
 import { EVENT_FACILITY_IDS } from "@/lib/facilities"
 import { checkLivePermission } from "@/lib/auth"
 import { buildStaffHomeHref } from "@/lib/navigation"
+import { createStaffPageMetadata } from "@/lib/metadata"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "Create Event",
+  description: "Create a new event in the staff events area.",
+})
 
 export default async function NewEventPage({
   params,

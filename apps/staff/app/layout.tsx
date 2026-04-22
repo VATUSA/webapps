@@ -1,4 +1,5 @@
 import { Inter, Merriweather, JetBrains_Mono } from "next/font/google"
+import type { Metadata } from "next"
 import ClientThemeProvider from "@/components/Theme/ClientThemeProvider"
 import { Toaster } from "@workspace/ui/components/sonner"
 import React from "react"
@@ -16,6 +17,7 @@ import { requireStaffSession } from "@/lib/permissions"
 import { DevBanner } from "@/components/Banner/DevBanner"
 import { normalizePermissionCollections } from "@/lib/acl"
 import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
+import { STAFF_ROOT_METADATA } from "@/lib/metadata"
 
 const fontSans = Inter({
   subsets: ["latin"],
@@ -31,6 +33,8 @@ const fontMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 })
+
+export const metadata: Metadata = STAFF_ROOT_METADATA
 
 export default async function RootLayout({
   children,

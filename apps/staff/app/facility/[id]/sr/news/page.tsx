@@ -1,4 +1,5 @@
 import Link from "next/link"
+import type { Metadata } from "next"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -12,6 +13,12 @@ import NewsIndex from "@/components/News/NewsIndex"
 import NewsDeleteSuccessToast from "@/components/News/NewsDeleteSuccessToast"
 import { getSession } from "@/lib/session"
 import { ACTION, OBJECT, hasPermission, normalizePermissionCollections } from "@/lib/acl"
+import { createStaffPageMetadata } from "@/lib/metadata"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "SR News",
+  description: "Browse and manage SR news posts with pagination.",
+})
 
 type DivisionNewsPageProps = {
   params: Promise<{

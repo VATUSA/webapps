@@ -1,4 +1,5 @@
 import Link from "next/link"
+import type { Metadata } from "next"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -11,7 +12,13 @@ import NewsForm from "@/components/News/NewsForm"
 import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 import { ACTION, OBJECT } from "@/lib/acl"
 import { checkLivePermission } from "@/lib/auth"
+import { createStaffPageMetadata } from "@/lib/metadata"
 import { buildStaffHomeHref } from "@/lib/navigation"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "Create News Post",
+  description: "Create a new SR news post.",
+})
 
 type SrNewsNewPageProps = {
   params: Promise<{

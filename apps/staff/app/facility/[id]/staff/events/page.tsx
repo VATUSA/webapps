@@ -1,4 +1,5 @@
 import Link from "next/link"
+import type { Metadata } from "next"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import {
   Breadcrumb,
@@ -19,6 +20,13 @@ import {
   hasFacilityScopedPermission,
   normalizePermissionCollections,
 } from "@/lib/acl"
+import { createStaffPageMetadata } from "@/lib/metadata"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "Facility Events",
+  description:
+    "Upcoming facility events with create, edit, and delete actions.",
+})
 
 type EventsPageProps = {
   params: Promise<{

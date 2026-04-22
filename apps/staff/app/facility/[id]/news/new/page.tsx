@@ -1,8 +1,15 @@
 import NewsForm from "@/components/News/NewsForm"
+import type { Metadata } from "next"
 import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 import { ACTION, OBJECT } from "@/lib/acl"
 import { checkLivePermission } from "@/lib/auth"
+import { createStaffPageMetadata } from "@/lib/metadata"
 import { buildStaffHomeHref } from "@/lib/navigation"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "Create News Post",
+  description: "Publish a new post to the shared Cobalt news feed.",
+})
 
 export default async function NewNewsPage({
   params,

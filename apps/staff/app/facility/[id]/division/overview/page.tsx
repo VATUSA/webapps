@@ -1,4 +1,5 @@
 import Link from "next/link"
+import type { Metadata } from "next"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,6 +9,12 @@ import {
   BreadcrumbSeparator,
 } from "@workspace/ui/components/breadcrumb"
 import { Card, CardContent } from "@workspace/ui/components/card"
+import { createStaffPageMetadata } from "@/lib/metadata"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "Division Overview",
+  description: "Division-level summary area and quick actions.",
+})
 
 type DivisionOverviewPageProps = {
   params: Promise<{

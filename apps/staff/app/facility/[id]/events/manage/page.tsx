@@ -1,4 +1,5 @@
 import { getEventsPage } from "@workspace/third-party/cobalt"
+import type { Metadata } from "next"
 import EventDeleteSuccessToast from "@/components/Events/EventDeleteSuccessToast"
 import EventsIndex from "@/components/Events/EventsIndex"
 import { getSession } from "@/lib/session"
@@ -9,6 +10,12 @@ import {
   hasFacilityScopedPermission,
   normalizePermissionCollections,
 } from "@/lib/acl"
+import { createStaffPageMetadata } from "@/lib/metadata"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "Manage Events",
+  description: "Paginated event management with filtering by facility scope.",
+})
 
 type PageProps = {
   params: Promise<{ id: string }>

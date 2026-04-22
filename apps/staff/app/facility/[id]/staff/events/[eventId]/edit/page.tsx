@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import type { Metadata } from "next"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -13,7 +14,13 @@ import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 import { fetchEventForEdit } from "@/actions/events"
 import { ACTION, OBJECT } from "@/lib/acl"
 import { checkLivePermission } from "@/lib/auth"
+import { createStaffPageMetadata } from "@/lib/metadata"
 import { buildStaffHomeHref } from "@/lib/navigation"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "Edit Event",
+  description: "Update an existing facility event.",
+})
 
 type EditEventPageProps = {
   params: Promise<{

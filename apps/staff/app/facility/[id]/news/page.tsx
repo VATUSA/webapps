@@ -1,8 +1,15 @@
 import { notFound } from "next/navigation"
+import type { Metadata } from "next"
 import NewsIndex from "@/components/News/NewsIndex"
 import { fetchNewsPage } from "@/actions/news"
 import { getSession } from "@/lib/session"
 import { ACTION, OBJECT, hasPermission, normalizePermissionCollections } from "@/lib/acl"
+import { createStaffPageMetadata } from "@/lib/metadata"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "Manage News Posts",
+  description: "Review, paginate, edit, and delete staff news posts.",
+})
 
 function parsePositiveInt(value: string | undefined) {
   const parsed = Number(value)
