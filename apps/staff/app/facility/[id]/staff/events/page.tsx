@@ -11,16 +11,13 @@ import {
 } from "@workspace/ui/components/breadcrumb"
 import { CobaltEvent, getUpcomingEvents } from "@workspace/third-party/cobalt"
 import { deleteEventAction } from "@/actions/events"
+import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 import DeleteEventButton from "@/components/Events/DeleteEventButton"
 import EventDeleteSuccessToast from "@/components/Events/EventDeleteSuccessToast"
-import { getSession } from "@/lib/session"
-import {
-  ACTION,
-  OBJECT,
-  hasFacilityScopedPermission,
-  normalizePermissionCollections,
-} from "@/lib/acl"
+import { ACTION, OBJECT } from "@/lib/acl"
+import { checkLivePermission } from "@/lib/auth"
 import { createStaffPageMetadata } from "@/lib/metadata"
+import { buildStaffHomeHref } from "@/lib/navigation"
 
 export const metadata: Metadata = createStaffPageMetadata({
   title: "Facility Events",
@@ -66,17 +63,24 @@ export default async function Page({ params }: EventsPageProps) {
   const { id } = await params
   const facilityId = normalizeFacilityId(id)
   const facilitySlug = facilityId.toLowerCase()
-  const session = await getSession()
-  const { globalPermissions, allFacilityPermissions } =
-    normalizePermissionCollections(session.cobalt)
-  const canCreateEvent = hasFacilityScopedPermission({
-    globalPermissions,
-    facilityPermissions: allFacilityPermissions,
+  const permissionCheck = await checkLivePermission({
     object: OBJECT.event,
     action: ACTION.write,
     facilityId,
+    message: `You do not have live Cobalt permission to manage events for ${facilityId}.`,
   })
 
+  if (!permissionCheck.allowed) {
+    return (
+      <UnauthorizedPanel
+        message={permissionCheck.message}
+        backHref={buildStaffHomeHref(facilityId)}
+        toastMessage={permissionCheck.message}
+      />
+    )
+  }
+
+  const canManageEvents = permissionCheck.allowed
   const events = await getUpcomingEvents(100)
   const facilityEvents = events
     .filter((event) => normalizeFacilityId(event.facility ?? "") === facilityId)
@@ -116,7 +120,7 @@ export default async function Page({ params }: EventsPageProps) {
           </p>
         </header>
 
-        {canCreateEvent ? (
+        {canManageEvents ? (
           <Link
             href={`/facility/${facilitySlug}/staff/events/new`}
             className="inline-flex h-9 items-center justify-center rounded-md border border-transparent bg-primary px-4 text-sm font-medium whitespace-nowrap text-primary-foreground transition-colors hover:bg-primary/80 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
@@ -172,7 +176,7 @@ export default async function Page({ params }: EventsPageProps) {
 
                       <td className="px-4 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {canCreateEvent ? (
+                          {canManageEvents ? (
                             <Link
                               href={`/facility/${facilitySlug}/staff/events/${event.id}/edit`}
                               className="inline-flex h-8 items-center justify-center rounded-md border border-border bg-background px-3 text-sm font-medium whitespace-nowrap text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
@@ -181,24 +185,26 @@ export default async function Page({ params }: EventsPageProps) {
                             </Link>
                           ) : null}
 
-                          <form action={deleteEventAction}>
-                            <input
-                              type="hidden"
-                              name="eventId"
-                              value={String(event.id)}
-                            />
-                            <input
-                              type="hidden"
-                              name="facilitySlug"
-                              value={facilitySlug}
-                            />
-                            <input
-                              type="hidden"
-                              name="returnTo"
-                              value={`/facility/${facilitySlug}/staff/events`}
-                            />
-                            <DeleteEventButton itemTitle={event.title} />
-                          </form>
+                          {canManageEvents ? (
+                            <form action={deleteEventAction}>
+                              <input
+                                type="hidden"
+                                name="eventId"
+                                value={String(event.id)}
+                              />
+                              <input
+                                type="hidden"
+                                name="facilitySlug"
+                                value={facilitySlug}
+                              />
+                              <input
+                                type="hidden"
+                                name="returnTo"
+                                value={`/facility/${facilitySlug}/staff/events`}
+                              />
+                              <DeleteEventButton itemTitle={event.title} />
+                            </form>
+                          ) : null}
                         </div>
                       </td>
                     </tr>

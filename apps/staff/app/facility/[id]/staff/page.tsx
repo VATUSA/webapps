@@ -32,9 +32,6 @@ export default async function Page({ params }: StaffPageProps) {
   const { id } = await params
 
   const facilityId = normalizeFacilityId(id)
-  if (facilityId === "ZHQ") {
-    redirect("/facility/zhq/division/events")
-  }
 
   const upcomingEvents = await getUpcomingEvents(100)
   const facilityUpcomingCount = upcomingEvents.filter(

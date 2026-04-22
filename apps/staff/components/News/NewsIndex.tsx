@@ -54,16 +54,19 @@ export default function NewsIndex({
   page,
   facilityId,
   canCreatePost,
+  canManagePost,
 }: {
   items: CobaltNewsItem[]
   page: number
   facilityId: string
   canCreatePost: boolean
+  canManagePost?: boolean
 }) {
   const hasPrevious = page > 1
   const hasNext = items.length === PAGE_SIZE
   const previousHref = `?page=${Math.max(1, page - 1)}`
   const nextHref = `?page=${page + 1}`
+  const resolvedCanManagePost = canManagePost ?? canCreatePost
 
   return (
     <div className="space-y-4">
@@ -103,12 +106,16 @@ export default function NewsIndex({
                   {items.map((item) => (
                     <tr key={item.id} className="align-top">
                       <td className="px-4 py-4 font-medium text-foreground">
-                        <Link
-                          href={`/facility/${facilityId}/news/${item.id}/edit`}
-                          className="underline-offset-4 transition-colors hover:text-primary hover:underline"
-                        >
-                          {item.title}
-                        </Link>
+                        {resolvedCanManagePost ? (
+                          <Link
+                            href={`/facility/${facilityId}/news/${item.id}/edit`}
+                            className="underline-offset-4 transition-colors hover:text-primary hover:underline"
+                          >
+                            {item.title}
+                          </Link>
+                        ) : (
+                          item.title
+                        )}
                       </td>
                       <td className="px-4 py-4 text-sm text-muted-foreground">
                         {item.author_cid ?? "-"}
@@ -121,23 +128,29 @@ export default function NewsIndex({
                       </td>
                       <td className="px-4 py-4 text-right">
                         <div className="inline-flex items-center gap-2">
-                          <Link
-                            href={`/facility/${facilityId}/news/${item.id}/edit`}
-                            className="inline-flex h-8 items-center justify-center rounded-md border border-border/60 bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-                          >
-                            Edit
-                          </Link>
-                          <form action={deleteNewsPostAction} className="inline-flex">
-                            <input type="hidden" name="newsId" value={String(item.id)} />
-                            <input type="hidden" name="facilitySlug" value={facilityId} />
-                            <input type="hidden" name="page" value={String(page)} />
-                            <input
-                              type="hidden"
-                              name="returnTo"
-                              value={`/facility/${facilityId}/news?page=${page}`}
-                            />
-                            <DeleteNewsButton itemTitle={item.title} />
-                          </form>
+                          {resolvedCanManagePost ? (
+                            <>
+                              <Link
+                                href={`/facility/${facilityId}/news/${item.id}/edit`}
+                                className="inline-flex h-8 items-center justify-center rounded-md border border-border/60 bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+                              >
+                                Edit
+                              </Link>
+                              <form action={deleteNewsPostAction} className="inline-flex">
+                                <input type="hidden" name="newsId" value={String(item.id)} />
+                                <input type="hidden" name="facilitySlug" value={facilityId} />
+                                <input type="hidden" name="page" value={String(page)} />
+                                <input
+                                  type="hidden"
+                                  name="returnTo"
+                                  value={`/facility/${facilityId}/news?page=${page}`}
+                                />
+                                <DeleteNewsButton itemTitle={item.title} />
+                              </form>
+                            </>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
                         </div>
                       </td>
                     </tr>
