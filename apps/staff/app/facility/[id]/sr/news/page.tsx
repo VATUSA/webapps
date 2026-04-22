@@ -1,4 +1,5 @@
 import Link from "next/link"
+import type { Metadata } from "next"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -11,7 +12,18 @@ import { getNewsPage } from "@workspace/third-party/cobalt"
 import NewsIndex from "@/components/News/NewsIndex"
 import NewsDeleteSuccessToast from "@/components/News/NewsDeleteSuccessToast"
 import { getSession } from "@/lib/session"
-import { ACTION, OBJECT, hasPermission, normalizePermissionCollections } from "@/lib/acl"
+import {
+  ACTION,
+  OBJECT,
+  hasScopedPermission,
+  normalizePermissionCollections,
+} from "@/lib/acl"
+import { createStaffPageMetadata } from "@/lib/metadata"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "SR News",
+  description: "Browse and manage SR news posts with pagination.",
+})
 
 type DivisionNewsPageProps = {
   params: Promise<{
@@ -39,12 +51,15 @@ export default async function Page({ params, searchParams }: DivisionNewsPagePro
   const query = await searchParams
   const page = parsePage(query?.page)
   const session = await getSession()
-  const { globalPermissions } = normalizePermissionCollections(session.cobalt)
-  const canCreatePost = hasPermission(
+  const { globalPermissions, allFacilityPermissions } =
+    normalizePermissionCollections(session.cobalt)
+  const canCreatePost = hasScopedPermission({
     globalPermissions,
-    OBJECT.newsPost,
-    ACTION.write
-  )
+    facilityPermissions: allFacilityPermissions,
+    object: OBJECT.newsPost,
+    action: ACTION.write,
+    facilityId,
+  })
 
   const news = await getNewsPage(page)
 
@@ -94,7 +109,7 @@ export default async function Page({ params, searchParams }: DivisionNewsPagePro
         items={news}
         page={page}
         facilityId={facilityId}
-        canCreatePost={false}
+        canCreatePost={canCreatePost}
       />
 
       <NewsDeleteSuccessToast />

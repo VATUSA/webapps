@@ -1,4 +1,11 @@
+import type { Metadata } from "next"
 import { SectionPlaceholder } from "@/components/Scaffold/SectionPlaceholder"
+import { createStaffPageMetadata } from "@/lib/metadata"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "Training Dashboard",
+  description: "Landing page for facility training workflows and status.",
+})
 
 export default async function TrainingDashboardPage({
   params,

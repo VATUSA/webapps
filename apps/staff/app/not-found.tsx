@@ -1,5 +1,12 @@
+import type { Metadata } from "next"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { NotFoundActions } from "@/components/NotFound/NotFoundActions"
+import { createStaffPageMetadata } from "@/lib/metadata"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "Page Not Found | VATUSA Staff",
+  description: "The requested staff page could not be found.",
+})
 
 export default function NotFound() {
   return (

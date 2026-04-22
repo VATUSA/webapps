@@ -1,4 +1,5 @@
 import Link from "next/link"
+import type { Metadata } from "next"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import {
   Breadcrumb,
@@ -13,10 +14,15 @@ import { getSession } from "@/lib/session"
 import {
   ACTION,
   OBJECT,
-  hasAnyFacilityScopedPermission,
   hasFacilityScopedPermission,
   normalizePermissionCollections,
 } from "@/lib/acl"
+import { createStaffPageMetadata } from "@/lib/metadata"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "Division Events",
+  description: "Upcoming events across division scope with edit links.",
+})
 
 type DivisionEventsPageProps = {
   params: Promise<{
@@ -56,26 +62,17 @@ export default async function Page({ params }: DivisionEventsPageProps) {
   const { id } = await params
   const facilityId = normalizeFacilityId(id)
   const facilitySlug = facilityId.toLowerCase()
-  const isDivision = facilityId === "USA"
+  const isDivision = facilityId === "ZHQ"
   const session = await getSession()
   const { globalPermissions, allFacilityPermissions } =
     normalizePermissionCollections(session.cobalt)
-  const canCreateEvent = isDivision
-    ? hasAnyFacilityScopedPermission({
-        globalPermissions,
-        facilityPermissions: allFacilityPermissions,
-        object: OBJECT.event,
-        action: ACTION.write,
-        allowSuperAdmin: false,
-      })
-    : hasFacilityScopedPermission({
-        globalPermissions,
-        facilityPermissions: allFacilityPermissions,
-        object: OBJECT.event,
-        action: ACTION.write,
-        facilityId,
-        allowSuperAdmin: false,
-      })
+  const canCreateEvent = hasFacilityScopedPermission({
+    globalPermissions,
+    facilityPermissions: allFacilityPermissions,
+    object: OBJECT.event,
+    action: ACTION.write,
+    facilityId,
+  })
 
   const events = await getUpcomingEvents(100)
   const divisionEvents = isDivision

@@ -104,9 +104,6 @@ function evaluatePermission(input: {
   object: string
   action?: string
   facilityId?: string
-  requireFacility?: boolean
-  allowGlobalFallback?: boolean
-  allowSuperAdmin?: boolean
 }) {
   const { globalPermissions, allFacilityPermissions } =
     normalizePermissionCollections(input.session)
@@ -117,9 +114,6 @@ function evaluatePermission(input: {
     object: input.object,
     action: input.action,
     facilityId: input.facilityId,
-    requireFacility: input.requireFacility,
-    allowGlobalFallback: input.allowGlobalFallback,
-    allowSuperAdmin: input.allowSuperAdmin,
   })
 }
 
@@ -163,9 +157,6 @@ export function requirePermissionOrThrow(input: {
   object: string
   action?: string
   facilityId?: string
-  requireFacility?: boolean
-  allowGlobalFallback?: boolean
-  allowSuperAdmin?: boolean
   message?: string
 }) {
   const { session } = input
@@ -177,9 +168,6 @@ export function requirePermissionOrThrow(input: {
     object: input.object,
     action: input.action,
     facilityId: input.facilityId,
-    requireFacility: input.requireFacility,
-    allowGlobalFallback: input.allowGlobalFallback,
-    allowSuperAdmin: input.allowSuperAdmin,
   })
 
   if (allowed) return
@@ -201,9 +189,6 @@ export async function checkLivePermission(input: {
   object: string
   action?: string
   facilityId?: string
-  requireFacility?: boolean
-  allowGlobalFallback?: boolean
-  allowSuperAdmin?: boolean
   message?: string
 }): Promise<LivePermissionCheckResult> {
   const liveSessionResult = await getLiveCobaltSessionResult()
@@ -214,9 +199,6 @@ export async function checkLivePermission(input: {
       object: input.object,
       action: input.action,
       facilityId: input.facilityId,
-      requireFacility: input.requireFacility,
-      allowGlobalFallback: input.allowGlobalFallback,
-      allowSuperAdmin: input.allowSuperAdmin,
     })
 
     return {
@@ -240,9 +222,6 @@ export async function requireLivePermissionOrThrow(input: {
   object: string
   action?: string
   facilityId?: string
-  requireFacility?: boolean
-  allowGlobalFallback?: boolean
-  allowSuperAdmin?: boolean
   message?: string
 }): Promise<CobaltSession> {
   const liveSessionResult = await getLiveCobaltSessionResult()
@@ -255,9 +234,6 @@ export async function requireLivePermissionOrThrow(input: {
     object: input.object,
     action: input.action,
     facilityId: input.facilityId,
-    requireFacility: input.requireFacility,
-    allowGlobalFallback: input.allowGlobalFallback,
-    allowSuperAdmin: input.allowSuperAdmin,
   })
 
   if (!allowed) {

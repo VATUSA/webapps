@@ -19,7 +19,7 @@ export default async function DivisionLayout({
   const { id } = await params
   const facilityId = normalizeFacilityId(id)
 
-  if (facilityId !== "USA") {
+  if (facilityId !== "ZHQ") {
     redirect(`/facility/${facilityId.toLowerCase()}/overview`)
   }
 

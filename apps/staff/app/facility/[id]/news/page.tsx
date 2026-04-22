@@ -1,8 +1,20 @@
 import { notFound } from "next/navigation"
+import type { Metadata } from "next"
 import NewsIndex from "@/components/News/NewsIndex"
 import { fetchNewsPage } from "@/actions/news"
 import { getSession } from "@/lib/session"
-import { ACTION, OBJECT, hasPermission, normalizePermissionCollections } from "@/lib/acl"
+import {
+  ACTION,
+  OBJECT,
+  hasScopedPermission,
+  normalizePermissionCollections,
+} from "@/lib/acl"
+import { createStaffPageMetadata } from "@/lib/metadata"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "Manage News Posts",
+  description: "Review, paginate, edit, and delete staff news posts.",
+})
 
 function parsePositiveInt(value: string | undefined) {
   const parsed = Number(value)
@@ -19,13 +31,17 @@ export default async function FacilityNewsPage({
   const { id } = await params
   const query = await searchParams
   const page = parsePositiveInt(query.page)
+  const facilityId = id.trim().toUpperCase()
   const session = await getSession()
-  const { globalPermissions } = normalizePermissionCollections(session.cobalt)
-  const canCreatePost = hasPermission(
+  const { globalPermissions, allFacilityPermissions } =
+    normalizePermissionCollections(session.cobalt)
+  const canCreatePost = hasScopedPermission({
     globalPermissions,
-    OBJECT.newsPost,
-    ACTION.write
-  )
+    facilityPermissions: allFacilityPermissions,
+    object: OBJECT.newsPost,
+    action: ACTION.write,
+    facilityId,
+  })
 
   const result = await fetchNewsPage(page)
   if (result.items.length === 0 && page > 1) {
@@ -37,7 +53,7 @@ export default async function FacilityNewsPage({
       <NewsIndex
         items={result.items}
         page={result.page}
-        facilityId={id.toLowerCase()}
+        facilityId={facilityId.toLowerCase()}
         canCreatePost={canCreatePost}
       />
     </main>

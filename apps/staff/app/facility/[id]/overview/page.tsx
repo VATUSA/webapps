@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import type { Metadata } from "next"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import {
   Breadcrumb,
@@ -10,6 +11,12 @@ import {
   BreadcrumbSeparator,
 } from "@workspace/ui/components/breadcrumb"
 import { getUpcomingEvents } from "@workspace/third-party/cobalt"
+import { createStaffPageMetadata } from "@/lib/metadata"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "Overview",
+  description: "Facility-level summary, upcoming event counts, and quick links.",
+})
 
 type OverviewPageProps = {
   params: Promise<{
@@ -25,12 +32,12 @@ export default async function Page({ params }: OverviewPageProps) {
   const { id } = await params
 
   const facilityId = normalizeFacilityId(id)
-  if (facilityId === "USA") {
-    redirect("/facility/usa/division/overview")
+  if (facilityId === "ZHQ") {
+    redirect("/facility/zhq/division/overview")
   }
 
   const facilitySlug = facilityId.toLowerCase()
-  const isDivision = facilityId === "USA"
+  const isDivision = facilityId === "ZHQ"
 
   const events = await getUpcomingEvents(100)
   const scopedEvents = isDivision

@@ -9,8 +9,8 @@ export function buildStaffHomeHref(facilityId?: string) {
     return "/"
   }
 
-  if (normalized === "USA") {
-    return "/facility/usa/division/events"
+  if (normalized === "ZHQ") {
+    return "/facility/zhq/division/events"
   }
 
   return `/facility/${normalized.toLowerCase()}/staff`

@@ -1,6 +1,14 @@
+import type { Metadata } from "next"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { getSession } from "@/lib/session"
 import { normalizePermissionCollections } from "@/lib/acl"
+import { createStaffPageMetadata } from "@/lib/metadata"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "Staff Home",
+  description:
+    "Overview of your staff profile, permissions, and staff session diagnostics.",
+})
 
 function getDisplayName({
   name,

@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Card, CardContent } from "@workspace/ui/components/card"
+import type { Metadata } from "next"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,6 +11,12 @@ import {
 } from "@workspace/ui/components/breadcrumb"
 import { getUpcomingEvents } from "@workspace/third-party/cobalt"
 import { redirect } from "next/navigation"
+import { createStaffPageMetadata } from "@/lib/metadata"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "Staff Dashboard",
+  description: "Manage staff workflows and facility-specific operations.",
+})
 
 type StaffPageProps = {
   params: Promise<{
@@ -25,8 +32,8 @@ export default async function Page({ params }: StaffPageProps) {
   const { id } = await params
 
   const facilityId = normalizeFacilityId(id)
-  if (facilityId === "USA") {
-    redirect("/facility/usa/division/events")
+  if (facilityId === "ZHQ") {
+    redirect("/facility/zhq/division/events")
   }
 
   const upcomingEvents = await getUpcomingEvents(100)

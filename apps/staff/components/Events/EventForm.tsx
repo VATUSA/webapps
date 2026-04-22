@@ -26,7 +26,6 @@ type EventFormProps = {
   mode: "create" | "edit"
   facilityId: string
   event?: CobaltEvent | null
-  allowedFacilityIds?: string[]
 }
 
 const initialState: EventActionState = {
@@ -56,17 +55,16 @@ export default function EventForm({
   mode,
   facilityId,
   event,
-  allowedFacilityIds,
 }: EventFormProps) {
   const router = useRouter()
   const isEdit = mode === "edit"
-  const isUsaTeam = normalizeFacility(facilityId) === "USA"
+  const isZhqTeam = normalizeFacility(facilityId) === "ZHQ"
 
   const title = isEdit ? "Edit Event" : "Create Event"
   const description = isEdit
     ? "Update the event details for this facility."
-    : isUsaTeam
-      ? "Create a new event and choose which authorized facility it belongs to."
+    : isZhqTeam
+      ? "Create a new event and choose which facility it belongs to."
       : "Create a new event for this facility."
 
   const action = isEdit ? updateEventAction : createEventAction
@@ -94,18 +92,6 @@ export default function EventForm({
   }, [state.success, state.redirectTo, router, isEdit])
 
   const editFacility = normalizeFacility(event?.facility)
-  const allowedFacilitySet = new Set(
-    (allowedFacilityIds ?? []).map((facilityId) =>
-      normalizeFacility(facilityId)
-    )
-  )
-  const visibleFacilityOptions =
-    isUsaTeam && !isEdit
-      ? EVENT_FACILITY_OPTIONS.filter((facility) =>
-          allowedFacilitySet.has(normalizeFacility(facility.code))
-        )
-      : EVENT_FACILITY_OPTIONS
-
   return (
     <Card className="border-border/60">
       <CardHeader>
@@ -120,7 +106,7 @@ export default function EventForm({
         />
 
         <form action={formAction} className="space-y-5">
-          {isUsaTeam && !isEdit ? (
+          {isZhqTeam && !isEdit ? (
             <div className="space-y-2">
               <label htmlFor="facility" className="text-sm font-medium">
                 Facility
@@ -135,21 +121,12 @@ export default function EventForm({
                 <option value="" disabled>
                   Select a facility
                 </option>
-                {visibleFacilityOptions.map((facility) => (
+                {EVENT_FACILITY_OPTIONS.map((facility) => (
                   <option key={facility.code} value={facility.code}>
                     {facility.code} - {facility.name}
                   </option>
                 ))}
               </select>
-              {visibleFacilityOptions.length > 0 ? (
-                <p className="text-xs text-muted-foreground">
-                  Only facilities allowed by your current Cobalt permissions are listed.
-                </p>
-              ) : (
-                <p className="text-xs text-destructive">
-                  No event facilities are available for your current Cobalt permissions.
-                </p>
-              )}
             </div>
           ) : (
             <input

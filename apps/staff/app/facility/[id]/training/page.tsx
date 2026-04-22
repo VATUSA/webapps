@@ -1,4 +1,5 @@
 import Link from "next/link"
+import type { Metadata } from "next"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -7,6 +8,12 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@workspace/ui/components/breadcrumb"
+import { createStaffPageMetadata } from "@/lib/metadata"
+
+export const metadata: Metadata = createStaffPageMetadata({
+  title: "Training",
+  description: "Training workflows and staffing support tools.",
+})
 
 type TrainingPageProps = {
   params: Promise<{
@@ -56,4 +63,3 @@ export default async function Page({ params }: TrainingPageProps) {
 	</main>
   )
 }
-
