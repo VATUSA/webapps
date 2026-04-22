@@ -190,9 +190,6 @@ export async function createEventAction(
       object: OBJECT.event,
       action: ACTION.write,
       facilityId: payload.facility,
-      requireFacility: true,
-      allowGlobalFallback: false,
-      allowSuperAdmin: false,
       message: buildLiveEventPermissionMessage(payload.facility),
     })
 
@@ -284,9 +281,6 @@ export async function updateEventAction(
       object: OBJECT.event,
       action: ACTION.write,
       facilityId: targetFacility,
-      requireFacility: true,
-      allowGlobalFallback: false,
-      allowSuperAdmin: false,
       message: buildLiveEventPermissionMessage(targetFacility),
     })
 
@@ -369,9 +363,6 @@ export async function deleteEventAction(formData: FormData): Promise<void> {
       object: OBJECT.event,
       action: ACTION.write,
       facilityId: targetFacility,
-      requireFacility: true,
-      allowGlobalFallback: false,
-      allowSuperAdmin: false,
       message: buildLiveEventPermissionMessage(targetFacility),
     })
 

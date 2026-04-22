@@ -138,7 +138,6 @@ export function hasPermission(
   action?: string
 ) {
   if (!Array.isArray(perms)) return false
-  if (isSuperAdmin(perms)) return true
   const obj = norm(object)
   const act = action ? norm(action) : ""
 
@@ -182,24 +181,14 @@ export function hasFacilityScopedPermission(input: {
   facilityId: string
   object: string
   action?: string
-  allowSuperAdmin?: boolean
 }) {
-  const globalPermissions = input.globalPermissions ?? []
-  const facilityPermissions = input.facilityPermissions ?? []
-
-  if (
-    input.allowSuperAdmin !== false &&
-    (isSuperAdmin(globalPermissions) || isSuperAdmin(facilityPermissions))
-  ) {
-    return true
-  }
-
-  return hasFacilityPermission(
-    facilityPermissions,
-    input.facilityId,
-    input.object,
-    input.action
-  )
+  return hasScopedPermission({
+    globalPermissions: input.globalPermissions ?? [],
+    facilityPermissions: input.facilityPermissions ?? [],
+    object: input.object,
+    action: input.action,
+    facilityId: input.facilityId,
+  })
 }
 
 export function hasAnyFacilityScopedPermission(input: {
@@ -207,30 +196,25 @@ export function hasAnyFacilityScopedPermission(input: {
   facilityPermissions: CobaltPermission[]
   object: string
   action?: string
-  allowSuperAdmin?: boolean
 }) {
   const globalPermissions = input.globalPermissions ?? []
   const facilityPermissions = input.facilityPermissions ?? []
   const object = input.object
   const action = input.action
+  const requiredObject = norm(object)
+  const requiredAction = action ? norm(action) : ""
 
-  if (
-    input.allowSuperAdmin !== false &&
-    (isSuperAdmin(globalPermissions) || isSuperAdmin(facilityPermissions))
-  ) {
-    return true
-  }
+  if (isSuperAdmin(globalPermissions)) return true
+  if (hasPermission(globalPermissions, object, action)) return true
 
   return facilityPermissions.some((permission) => {
-    const facilityId = normFacility(permission.facility)
-    if (!facilityId) return false
+    if (!normFacility(permission.facility)) return false
+    if (norm(permission.object) !== requiredObject) return false
+    if (!requiredAction) return true
 
-    return hasFacilityPermission(
-      facilityPermissions,
-      facilityId,
-      object,
-      action
-    )
+    const userAction = norm(permission.action)
+    if (userAction === requiredAction) return true
+    return ACTION_IMPLIES[userAction]?.includes(requiredAction) ?? false
   })
 }
 
@@ -240,9 +224,6 @@ export function hasScopedPermission(input: {
   object: string
   action?: string
   facilityId?: string
-  requireFacility?: boolean
-  allowGlobalFallback?: boolean
-  allowSuperAdmin?: boolean
 }) {
   const globalPermissions = input.globalPermissions ?? []
   const facilityPermissions = input.facilityPermissions ?? []
@@ -250,33 +231,15 @@ export function hasScopedPermission(input: {
   const action = input.action
   const facilityId = input.facilityId
 
-  if (
-    input.allowSuperAdmin !== false &&
-    (isSuperAdmin(globalPermissions) || isSuperAdmin(facilityPermissions))
-  ) {
-    return true
-  }
+  if (isSuperAdmin(globalPermissions)) return true
+  if (hasPermission(globalPermissions, object, action)) return true
 
   if (facilityId) {
-    if (
-      hasFacilityPermission(facilityPermissions, facilityId, object, action)
-    ) {
-      return true
-    }
-
-    if (input.requireFacility) return false
-    if (input.allowGlobalFallback ?? true) {
-      return hasPermission(globalPermissions, object, action)
-    }
-
-    return false
-  }
-
-  if (hasPermission(globalPermissions, object, action)) {
-    return true
+    return hasFacilityPermission(facilityPermissions, facilityId, object, action)
   }
 
   return facilityPermissions.some((p) => {
+    if (!normFacility(p.facility)) return false
     const objectMatch = norm(p.object) === norm(object)
     if (!objectMatch) return false
     if (!action) return true
@@ -295,8 +258,8 @@ export function hasAnyStaffAccess(input: {
   const globalPermissions = input.globalPermissions ?? []
   const facilityPermissions = input.facilityPermissions ?? []
 
+  if (isSuperAdmin(globalPermissions)) return true
   const allPermissions = [...globalPermissions, ...facilityPermissions]
-  if (isSuperAdmin(allPermissions)) return true
 
   return allPermissions.some((p) => {
     const object = norm(p.object)
@@ -381,14 +344,15 @@ export function buildStaffSidebarCapabilities(input: {
     facilityId,
     object: OBJECT.event,
     action: ACTION.write,
-    allowSuperAdmin: false,
   })
 
-  const canManageNews = hasPermission(
+  const canManageNews = hasScopedPermission({
     globalPermissions,
-    OBJECT.newsPost,
-    ACTION.write
-  )
+    facilityPermissions,
+    facilityId,
+    object: OBJECT.newsPost,
+    action: ACTION.write,
+  })
 
   const hasStaffAccess = hasAnyStaffAccess({
     globalPermissions,

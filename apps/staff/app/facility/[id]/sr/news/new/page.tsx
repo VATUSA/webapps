@@ -37,8 +37,8 @@ export default async function Page({ params }: SrNewsNewPageProps) {
   const permissionCheck = await checkLivePermission({
     object: OBJECT.newsPost,
     action: ACTION.write,
-    allowGlobalFallback: false,
-    message: "You do not have live Cobalt permission to publish global news posts.",
+    facilityId,
+    message: `You do not have live Cobalt permission to publish news posts for ${facilityId}.`,
   })
 
   if (!permissionCheck.allowed) {

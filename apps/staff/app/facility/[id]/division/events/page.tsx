@@ -72,7 +72,6 @@ export default async function Page({ params }: DivisionEventsPageProps) {
     object: OBJECT.event,
     action: ACTION.write,
     facilityId,
-    allowSuperAdmin: false,
   })
 
   const events = await getUpcomingEvents(100)

@@ -21,7 +21,7 @@ import {
   ACTION,
   OBJECT,
   hasFacilityScopedPermission,
-  hasPermission,
+  hasScopedPermission,
 } from "@/lib/acl"
 
 type AppSideBarProps = React.ComponentProps<typeof Sidebar> & {
@@ -405,13 +405,14 @@ export function AppSideBar({
     object: OBJECT.event,
     action: ACTION.write,
     facilityId: activeTeam.id,
-    allowSuperAdmin: false,
   })
-  const canCreateNews = hasPermission(
+  const canCreateNews = hasScopedPermission({
     globalPermissions,
-    OBJECT.newsPost,
-    ACTION.write
-  )
+    facilityPermissions,
+    object: OBJECT.newsPost,
+    action: ACTION.write,
+    facilityId: activeTeam.id,
+  })
 
   const navSource = isZhqTeam ? getZhqNavMain() : getArtccNavMain()
 

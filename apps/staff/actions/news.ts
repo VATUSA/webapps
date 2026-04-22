@@ -32,6 +32,24 @@ function normalizeFacilitySlug(value: string) {
   return value.trim().toLowerCase()
 }
 
+function normalizeFacilityId(value: string) {
+  return value.trim().toUpperCase()
+}
+
+function resolveFacilityContext(formData: FormData) {
+  const rawFacility =
+    readStringField(formData, "facilitySlug") ||
+    readStringField(formData, "facilityId")
+  const facilitySlug = normalizeFacilitySlug(rawFacility)
+  const facilityId = normalizeFacilityId(rawFacility)
+
+  if (!facilitySlug || !facilityId) {
+    throw new Error("Facility is required.")
+  }
+
+  return { facilitySlug, facilityId }
+}
+
 function buildNewsBasePath(facilitySlug: string) {
   return `/facility/${normalizeFacilitySlug(facilitySlug)}/news`
 }
@@ -66,18 +84,19 @@ async function getCobaltCookie() {
 
 function getReadableErrorMessage(
   error: unknown,
-  action: "create" | "update" | "delete" = "create"
+  action: "create" | "update" | "delete" = "create",
+  facilityId?: string
 ) {
   if (error instanceof CobaltPermissionError) {
     if (error.failureKind === "verification_failed") {
       return "Unable to verify permissions with Cobalt right now."
     }
 
-    return "You do not have live Cobalt permission to publish global news posts."
+    return buildLiveNewsPermissionMessage(facilityId)
   }
 
   if (error instanceof CobaltHttpError && error.status === 403) {
-    return buildNewsEndpointRejectionMessage(action)
+    return buildNewsEndpointRejectionMessage(action, facilityId)
   }
 
   if (error instanceof Error && error.message.trim()) {
@@ -87,18 +106,29 @@ function getReadableErrorMessage(
   return "Something went wrong while saving the news post."
 }
 
+function buildLiveNewsPermissionMessage(facilityId?: string) {
+  if (facilityId) {
+    return `You do not have live Cobalt permission to publish news posts for ${facilityId}.`
+  }
+
+  return "You do not have live Cobalt permission to publish this news post."
+}
+
 function buildNewsEndpointRejectionMessage(
-  action: "create" | "update" | "delete"
+  action: "create" | "update" | "delete",
+  facilityId?: string
 ) {
+  const suffix = facilityId ? ` for ${facilityId}` : ""
+
   if (action === "update") {
-    return "Cobalt rejected the news update after live permission verification."
+    return `Cobalt rejected the news update${suffix} after live permission verification.`
   }
 
   if (action === "delete") {
-    return "Cobalt rejected news deletion after live permission verification."
+    return `Cobalt rejected news deletion${suffix} after live permission verification.`
   }
 
-  return "Cobalt rejected news publishing after live permission verification."
+  return `Cobalt rejected news publishing${suffix} after live permission verification.`
 }
 
 function logNewsActionError(context: string, error: unknown) {
@@ -107,11 +137,13 @@ function logNewsActionError(context: string, error: unknown) {
 
 function logNewsEndpointDiscrepancy(input: {
   action: "create" | "update" | "delete"
+  facilityId: string
   liveSession: CobaltSession
   error: CobaltHttpError
 }) {
   console.error("News endpoint rejected request after live permission preflight.", {
     action: input.action,
+    facilityId: input.facilityId,
     cid: input.liveSession.user?.cid,
     preflightAllowed: true,
     status: input.error.status,
@@ -175,11 +207,11 @@ export async function createNewsPostAction(
   formData: FormData
 ): Promise<NewsActionState> {
   let liveSession: CobaltSession | undefined
+  let facilityIdForError = ""
   try {
     const payload = buildNewsPayload(formData)
-    const facilitySlug = normalizeFacilitySlug(
-      readStringField(formData, "facilitySlug")
-    )
+    const { facilitySlug, facilityId } = resolveFacilityContext(formData)
+    facilityIdForError = facilityId
 
     const cobaltCookie = await getCobaltCookie()
     if (!cobaltCookie) {
@@ -195,8 +227,8 @@ export async function createNewsPostAction(
     liveSession = await requireLivePermissionOrThrow({
       object: OBJECT.newsPost,
       action: ACTION.write,
-      allowGlobalFallback: false,
-      message: "You do not have live Cobalt permission to publish global news posts.",
+      facilityId,
+      message: buildLiveNewsPermissionMessage(facilityId),
     })
 
     await cobaltRequest<unknown>("news/new", {
@@ -217,13 +249,14 @@ export async function createNewsPostAction(
     if (error instanceof CobaltHttpError && error.status === 403 && liveSession) {
       logNewsEndpointDiscrepancy({
         action: "create",
+        facilityId: facilityIdForError,
         liveSession,
         error,
       })
     }
     logNewsActionError("create", error)
     return {
-      error: getReadableErrorMessage(error, "create"),
+      error: getReadableErrorMessage(error, "create", facilityIdForError),
       success: null,
     }
   }
@@ -234,6 +267,7 @@ export async function updateNewsPostAction(
   formData: FormData
 ): Promise<NewsActionState> {
   let liveSession: CobaltSession | undefined
+  let facilityIdForError = ""
   try {
     const newsId = readStringField(formData, "newsId")
     if (!newsId) {
@@ -244,9 +278,8 @@ export async function updateNewsPostAction(
     }
 
     const payload = buildNewsPayload(formData)
-    const facilitySlug = normalizeFacilitySlug(
-      readStringField(formData, "facilitySlug")
-    )
+    const { facilitySlug, facilityId } = resolveFacilityContext(formData)
+    facilityIdForError = facilityId
 
     const cobaltCookie = await getCobaltCookie()
     if (!cobaltCookie) {
@@ -262,8 +295,8 @@ export async function updateNewsPostAction(
     liveSession = await requireLivePermissionOrThrow({
       object: OBJECT.newsPost,
       action: ACTION.write,
-      allowGlobalFallback: false,
-      message: "You do not have live Cobalt permission to publish global news posts.",
+      facilityId,
+      message: buildLiveNewsPermissionMessage(facilityId),
     })
 
     await cobaltRequest<unknown>(`news/post/${encodeURIComponent(newsId)}`, {
@@ -284,13 +317,14 @@ export async function updateNewsPostAction(
     if (error instanceof CobaltHttpError && error.status === 403 && liveSession) {
       logNewsEndpointDiscrepancy({
         action: "update",
+        facilityId: facilityIdForError,
         liveSession,
         error,
       })
     }
     logNewsActionError("update", error)
     return {
-      error: getReadableErrorMessage(error, "update"),
+      error: getReadableErrorMessage(error, "update", facilityIdForError),
       success: null,
     }
   }
@@ -298,10 +332,7 @@ export async function updateNewsPostAction(
 
 export async function deleteNewsPostAction(formData: FormData): Promise<void> {
   const newsId = readStringField(formData, "newsId")
-  const facilitySlug = normalizeFacilitySlug(
-    readStringField(formData, "facilitySlug") ||
-      readStringField(formData, "facilityId")
-  )
+  const { facilitySlug, facilityId } = resolveFacilityContext(formData)
   const page = Number(readStringField(formData, "page"))
   const returnTo =
     readStringField(formData, "returnTo") || buildNewsPagePath(facilitySlug, page)
@@ -320,8 +351,8 @@ export async function deleteNewsPostAction(formData: FormData): Promise<void> {
     liveSession = await requireLivePermissionOrThrow({
       object: OBJECT.newsPost,
       action: ACTION.write,
-      allowGlobalFallback: false,
-      message: "You do not have live Cobalt permission to publish global news posts.",
+      facilityId,
+      message: buildLiveNewsPermissionMessage(facilityId),
     })
 
     await cobaltRequest<unknown>(`news/post/${encodeURIComponent(newsId)}`, {
@@ -333,12 +364,13 @@ export async function deleteNewsPostAction(formData: FormData): Promise<void> {
     if (error instanceof CobaltHttpError && error.status === 403 && liveSession) {
       logNewsEndpointDiscrepancy({
         action: "delete",
+        facilityId,
         liveSession,
         error,
       })
     }
     logNewsActionError("delete", error)
-    throw new Error(getReadableErrorMessage(error, "delete"))
+    throw new Error(getReadableErrorMessage(error, "delete", facilityId))
   }
 
   revalidateNewsPaths(facilitySlug, newsId)

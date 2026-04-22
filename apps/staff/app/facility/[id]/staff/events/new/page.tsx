@@ -41,9 +41,6 @@ export default async function Page({ params }: NewEventPageProps) {
     object: OBJECT.event,
     action: ACTION.write,
     facilityId,
-    requireFacility: true,
-    allowGlobalFallback: false,
-    allowSuperAdmin: false,
     message: `You do not have live Cobalt permission to manage events for ${facilityId}.`,
   })
 

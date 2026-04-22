@@ -45,7 +45,6 @@ export default async function ManageEventsPage({
     object: OBJECT.event,
     action: ACTION.write,
     facilityId,
-    allowSuperAdmin: false,
   })
   const items = allEvents.filter(
     (item) => item.facility?.toUpperCase() === facilityId

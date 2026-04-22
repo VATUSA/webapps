@@ -17,19 +17,20 @@ export default async function NewNewsPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
+  const facilityId = id.trim().toUpperCase()
 
   const permissionCheck = await checkLivePermission({
     object: OBJECT.newsPost,
     action: ACTION.write,
-    allowGlobalFallback: false,
-    message: "You do not have live Cobalt permission to publish global news posts.",
+    facilityId,
+    message: `You do not have live Cobalt permission to publish news posts for ${facilityId}.`,
   })
 
   if (!permissionCheck.allowed) {
     return (
       <UnauthorizedPanel
         message={permissionCheck.message}
-        backHref={buildStaffHomeHref(id)}
+        backHref={buildStaffHomeHref(facilityId)}
         toastMessage={permissionCheck.message}
       />
     )
@@ -37,7 +38,7 @@ export default async function NewNewsPage({
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <NewsForm mode="create" facilityId={id.toLowerCase()} />
+      <NewsForm mode="create" facilityId={facilityId.toLowerCase()} />
     </main>
   )
 }
