@@ -174,7 +174,7 @@ export default async function Page({ params }: EventsPageProps) {
                         <div className="flex items-center justify-end gap-2">
                           {canCreateEvent ? (
                             <Link
-                              href={`/facility/${facilitySlug}/staff/events/${event.id}/edit`}
+                              href={`/facility/${facilitySlug}/events/${event.id}/edit`}
                               className="inline-flex h-8 items-center justify-center rounded-md border border-border bg-background px-3 text-sm font-medium whitespace-nowrap text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
                             >
                               Edit
