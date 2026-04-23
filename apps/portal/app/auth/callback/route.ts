@@ -4,7 +4,7 @@ import { cobalt } from "@workspace/third-party"
 import { cookies } from "next/headers"
 
 /**
- * Cobalt login callback handler.
+ * Cobalt auth callback handler (login and logout).
  *
  * This route finalizes authentication by reading the Cobalt auth cookie,
  * fetching identity/session data from Cobalt, enriching profile data from
@@ -16,12 +16,22 @@ import { cookies } from "next/headers"
  * - canonical Cobalt payload (`session.cobalt`) used by ACL-aware apps
  *
  * Behavior:
- * - If `portal-cobalt-token` exists: hydrate and save session.
- * - If missing: destroy existing session (logout or failed callback case).
+ * - If `pending-logout` cookie exists: destroy session (logout path).
+ * - If `vatusa-cobalt-token` exists: hydrate and save session (login path).
+ * - If neither: destroy existing session (failed callback case).
  * - Always redirect to `/` when finished.
  */
 export async function GET() {
   const cookieStorage = await cookies()
+
+  const pendingLogout = cookieStorage.get("pending-logout")?.value
+  if (pendingLogout) {
+    const session = await getSession()
+    session.destroy()
+    cookieStorage.delete("pending-logout")
+    redirect("/")
+  }
+
   const cobaltCookie = cookieStorage.get("vatusa-cobalt-token")?.value
 
   if (cobaltCookie) {
