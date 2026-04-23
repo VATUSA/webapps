@@ -28,7 +28,7 @@ export default function NavBar({ session }: NavBarProps) {
   const staffAppUrl =
     process.env.NEXT_PUBLIC_STAFF_APP_URL ?? "/staff"
   const cobaltBaseUrl =
-    process.env.COBALT_EXTERNAL_BASE_URL ?? "http://localhost:8000/cobalt"
+    process.env.NEXT_PUBLIC_COBALT_EXTERNAL_BASE_URL ?? "http://localhost:8000/cobalt"
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-card/95 text-card-foreground shadow-sm backdrop-blur">
