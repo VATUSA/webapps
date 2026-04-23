@@ -19,6 +19,7 @@ type LoginDropdownProps = {
   myVatusaProfileUrl: string
   staffAppUrl: string
   canAccessStaffApp: boolean
+  cobaltBaseUrl: string
 }
 
 export default function LoginButton({
@@ -27,15 +28,12 @@ export default function LoginButton({
   myVatusaProfileUrl,
   staffAppUrl,
   canAccessStaffApp,
+  cobaltBaseUrl,
 }: LoginDropdownProps) {
-  const cobaltDefaultUrl =
-    process.env.NEXT_PUBLIC_COBALT_EXTERNAL_BASE_URL ??
-    "http://localhost:8000/cobalt"
-
   if (!isLoggedIn) {
     return (
       <a
-        href={`${cobaltDefaultUrl}/login`}
+        href={`${cobaltBaseUrl}/login`}
         className={cn(
           buttonVariants({ variant: "default", size: "sm" }),
           "px-4"
@@ -90,7 +88,7 @@ export default function LoginButton({
 
         <DropdownMenuItem
           onClick={() =>
-            (window.location.href = `${cobaltDefaultUrl}/login/logout`)
+            (window.location.href = `${cobaltBaseUrl}/login/logout`)
           }
           className={cn(
             buttonVariants({ variant: "ghost", size: "sm" }),
