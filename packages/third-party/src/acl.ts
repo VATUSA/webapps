@@ -14,13 +14,17 @@ export const STAFF_PERMISSION_OBJECTS = new Set([
 ])
 
 export function hasStaffAccess(perms: CobaltPermission[] | undefined): boolean {
-  if (!Array.isArray(perms)) return false
+  if (!Array.isArray(perms)) {
+    return false
+  }
 
   return perms.some(({ action, object }) => {
     const o = object?.toLowerCase() ?? ""
     const a = action?.toLowerCase() ?? ""
 
-    if (o === "superadmin" && a === "usage") return true
+    if (o === "superadmin" && a === "usage") {
+      return true
+    }
     return STAFF_PERMISSION_OBJECTS.has(o)
   })
 }

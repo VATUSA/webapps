@@ -21,6 +21,12 @@ pnpm run --filter ./apps/staff dev
 pnpm run --filter ./apps/my_vatusa dev
 ```
 
+**Tests (portal only — vitest):**
+```sh
+pnpm run --filter ./apps/portal test        # Run tests
+pnpm run --filter ./apps/portal test:watch  # Watch mode
+```
+
 **Backend (required for auth and API calls):**
 ```sh
 docker compose up -d   # Starts MySQL, Cobalt API, and Nginx reverse proxy
