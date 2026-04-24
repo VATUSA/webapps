@@ -1,6 +1,19 @@
 # webapps
 
-This repo contains the new and very much in-dev web applications that follow a shared tech stack and share code. These apps are designed
-to incrementally and purposefully replace aspects of the current [VATUSA](https://www.vatusa.net/) website.
+![lang](https://img.shields.io/badge/lang-typescript-blue)
+![licensing](https://img.shields.io/badge/license-MIT-green)
+![status](https://img.shields.io/badge/project_status-in_dev-yellow)
 
-For more information, see the [repo documentation](./docs/).
+New VATUSA website.
+
+## Docs
+
+See [./docs](./docs).
+
+## License
+
+See [LICENSE.md](./LICENSE.md).
+
+## Contributing
+
+Contributions are currently closed to anyone not on the VATUSA Web Team.
