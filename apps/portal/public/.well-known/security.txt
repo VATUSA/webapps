@@ -1,0 +1,4 @@
+Contact: mailto:vatusa6@vatusa.net
+Expires: 2027-01-01T00:00:00.000Z
+Policy: https://www.vatusa.net/.well-known/security_policy.md
+Preferred-Languages: en
