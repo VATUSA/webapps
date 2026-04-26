@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import { getSession } from "@/lib/session"
+import { decodeCobaltJwt } from "@workspace/third-party/cobalt"
+import { cookies } from "next/headers"
 import { normalizePermissionCollections } from "@/lib/acl"
 import { createStaffPageMetadata } from "@/lib/metadata"
 
@@ -9,27 +10,6 @@ export const metadata: Metadata = createStaffPageMetadata({
   description:
     "Overview of your staff profile, permissions, and staff session diagnostics.",
 })
-
-function getDisplayName({
-  name,
-  cid,
-  sessionName,
-  firstName,
-  lastName,
-}: {
-  name?: string
-  cid?: string
-  sessionName?: string
-  firstName?: string
-  lastName?: string
-}) {
-  if (name?.trim()) return name.trim()
-  if (sessionName?.trim()) return sessionName.trim()
-  const fullName = [firstName, lastName].filter(Boolean).join(" ").trim()
-  if (fullName) return fullName
-  if (cid?.trim()) return `CID ${cid.trim()}`
-  return "Staff member"
-}
 
 function getInitials(label: string) {
   const [first, second] = label.split(/\s+/).filter(Boolean)
@@ -40,45 +20,49 @@ function getInitials(label: string) {
   return `${first[0] ?? ""}${second[0] ?? ""}`.toUpperCase()
 }
 
+function getPermissionLabel(permission: unknown) {
+  if (typeof permission === "string") return permission
+  if (
+    permission &&
+    typeof permission === "object" &&
+    "object" in permission &&
+    typeof permission.object === "string" &&
+    "action" in permission &&
+    typeof permission.action === "string"
+  ) {
+    return `${permission.object}:${permission.action}`
+  }
+  return JSON.stringify(permission)
+}
+
+function getAction(permission: unknown) {
+  if (typeof permission === "string") {
+    const parts = permission.split(":")
+    return parts.length > 1 ? parts[parts.length - 1] : permission
+  }
+  if (
+    permission &&
+    typeof permission === "object" &&
+    "action" in permission &&
+    typeof permission.action === "string"
+  ) {
+    return permission.action
+  }
+  return "?"
+}
+
 export default async function Page() {
-  const session = await getSession()
-  const cobaltUser = session.cobalt?.user
+  const session = await decodeCobaltJwt(await cookies())
 
-  const displayName = getDisplayName({
-    name: session.name,
-    cid: session.cid,
-    firstName: cobaltUser?.network_user.first_name,
-    lastName: cobaltUser?.network_user.last_name,
-    sessionName: cobaltUser?.division_user.display_name ?? undefined,
-  })
-
+  const displayName = session?.display_name ?? "Staff member"
   const initials = getInitials(displayName)
-  const cid = session.cid ?? String(cobaltUser?.cid ?? "—")
-  const cobalt = session.cobalt
+  const cid = session?.cid != null ? String(session.cid) : "—"
+
   const {
     globalPermissions,
     facilityPermissionsByFacility,
     allFacilityPermissions,
-  } = normalizePermissionCollections(cobalt)
-
-  function getAction(permission: unknown) {
-    if (typeof permission === "string") {
-      const parts = permission.split(":")
-      return parts.length > 1 ? parts[parts.length - 1] : permission
-    }
-    if (permission && typeof permission === "object" && "action" in permission && typeof permission.action === "string") {
-      return permission.action
-    }
-    return "?"
-  }
-
-  function getPermissionLabel(permission: unknown) {
-    if (typeof permission === "string") return permission
-    if (permission && typeof permission === "object" && "object" in permission && typeof permission.object === "string" && "action" in permission && typeof permission.action === "string") {
-      return `${permission.object}:${permission.action}`
-    }
-    return JSON.stringify(permission)
-  }
+  } = normalizePermissionCollections(session)
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-4 pt-0">
@@ -157,12 +141,11 @@ export default async function Page() {
                 ))}
               </ul>
             </div>
-            {/* Raw session JSON for debugging (dev only) */}
-            {process.env.NODE_ENV === "development" && cobalt && (
+            {process.env.NODE_ENV === "development" && session && (
               <div className="mt-6">
-                <h3 className="font-semibold">Raw Cobalt Session JSON</h3>
+                <h3 className="font-semibold">Raw JWT Session</h3>
                 <pre className="whitespace-pre-wrap break-all rounded bg-black/80 p-3 text-xs text-green-200 border border-white/10 overflow-x-auto max-w-full">
-                  {JSON.stringify(cobalt, null, 2)}
+                  {JSON.stringify(session, null, 2)}
                 </pre>
               </div>
             )}

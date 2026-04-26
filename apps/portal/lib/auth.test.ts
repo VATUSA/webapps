@@ -1,16 +1,14 @@
 import { expect, test } from "vitest"
-import { type CobaltJwtPayloadInternal, transformCobaltData } from "./auth"
-import { type JWTPayload } from "jose"
+import { type CobaltJwtPayloadInternal, transformCobaltJwt } from "@workspace/third-party/cobalt"
 
-test("transformCobaltData", () => {
-  const cookie = {
+test("transformCobaltJwt", () => {
+  const cookie: CobaltJwtPayloadInternal = {
     cid: 10000005,
     display_name: "Web Five",
     facility_permissions: "ZDV:roster:read",
     global_permissions: "superadmin:usage",
-    iss: "cobalt",
-  } as CobaltJwtPayloadInternal & JWTPayload
-  const data = transformCobaltData(cookie)
+  }
+  const data = transformCobaltJwt(cookie)
 
   expect(data).toEqual({
     cid: 10000005,
@@ -25,6 +23,5 @@ test("transformCobaltData", () => {
     global_permissions: [
       { facility: "*", object: "superadmin", action: "usage" },
     ],
-    iss: "cobalt",
   })
 })

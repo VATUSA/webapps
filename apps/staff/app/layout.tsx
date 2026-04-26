@@ -12,7 +12,8 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@workspace/ui/components/sidebar"
-import { getSession } from "@/lib/session"
+import { decodeCobaltJwt } from "@workspace/third-party/cobalt"
+import { cookies } from "next/headers"
 import { requireStaffSession } from "@/lib/permissions"
 import { DevBanner } from "@/components/Banner/DevBanner"
 import { normalizePermissionCollections } from "@/lib/acl"
@@ -41,10 +42,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const session = await getSession()
+  const session = await decodeCobaltJwt(await cookies())
   const allowed = requireStaffSession(session)
   const { globalPermissions, allFacilityPermissions } =
-    normalizePermissionCollections(session.cobalt)
+    normalizePermissionCollections(session)
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -58,7 +59,7 @@ export default async function RootLayout({
                 <DevBanner />
                 <SidebarProvider>
                   <AppSideBar
-                    userName={session?.name}
+                    userName={session?.display_name}
                     globalPermissions={globalPermissions}
                     facilityPermissions={allFacilityPermissions}
                   />
