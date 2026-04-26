@@ -1,6 +1,6 @@
 import { Inter, Merriweather, JetBrains_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/Theme/theme-provider"
-import { getSession } from "@/lib/session"
+import { getCobaltSession } from "@/lib/auth"
 import NavBar from "@/components/NavBar/NavBar"
 import "./globals.css"
 import Footer from "@/components/Footer/Footer"
@@ -27,7 +27,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const session = await getSession()
+  const session = await getCobaltSession()
   return (
     <html lang="en" suppressHydrationWarning>
       <body

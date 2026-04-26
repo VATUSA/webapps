@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": ""
   },
   "dependencies": {
     "@workspace/ui": "workspace:*",

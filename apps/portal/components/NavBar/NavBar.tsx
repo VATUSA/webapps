@@ -2,33 +2,29 @@ import Image from "next/image"
 import Link from "next/link"
 import { ThemeSwitch } from "@/components/Theme/ThemeSwitch"
 import LoginDropdown from "@/components/LoginButton/LoginButton"
-import type { UserSession } from "@/lib/session"
+import type { CobaltJwtPayload } from "@/lib/auth"
 import { NavButtons } from "@/components/NavBar/NavButtons"
 import { MobileNav } from "@/components/NavBar/MobileNav"
 import { hasStaffAccess } from "@workspace/third-party/acl"
 
-
 interface NavBarProps {
-  session: UserSession
+  session: CobaltJwtPayload | null
 }
 
 export default function NavBar({ session }: NavBarProps) {
-  const globalPermissions = session.cobalt?.global_permissions ?? []
-  const facilityPermissions = Array.isArray(session.cobalt?.facility_permissions)
-    ? session.cobalt.facility_permissions
-    : Object.values(session.cobalt?.facility_permissions ?? {}).flat()
+  const globalPermissions = session?.global_permissions ?? []
+  const facilityPermissions = Array.isArray(session?.facility_permissions)
+    ? session.facility_permissions
+    : Object.values(session?.facility_permissions ?? {}).flat()
 
-  const isStaff = hasStaffAccess([
-    ...globalPermissions,
-    ...facilityPermissions,
-  ])
+  const isStaff = hasStaffAccess([...globalPermissions, ...facilityPermissions])
+  const name = session?.display_name ?? undefined
   const myVatusaProfileUrl =
-    process.env.NEXT_PUBLIC_MY_VATUSA_PROFILE_URL ??
-    "/my/profile"
-  const staffAppUrl =
-    process.env.NEXT_PUBLIC_STAFF_APP_URL ?? "/staff"
+    process.env.NEXT_PUBLIC_MY_VATUSA_PROFILE_URL ?? "/my/profile"
+  const staffAppUrl = process.env.NEXT_PUBLIC_STAFF_APP_URL ?? "/staff"
   const cobaltBaseUrl =
-    process.env.NEXT_PUBLIC_COBALT_EXTERNAL_BASE_URL ?? "http://localhost:8000/cobalt"
+    process.env.NEXT_PUBLIC_COBALT_EXTERNAL_BASE_URL ??
+    "http://localhost:8000/cobalt"
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-card/95 text-card-foreground shadow-sm backdrop-blur">
@@ -66,8 +62,8 @@ export default function NavBar({ session }: NavBarProps) {
           <div className="flex items-center space-x-2 md:space-x-4">
             <ThemeSwitch />
             <LoginDropdown
-              isLoggedIn={session.isLoggedIn}
-              name={session.name}
+              isLoggedIn={session !== null}
+              name={name}
               myVatusaProfileUrl={myVatusaProfileUrl}
               staffAppUrl={staffAppUrl}
               canAccessStaffApp={isStaff}
