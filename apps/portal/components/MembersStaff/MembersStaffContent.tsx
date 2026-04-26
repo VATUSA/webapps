@@ -39,7 +39,7 @@ const mockStaff: StaffEntry[] = [
   },
   {
     id: "vatusa5",
-    position: "VATUSA5 - Events Manafer",
+    position: "VATUSA5 - Events Manager",
     name: "Dan Michael Bonaga",
     email: "vatusa5@vatusa.net",
   },
