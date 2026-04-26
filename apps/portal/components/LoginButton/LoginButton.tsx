@@ -87,9 +87,7 @@ export default function LoginButton({
         <DropdownMenuSeparator />
 
         <DropdownMenuItem
-          onClick={() =>
-            (window.location.href = `${cobaltBaseUrl}/login/logout`)
-          }
+          onClick={() => (window.location.href = "/api/auth/logout")}
           className={cn(
             buttonVariants({ variant: "ghost", size: "sm" }),
             "h-9 w-full justify-start px-2"
