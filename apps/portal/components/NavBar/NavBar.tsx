@@ -13,9 +13,7 @@ interface NavBarProps {
 
 export default function NavBar({ session }: NavBarProps) {
   const globalPermissions = session?.global_permissions ?? []
-  const facilityPermissions = Array.isArray(session?.facility_permissions)
-    ? session.facility_permissions
-    : Object.values(session?.facility_permissions ?? {}).flat()
+  const facilityPermissions = session?.facility_permissions ?? []
 
   const isStaff = hasStaffAccess([...globalPermissions, ...facilityPermissions])
   const name = session?.display_name ?? undefined
