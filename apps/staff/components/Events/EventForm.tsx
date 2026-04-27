@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { type CobaltEvent } from "@workspace/third-party/cobalt"
 import {
@@ -111,22 +112,17 @@ export default function EventForm({
               <label htmlFor="facility" className="text-sm font-medium">
                 Facility
               </label>
-              <select
+              <SelectField
                 id="facility"
                 name="facility"
                 required
                 defaultValue=""
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <option value="" disabled>
-                  Select a facility
-                </option>
-                {EVENT_FACILITY_OPTIONS.map((facility) => (
-                  <option key={facility.code} value={facility.code}>
-                    {facility.code} - {facility.name}
-                  </option>
-                ))}
-              </select>
+                placeholder="Select a facility"
+                options={EVENT_FACILITY_OPTIONS.map((facility) => ({
+                  value: facility.code,
+                  label: `${facility.code} - ${facility.name}`,
+                }))}
+              />
             </div>
           ) : (
             <input

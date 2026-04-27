@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { fetchFacilityRoster } from "@/actions/roster"
 
 type FacilityOption = {
@@ -156,22 +157,19 @@ export default function MembersSearch({
         <div className="grid gap-3 md:grid-cols-2">
           <label className="space-y-2">
             <span className="text-sm font-medium">Select an ARTCC</span>
-            <select
-              className="h-9 w-full rounded-md border border-input bg-transparent px-2.5 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            <SelectField
               value={selectedFacilityId}
-              onChange={(event) => {
-                setSelectedFacilityId(event.target.value)
+              onValueChange={(value) => {
+                setSelectedFacilityId(value)
                 setQuery("")
               }}
               aria-label="Select ARTCC"
-            >
-              <option value="">Choose an ARTCC...</option>
-              {facilities.map((facility) => (
-                <option key={facility.id} value={facility.id}>
-                  {facility.label}
-                </option>
-              ))}
-            </select>
+              placeholder="Choose an ARTCC..."
+              options={facilities.map((facility) => ({
+                value: facility.id,
+                label: facility.label,
+              }))}
+            />
           </label>
 
           <label className="space-y-2">

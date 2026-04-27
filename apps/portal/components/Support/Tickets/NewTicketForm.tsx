@@ -4,6 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
+import { SelectField } from "@workspace/ui/components/select-field"
 import { Textarea } from "@workspace/ui/components/textarea"
 import {
   NewTicketInput,
@@ -100,18 +101,16 @@ export default function NewTicketForm({ onCreateAction }: NewTicketFormProps) {
           >
             Facility
           </label>
-          <select
+          <SelectField
             id="ticket-facility"
             value={facility}
-            onChange={(e) => setFacility(e.target.value as TicketFacility)}
-            className="h-9 w-full rounded-md border border-input bg-transparent px-2.5 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
-          >
-            {facilityOptions.map((option) => (
-              <option key={option} value={option} className="bg-background">
-                {option}
-              </option>
-            ))}
-          </select>
+            onValueChange={(value) => setFacility(value as TicketFacility)}
+            ariaLabel="Facility"
+            options={facilityOptions.map((option) => ({
+              value: option,
+              label: option,
+            }))}
+          />
         </div>
 
         <div className="space-y-2">
@@ -121,18 +120,16 @@ export default function NewTicketForm({ onCreateAction }: NewTicketFormProps) {
           >
             Assign To
           </label>
-          <select
+          <SelectField
             id="ticket-assigned"
             value={assignedTo}
-            onChange={(e) => setAssignedTo(e.target.value as TicketAssignee)}
-            className="h-9 w-full rounded-md border border-input bg-transparent px-2.5 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
-          >
-            {assigneeOptions.map((option) => (
-              <option key={option} value={option} className="bg-background">
-                {option}
-              </option>
-            ))}
-          </select>
+            onValueChange={(value) => setAssignedTo(value as TicketAssignee)}
+            ariaLabel="Assign To"
+            options={assigneeOptions.map((option) => ({
+              value: option,
+              label: option,
+            }))}
+          />
         </div>
       </div>
 
