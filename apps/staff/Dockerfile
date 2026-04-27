@@ -9,6 +9,7 @@ FROM base AS dependencies
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/staff/package.json apps/staff/package.json
 COPY packages/ui/package.json packages/ui/package.json
+COPY packages/third-party/package.json packages/third-party/package.json
 COPY packages/eslint-config/package.json packages/eslint-config/package.json
 COPY packages/typescript-config/package.json packages/typescript-config/package.json
 COPY .npmrc* ./
