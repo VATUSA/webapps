@@ -512,3 +512,59 @@ export async function getFacilityRoster(
     { method: "GET" }
   )
 }
+
+/* ============================================================================
+ * JWT decoding
+ * ========================================================================== */
+
+export type CobaltJwtPayloadInternal = {
+  cid: number
+  display_name: string
+  facility_permissions: string // comma-separated "facility:object:action"
+  global_permissions: string   // comma-separated "object:action"
+}
+
+export type CobaltJwtPayload = {
+  cid: number
+  display_name: string
+  facility_permissions: CobaltPermission[]
+  global_permissions: CobaltPermission[]
+}
+
+export function transformCobaltJwt(
+  decoded: CobaltJwtPayloadInternal
+): CobaltJwtPayload {
+  return {
+    ...decoded,
+    facility_permissions: decoded.facility_permissions
+      .split(",")
+      .filter((s) => s.length > 0)
+      .map((s): CobaltPermission => ({
+        facility: s.split(":")[0]!,
+        object: s.split(":")[1]!,
+        action: s.split(":")[2]!,
+      })),
+    global_permissions: decoded.global_permissions
+      .split(",")
+      .filter((s) => s.length > 0)
+      .map((s): CobaltPermission => ({
+        facility: "*",
+        object: s.split(":")[0]!,
+        action: s.split(":")[1]!,
+      })),
+  }
+}
+
+export async function decodeCobaltJwt(
+  cookieStore: { get(name: string): { value: string } | undefined }
+): Promise<CobaltJwtPayload | null> {
+  const token = cookieStore.get("vatusa-cobalt-token")?.value
+  if (!token) return null
+  try {
+    const { decodeJwt } = await import("jose")
+    const decoded = decodeJwt<CobaltJwtPayloadInternal>(token)
+    return transformCobaltJwt(decoded)
+  } catch {
+    return null
+  }
+}

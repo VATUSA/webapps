@@ -4,6 +4,9 @@
   "private": true,
   "license": "MIT",
   "type": "module",
+  "dependencies": {
+    "jose": "^6.0.0"
+  },
   "exports": {
     ".": "./src/index.ts",
     "./cobalt": "./src/cobalt.ts",

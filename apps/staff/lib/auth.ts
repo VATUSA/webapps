@@ -3,74 +3,11 @@ import {
   cobaltRequest,
   type CobaltSession,
 } from "@workspace/third-party/cobalt"
-import { getSession } from "@/lib/session"
 import {
   hasAnyStaffAccess,
   hasScopedPermission,
   normalizePermissionCollections,
 } from "@/lib/acl"
-
-const REFRESH_TTL_MS = 5 * 60 * 1000
-const MAX_STALE_MS = 24 * 60 * 60 * 1000
-
-async function saveSessionIfWritable(
-  session: Awaited<ReturnType<typeof getSession>>
-) {
-  try {
-    await session.save()
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-
-    if (
-      message.includes(
-        "Cookies can only be modified in a Server Action or Route Handler"
-      )
-    ) {
-      return
-    }
-
-    throw error
-  }
-}
-
-async function refreshCobaltSessionIfStale(
-  session: Awaited<ReturnType<typeof getSession>>
-) {
-  const now = Date.now()
-  const lastSync = session.cobaltSyncedAt ?? 0
-  const age = now - lastSync
-  const hasCobalt = !!session.cobalt
-
-  if (hasCobalt && age < REFRESH_TTL_MS) return
-
-  const cookieStore = await cookies()
-  const cobaltCookie = cookieStore.get("vatusa-cobalt-token")?.value
-  if (!cobaltCookie) return
-
-  try {
-    session.cobalt = await cobaltRequest<CobaltSession>("my/session", {
-      method: "GET",
-      cobaltCookie,
-      credentials: "omit",
-    })
-    session.cobaltSyncedAt = now
-    await saveSessionIfWritable(session)
-  } catch {
-    // Keep stale data briefly for resilience, but fail closed if too old.
-    if (!hasCobalt || age > MAX_STALE_MS) {
-      session.cobalt = undefined
-      session.cobaltSyncedAt = undefined
-      await saveSessionIfWritable(session)
-    }
-  }
-}
-
-async function syncSessionWithLiveCobalt(liveSession: CobaltSession) {
-  const session = await getSession()
-  session.cobalt = liveSession
-  session.cobaltSyncedAt = Date.now()
-  await saveSessionIfWritable(session)
-}
 
 type LiveSessionResult =
   | { ok: true; liveSession: CobaltSession }
@@ -133,7 +70,6 @@ async function getLiveCobaltSessionResult(): Promise<LiveSessionResult> {
       cobaltCookie,
       credentials: "omit",
     })
-    await syncSessionWithLiveCobalt(liveSession)
     return { ok: true, liveSession }
   } catch {
     return {
@@ -150,29 +86,6 @@ export async function getLiveCobaltSessionOrThrow(): Promise<CobaltSession> {
   }
 
   throwPermissionError(result.message, "verification_failed")
-}
-
-export function requirePermissionOrThrow(input: {
-  session: Awaited<ReturnType<typeof getSession>>
-  object: string
-  action?: string
-  facilityId?: string
-  message?: string
-}) {
-  const { session } = input
-  const { globalPermissions, allFacilityPermissions } =
-    normalizePermissionCollections(session.cobalt)
-  const allowed = hasScopedPermission({
-    globalPermissions,
-    facilityPermissions: allFacilityPermissions,
-    object: input.object,
-    action: input.action,
-    facilityId: input.facilityId,
-  })
-
-  if (allowed) return
-
-  throwPermissionError(input.message ?? "Forbidden", "permission_denied")
 }
 
 function throwPermissionError(
@@ -243,18 +156,20 @@ export async function requireLivePermissionOrThrow(input: {
   return liveSessionResult.liveSession
 }
 
-export async function requireStaffSession() {
-  const session = await getSession()
+export async function requireStaffAccess(): Promise<{
+  allowed: boolean
+  liveSession: CobaltSession | null
+}> {
+  const result = await getLiveCobaltSessionResult()
+  if (!result.ok) return { allowed: false, liveSession: null }
 
-  await refreshCobaltSessionIfStale(session)
   const { globalPermissions, allFacilityPermissions } =
-    normalizePermissionCollections(session.cobalt)
+    normalizePermissionCollections(result.liveSession)
 
-  const isAuthed = session.isLoggedIn
   const allowed = hasAnyStaffAccess({
     globalPermissions,
     facilityPermissions: allFacilityPermissions,
   })
 
-  return { session, allowed: isAuthed && allowed }
+  return { allowed, liveSession: result.liveSession }
 }
