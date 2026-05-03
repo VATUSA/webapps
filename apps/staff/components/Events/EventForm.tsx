@@ -14,8 +14,8 @@ import {
 } from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
 import { SelectField } from "@workspace/ui/components/select-field"
-import { Textarea } from "@workspace/ui/components/textarea"
 import { type CobaltEvent } from "@workspace/third-party/cobalt"
+import MarkdownEditor from "@/components/Editor/MarkdownEditor"
 import {
   createEventAction,
   updateEventAction,
@@ -52,11 +52,7 @@ function normalizeFacility(value?: string) {
   return value?.trim().toUpperCase() ?? ""
 }
 
-export default function EventForm({
-  mode,
-  facilityId,
-  event,
-}: EventFormProps) {
+export default function EventForm({ mode, facilityId, event }: EventFormProps) {
   const router = useRouter()
   const isEdit = mode === "edit"
   const isZhqTeam = normalizeFacility(facilityId) === "ZHQ"
@@ -149,19 +145,13 @@ export default function EventForm({
             />
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="body" className="text-sm font-medium">
-              Description
-            </label>
-            <Textarea
-              id="body"
-              name="body"
-              required
-              defaultValue={event?.body ?? ""}
-              placeholder="Write the event description"
-              className="min-h-40"
-            />
-          </div>
+          <MarkdownEditor
+            name="body"
+            label="Description"
+            required
+            defaultValue={event?.body ?? ""}
+            placeholder="Write the event description"
+          />
 
           <div className="space-y-2">
             <label htmlFor="banner_image_url" className="text-sm font-medium">

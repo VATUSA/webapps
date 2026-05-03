@@ -1,6 +1,148 @@
 @import "@workspace/ui/globals.css";
+@import "@milkdown/crepe/theme/common/style.css";
+@import "@milkdown/crepe/theme/classic.css";
 
 /* Ensure Tailwind v4 scans shared workspace UI components */
 @source "../../../packages/ui/src/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
 @source "../../components/**/*.{ts,tsx}";
+
+.milkdown {
+  --crepe-color-background: var(--card);
+  --crepe-color-on-background: var(--card-foreground);
+  --crepe-color-surface: color-mix(in oklab, var(--card) 92%, white 8%);
+  --crepe-color-surface-low: color-mix(in oklab, var(--muted) 78%, white 22%);
+  --crepe-color-on-surface: var(--foreground);
+  --crepe-color-on-surface-variant: var(--muted-foreground);
+  --crepe-color-outline: var(--border);
+  --crepe-color-primary: var(--primary);
+  --crepe-color-secondary: color-mix(in oklab, var(--accent) 55%, white 45%);
+  --crepe-color-on-secondary: var(--accent-foreground);
+  --crepe-color-inverse: var(--foreground);
+  --crepe-color-on-inverse: var(--background);
+  --crepe-color-inline-code: var(--vatusa-red);
+  --crepe-color-error: var(--destructive);
+  --crepe-color-hover: color-mix(in oklab, var(--accent) 40%, transparent);
+  --crepe-color-selected: color-mix(in oklab, var(--primary) 18%, white 82%);
+  --crepe-color-inline-area: color-mix(in oklab, var(--muted) 86%, white 14%);
+  --crepe-font-title: var(--font-serif);
+  --crepe-font-default: var(--font-sans);
+  --crepe-font-code: var(--font-mono);
+  --crepe-shadow-1: var(--shadow-sm);
+  --crepe-shadow-2: var(--shadow-md);
+}
+
+.dark .milkdown {
+  --crepe-color-background: var(--card);
+  --crepe-color-on-background: var(--card-foreground);
+  --crepe-color-surface: color-mix(in oklab, var(--card) 82%, black 18%);
+  --crepe-color-surface-low: color-mix(in oklab, var(--muted) 88%, black 12%);
+  --crepe-color-on-surface: var(--foreground);
+  --crepe-color-on-surface-variant: var(--muted-foreground);
+  --crepe-color-outline: var(--border);
+  --crepe-color-primary: var(--primary);
+  --crepe-color-secondary: color-mix(in oklab, var(--accent) 58%, black 42%);
+  --crepe-color-on-secondary: var(--foreground);
+  --crepe-color-inverse: var(--foreground);
+  --crepe-color-on-inverse: var(--background);
+  --crepe-color-inline-code: color-mix(
+    in oklab,
+    var(--vatusa-red) 72%,
+    white 28%
+  );
+  --crepe-color-error: color-mix(in oklab, var(--destructive) 78%, white 22%);
+  --crepe-color-hover: color-mix(in oklab, var(--accent) 55%, transparent);
+  --crepe-color-selected: color-mix(in oklab, var(--primary) 24%, black 76%);
+  --crepe-color-inline-area: color-mix(in oklab, var(--muted) 76%, black 24%);
+  --crepe-shadow-1: var(--shadow-sm);
+  --crepe-shadow-2: var(--shadow-md);
+}
+
+[data-markdown-editor-root] .milkdown {
+  min-height: 14rem;
+  border-radius: 0.5rem;
+}
+
+[data-markdown-editor-root] .milkdown .editor {
+  min-height: 14rem;
+}
+
+.dark [data-markdown-editor-root] .milkdown {
+  background: var(--card);
+  color: var(--foreground);
+  border: 1px solid color-mix(in oklab, var(--border) 85%, transparent);
+}
+
+.dark [data-markdown-editor-root] .milkdown .milkdown-top-bar,
+.dark [data-markdown-editor-root] .milkdown .milkdown-toolbar,
+.dark
+  [data-markdown-editor-root]
+  .milkdown
+  .milkdown-top-bar
+  .top-bar-heading-dropdown,
+.dark [data-markdown-editor-root] .milkdown .milkdown-link-preview,
+.dark [data-markdown-editor-root] .milkdown .milkdown-link-edit,
+.dark [data-markdown-editor-root] .milkdown .code-fence_selector-wrapper,
+.dark [data-markdown-editor-root] .milkdown .table-tooltip {
+  background: var(--card) !important;
+  color: var(--foreground) !important;
+  border-color: color-mix(in oklab, var(--border) 85%, transparent) !important;
+}
+
+.dark [data-markdown-editor-root] .milkdown .editor,
+.dark [data-markdown-editor-root] .milkdown .ProseMirror {
+  background: var(--card) !important;
+  color: var(--foreground) !important;
+}
+
+.dark [data-markdown-editor-root] .milkdown .top-bar-divider,
+.dark [data-markdown-editor-root] .milkdown .divider {
+  background: color-mix(in oklab, var(--border) 75%, transparent) !important;
+}
+
+.dark
+  [data-markdown-editor-root]
+  .milkdown
+  .top-bar-heading-button
+  .top-bar-heading-label,
+.dark [data-markdown-editor-root] .milkdown .top-bar-heading-option,
+.dark [data-markdown-editor-root] .milkdown .milkdown-link-preview a,
+.dark [data-markdown-editor-root] .milkdown .milkdown-link-edit input {
+  color: var(--foreground) !important;
+}
+
+.dark
+  [data-markdown-editor-root]
+  .milkdown
+  .top-bar-heading-button
+  .top-bar-chevron
+  svg,
+.dark [data-markdown-editor-root] .milkdown .top-bar-item svg,
+.dark [data-markdown-editor-root] .milkdown .toolbar-item svg,
+.dark [data-markdown-editor-root] .milkdown .milkdown-link-preview svg,
+.dark [data-markdown-editor-root] .milkdown .milkdown-link-edit svg {
+  color: var(--muted-foreground) !important;
+  fill: var(--muted-foreground) !important;
+  stroke: var(--muted-foreground) !important;
+}
+
+.dark [data-markdown-editor-root] .milkdown .top-bar-item.active svg,
+.dark [data-markdown-editor-root] .milkdown .top-bar-heading-option.active,
+.dark [data-markdown-editor-root] .milkdown .toolbar-item.active svg {
+  color: var(--primary) !important;
+  fill: var(--primary) !important;
+}
+
+.dark [data-markdown-editor-root] .milkdown .top-bar-item:hover,
+.dark [data-markdown-editor-root] .milkdown .toolbar-item:hover,
+.dark [data-markdown-editor-root] .milkdown .top-bar-heading-button:hover,
+.dark [data-markdown-editor-root] .milkdown .top-bar-heading-option:hover,
+.dark [data-markdown-editor-root] .milkdown .milkdown-link-preview button:hover,
+.dark [data-markdown-editor-root] .milkdown .milkdown-link-edit button:hover {
+  background: var(--accent) !important;
+}
+
+.dark [data-markdown-editor-root] .milkdown .top-bar-item:active,
+.dark [data-markdown-editor-root] .milkdown .toolbar-item:active {
+  background: color-mix(in oklab, var(--primary) 18%, var(--card)) !important;
+}

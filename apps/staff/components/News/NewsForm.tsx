@@ -11,10 +11,10 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
-import { Textarea } from "@workspace/ui/components/textarea"
 import { FormErrorToast } from "@/components/Form/FormErrorToast"
 import { FormSaveButton } from "@/components/Form/FormSaveButton"
 import { type CobaltNewsItem } from "@workspace/third-party/cobalt"
+import MarkdownEditor from "@/components/Editor/MarkdownEditor"
 import {
   createNewsPostAction,
   updateNewsPostAction,
@@ -102,19 +102,13 @@ export default function NewsForm({ mode, facilityId, news }: NewsFormProps) {
             />
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="body" className="text-sm font-medium">
-              Body
-            </label>
-            <Textarea
-              id="body"
-              name="body"
-              required
-              defaultValue={news?.body ?? ""}
-              placeholder="Write the news post"
-              className="min-h-40"
-            />
-          </div>
+          <MarkdownEditor
+            name="body"
+            label="Body"
+            required
+            defaultValue={news?.body ?? ""}
+            placeholder="Write the news post"
+          />
 
           <div className="flex items-center gap-3">
             <FormSaveButton>

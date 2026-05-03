@@ -4,8 +4,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
+import { MarkdownContent } from "@workspace/ui/components/markdown-content"
 import { type CobaltNewsItem } from "@workspace/third-party/cobalt"
 
 type NewsPostDetailProps = {
@@ -49,11 +48,11 @@ export default function NewsPostDetail({ post }: NewsPostDetailProps) {
           </p>
         </CardHeader>
 
-        <div className="prose prose-sm dark:prose-invert mt-4 max-w-none text-foreground">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {post.body?.trim() || "_No content provided._"}
-          </ReactMarkdown>
-        </div>
+        <MarkdownContent
+          content={post.body}
+          emptyFallback="_No content provided._"
+          className="mt-4"
+        />
       </CardContent>
     </Card>
   )

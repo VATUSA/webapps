@@ -14,6 +14,8 @@
     "test": ""
   },
   "dependencies": {
+    "@milkdown/crepe": "7.20.0",
+    "@milkdown/react": "7.20.0",
     "@workspace/ui": "workspace:*",
     "lucide-react": "^1.7.0",
     "next": "16.2.3",
