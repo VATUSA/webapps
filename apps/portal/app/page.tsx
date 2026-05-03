@@ -59,7 +59,6 @@ export default async function Page() {
     title: event.title,
     href: `/events/${event.id}`,
     date: `${formatZulu(event.start_timestamp)} - ${formatZulu(event.end_timestamp)}`,
-    summary: event.body?.trim() || undefined,
   }))
 
   return (

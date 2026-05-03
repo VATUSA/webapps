@@ -4,8 +4,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
+import { MarkdownContent } from "@workspace/ui/components/markdown-content"
 import { type CobaltEvent } from "@workspace/third-party/cobalt"
 
 type EventDetailProps = {
@@ -66,11 +65,10 @@ export default function EventDetail({ event }: EventDetailProps) {
           </p>
         </CardHeader>
 
-        <div className="prose prose-sm dark:prose-invert max-w-none text-foreground">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {event.body?.trim() || "_No description provided._"}
-          </ReactMarkdown>
-        </div>
+        <MarkdownContent
+          content={event.body}
+          emptyFallback="_No description provided._"
+        />
       </CardContent>
     </Card>
   )

@@ -57,13 +57,16 @@ export default function HomeFeedList({
                 key={item.id}
                 className="group rounded-md border border-border/50 p-3 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-muted/50 hover:shadow-sm"
               >
-                <Link href={item.href} className="block outline-none focus-visible:ring-2 focus-visible:ring-ring/50 rounded-sm">
+                <Link
+                  href={item.href}
+                  className="block rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                >
                   <p className="font-medium text-foreground transition-colors group-hover:text-primary">
                     {item.title}
                   </p>
-                  {item.summary ? (
-                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                      {item.summary}
+                  {item.date ? (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {item.date}
                     </p>
                   ) : null}
                 </Link>
