@@ -2,11 +2,6 @@ import Link from "next/link"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { NAV_PRIMARY_LINKS } from "@/components/NavBar/NavConfig"
 
-type DonationUsageItem = {
-  title: string
-  body: string
-}
-
 type BoardMember = {
   name: string
   role?: string
@@ -20,28 +15,6 @@ type DivisionDirector = {
   name: string
 }
 
-const donationUsageItems: DonationUsageItem[] = [
-  {
-    title: "Infrastructure",
-    body:
-      "Donations help cover the hosting, storage, CI/CD, and day-to-day systems that keep VATUSA services available and reliable for the community.",
-  },
-  {
-    title: "Development and Maintenance",
-    body:
-      "Support also helps sustain the technical work required to build, maintain, and improve VATUSA platforms, integrations, and long-term operational tooling.",
-  },
-  {
-    title: "Training and Education",
-    body:
-      "We use funding to support educational resources, training platforms, documentation, and initiatives that help members learn and use VATUSA systems effectively.",
-  },
-  {
-    title: "Operational Costs",
-    body:
-      "As a nonprofit, VATUSA also incurs compliance, filing, accounting, and administrative costs. We work to keep these costs low so more support goes directly toward the mission.",
-  },
-]
 
 const boardMembers: BoardMember[] = [
   {
@@ -97,19 +70,13 @@ export default function FoundationPageContent() {
           </p>
           <div className="space-y-3">
             <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-              Supporting VATUSA&apos;s Mission
+              Leadership &amp; History
             </h1>
             <p className="max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              VATUSA operates as a U.S. 501(c)(3) public charity to support the
-              development, operation, education, and long-term stewardship of
-              VATUSA services and programs.
+              The VATUSA Foundation is governed by a Board of Directors
+              responsible for oversight, stewardship, and mission alignment
+              across VATUSA services and programs.
             </p>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link href={NAV_PRIMARY_LINKS.donate.href} className={ctaClassName()}>
-              Donate
-            </Link>
           </div>
         </div>
       </section>
@@ -117,113 +84,11 @@ export default function FoundationPageContent() {
       <div className="mt-10 space-y-10">
         <section className="space-y-4">
           <div className="space-y-2">
-            <h2 className="text-2xl font-semibold tracking-tight">Mission</h2>
-            <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Our mission is to promote, protect, and advance VATUSA&apos;s
-              educational and operational work. We support the continued
-              maintenance and development of VATUSA web services, training
-              infrastructure, and community systems; educate the public and the
-              VATUSA community in their use; and improve the tools and programs
-              that help the division serve its members effectively.
-            </p>
-          </div>
-          <Card className="ring-1 ring-border/60">
-            <CardContent className="pt-6">
-              <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
-                <span className="font-semibold text-foreground">In short:</span>{" "}
-                we exist to support VATUSA&apos;s services, community, and
-                training mission.
-              </p>
-            </CardContent>
-          </Card>
-        </section>
-
-        <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <Card className="ring-1 ring-border/60">
-            <CardContent className="space-y-4 pt-6">
-              <div className="space-y-2">
-                <h2 className="text-2xl font-semibold tracking-tight">Donate</h2>
-                <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
-                  VATUSA services may be free to members, but the infrastructure
-                  and nonprofit work behind them are not. If you believe in the
-                  mission and want to help sustain the division&apos;s tools,
-                  training, and operations, please consider donating.
-                </p>
-              </div>
-              <div className="flex flex-col items-start gap-3">
-                <Link href={NAV_PRIMARY_LINKS.donate.href} className={ctaClassName()}>
-                  Donate to VATUSA
-                </Link>
-                <p className="text-xs leading-relaxed text-muted-foreground">
-                  Donations from the United States may be tax-deductible based
-                  on the donor&apos;s individual circumstances.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="ring-1 ring-border/60">
-            <CardContent className="space-y-4 pt-6">
-              <div className="space-y-2">
-                <h2 className="text-2xl font-semibold tracking-tight">
-                  We Are a 501(c)(3) Public Charity
-                </h2>
-                <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
-                  VATUSA proudly holds federal 501(c)(3) public charity status.
-                  This status exempts the organization from federal income tax
-                  and may allow U.S. donors to deduct eligible donations on
-                  their federal tax filings.
-                </p>
-              </div>
-              <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
-                It also comes with stronger governance and accountability
-                requirements that help protect the mission, reinforce public
-                trust, and ensure that support is used in service of the
-                community rather than private profit.
-              </p>
-            </CardContent>
-          </Card>
-        </section>
-
-        <section className="space-y-4">
-          <div className="space-y-2">
             <h2 className="text-2xl font-semibold tracking-tight">
-              How Donations Are Used
+              Current Leadership
             </h2>
             <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Beating back maintenance debt, keeping services online, and
-              supporting educational programs all require sustained investment.
-              Foundation support is directed toward the areas that keep VATUSA
-              effective and durable over time.
-            </p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {donationUsageItems.map((item) => (
-              <Card key={item.title} className="ring-1 ring-border/60">
-                <CardContent className="space-y-2 pt-6">
-                  <h3 className="text-lg font-semibold text-foreground">
-                    {item.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
-                    {item.body}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        <section className="space-y-4">
-          <div className="space-y-2">
-            <h2 className="text-2xl font-semibold tracking-tight">
-              Leadership
-            </h2>
-            <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-              The VATUSA Foundation is governed by a Board of Directors that is
-              responsible for oversight, stewardship, and mission alignment.
-            </p>
-            <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-              The current leadership roster and contact links are listed below.
+              The current Board of Directors and their roles are listed below.
             </p>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
@@ -302,6 +167,28 @@ export default function FoundationPageContent() {
               </div>
             </CardContent>
           </Card>
+        </section>
+
+        <section className="space-y-4">
+          <div className="space-y-2">
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Support VATUSA
+            </h2>
+            <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+              VATUSA operates as a U.S. 501(c)(3) public charity. If you'd like
+              to support the infrastructure and programs that keep VATUSA
+              running, please consider donating.
+            </p>
+          </div>
+          <div>
+            <Link href={NAV_PRIMARY_LINKS.donate.href} className={ctaClassName()}>
+              Donate to VATUSA
+            </Link>
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+              Donations from the United States may be tax-deductible based on
+              the donor&apos;s individual circumstances.
+            </p>
+          </div>
         </section>
       </div>
     </main>
