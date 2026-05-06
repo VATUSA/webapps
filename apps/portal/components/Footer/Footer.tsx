@@ -1,5 +1,5 @@
 import Link from "next/link"
-import config from "package.json" with {type: 'json'};
+import config from "package.json" with { type: "json" }
 
 export default function Footer() {
   const year = new Date().getFullYear()
@@ -91,16 +91,6 @@ export default function Footer() {
                 className="text-foreground/80 transition-colors hover:text-foreground"
               >
                 VATSIM Status
-              </a>
-            </li>
-            <li>
-              <a
-                href="/info/discord"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-foreground/80 transition-colors hover:text-foreground"
-              >
-                Join Discord
               </a>
             </li>
           </ul>
