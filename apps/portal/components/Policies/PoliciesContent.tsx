@@ -16,7 +16,7 @@ const tabConfig = {
         title: "General Division Policy",
         summary:
           "Provides a standard for the general administration of VATUSA Division.",
-        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/general-division-policy.pdff",
+        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/general-division-policy.pdf",
       },
       {
         id: "DP002",
@@ -30,13 +30,6 @@ const tabConfig = {
         summary:
           "Establishes division-wide clarification and standardization of event processes and procedures.",
         href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/general-events-policy.pdf",
-      },
-      {
-        id: "GO61720",
-        title: "C3 Senior Controller Program\t",
-        summary:
-          "Facility staff members can nominate controllers to recieve a C3 rating following the outlined criteria.",
-        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/c3-senior-controller-program.pdf",
       },
       {
         id: "7210.35C",
@@ -77,13 +70,6 @@ const tabConfig = {
         title: "Social Media Team Standard Operating Procedure",
         summary: "",
         href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/social-media-team-standard-operating-procedure-.pdf",
-      },
-      {
-        id: "LA2021.1",
-        title: "VATUSA Logo Assets",
-        summary:
-          "VATUSA Logo Assets (Full Version w/ Alternate Color Schemes & Icon Version w/ Alternate Color Schemes in PNG & Vector Logo Files in AI & SVG)",
-        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/logo-assets.zip",
       },
       {
         id: "BSG2021.1",

@@ -41,12 +41,19 @@ export default function PoliciesListTab({
                 key={item.id}
                 className="group flex items-start justify-between gap-4 px-4 py-3 transition-colors hover:bg-accent/50"
               >
-                <Link href={item.href} className="min-w-0 flex-1">
-                  <p className="font-medium text-foreground">{item.id} - {item.title}</p>
+                <a
+                  href={item.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="min-w-0 flex-1"
+                >
+                  <p className="font-medium text-foreground">
+                    {item.id} - {item.title}
+                  </p>
                   <p className="text-sm text-muted-foreground transition-colors group-hover:text-foreground/80">
                     {item.summary}
                   </p>
-                </Link>
+                </a>
 
                 {item.badge ? (
                   <span className="rounded-md border border-border/60 bg-muted/40 px-2 py-0.5 text-xs font-medium text-muted-foreground">
