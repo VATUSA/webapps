@@ -11,9 +11,12 @@ export const metadata: Metadata = {
 
 type BoardMember = {
   name: string
-  role?: string
-  githubUrl?: string
-  emailUrl?: string
+  role: string
+}
+
+type DivisionLeader = {
+  name: string
+  role: string
 }
 
 type DivisionDirector = {
@@ -23,22 +26,15 @@ type DivisionDirector = {
 }
 
 const boardMembers: BoardMember[] = [
-  {
-    name: "Brandon Barrett",
-    role: "VATUSA1 - Division Director",
-  },
-  {
-    name: "Brandon Wening",
-    role: "VATUSA2 - Deputy Director Air Traffic Services",
-  },
-  {
-    name: "Brin Brody",
-    role: "VATUSA3 - Deputy Director Training Services",
-  },
-  {
-    name: "Jared West",
-    role: "VATUSA4 - Deputy Director Support Services",
-  },
+  { name: "Jon Owens", role: "President" },
+  { name: "Brandon Barrett", role: "Director" },
+  { name: "Brandon Wening", role: "Director" },
+]
+
+const divisionLeaders: DivisionLeader[] = [
+  { name: "Brandon Barrett", role: "Division Director" },
+  { name: "Brandon Wening", role: "Deputy Director Air Traffic Services" },
+  { name: "Brin Brody", role: "Deputy Director Training Services" },
 ]
 
 const divisionDirectors: DivisionDirector[] = [
@@ -91,36 +87,43 @@ export default function Page() {
         <section className="space-y-4">
           <div className="space-y-2">
             <h2 className="text-2xl font-semibold tracking-tight">
-              Current Leadership
+              Board of Directors
             </h2>
             <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base">
               The current Board of Directors and their roles are listed below.
             </p>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             {boardMembers.map((member) => (
               <Card key={member.name} className="ring-1 ring-border/60">
-                <CardContent className="space-y-3 pt-6">
-                  <div>
-                    {member.role ? (
-                      <p className="text-sm text-muted-foreground">
-                        {member.role}
-                      </p>
-                    ) : null}
-                    <h3 className="mt-1 text-lg font-semibold text-foreground">
-                      {member.name}
-                    </h3>
-                  </div>
-                  <div className="flex gap-4 text-sm">
-                    {member.githubUrl ? (
-                      <Link
-                        href={member.githubUrl}
-                        className="text-foreground underline underline-offset-4"
-                      >
-                        GitHub
-                      </Link>
-                    ) : null}
-                  </div>
+                <CardContent className="flex flex-col items-center text-center">
+                  <p className="text-sm text-muted-foreground">{member.role}</p>
+                  <h3 className="mt-1 text-lg font-semibold text-foreground">
+                    {member.name}
+                  </h3>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <div className="space-y-2">
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Senior Division Leadership
+            </h2>
+            <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+              Senior staff responsible for division operations and services.
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {divisionLeaders.map((leader) => (
+              <Card key={leader.name} className="ring-1 ring-border/60">
+                <CardContent className="flex flex-col items-center text-center">
+                  <p className="text-sm text-muted-foreground">{leader.role}</p>
+                  <h3 className="mt-1 text-lg font-semibold text-foreground">
+                    {leader.name}
+                  </h3>
                 </CardContent>
               </Card>
             ))}
@@ -160,7 +163,7 @@ export default function Page() {
                   <tbody className="divide-y divide-border/60">
                     {divisionDirectors.map((director) => (
                       <tr key={`${director.startYear}-${director.name}`}>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
+                        <td className="px-6 py-4 text-sm whitespace-nowrap text-muted-foreground">
                           {formatYearsOfService(director)}
                         </td>
                         <td className="px-6 py-4 text-sm font-medium text-foreground">
@@ -187,7 +190,10 @@ export default function Page() {
             </p>
           </div>
           <div>
-            <Link href={NAV_PRIMARY_LINKS.donate.href} className={ctaClassName()}>
+            <Link
+              href={NAV_PRIMARY_LINKS.donate.href}
+              className={ctaClassName()}
+            >
               Donate to VATUSA
             </Link>
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
