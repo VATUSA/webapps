@@ -35,8 +35,8 @@ export default function AceTeamList({ members }: AceTeamListProps) {
               <div className="grid grid-cols-[1.6fr_1fr_1fr_1.4fr] border-b border-border/60 bg-muted/30 px-4 py-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                 <span>Name</span>
                 <span>CID</span>
-                <span>Rating</span>
                 <span>Home Facility</span>
+                <span>Rating</span>
               </div>
 
               <ul className="divide-y divide-border/60">
