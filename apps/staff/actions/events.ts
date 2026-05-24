@@ -7,6 +7,7 @@ import {
   CobaltHttpError,
   cobaltRequest,
   getEventById,
+  reviewEvent,
   type CobaltEvent,
   type CobaltSession,
 } from "@workspace/third-party/cobalt"
@@ -395,4 +396,31 @@ export async function deleteEventAction(formData: FormData): Promise<void> {
   revalidatePath(`/facility/zhq/division/events`)
 
   redirect(withEventDeletedFlag(returnTo))
+}
+
+export async function reviewEventAction(formData: FormData): Promise<void> {
+  const eventId = readStringField(formData, "eventId")
+  const status = readStringField(formData, "status")
+
+  if (!eventId) throw new Error("Event ID is required.")
+  if (status !== "approved" && status !== "rejected") throw new Error("Invalid review status.")
+
+  const cobaltCookie = await getCobaltCookie()
+  if (!cobaltCookie) throw new Error("Missing Cobalt auth cookie.")
+
+  try {
+    await requireLivePermissionOrThrow({
+      object: OBJECT.eventApproval,
+      action: ACTION.write,
+      message: "You do not have permission to review events.",
+    })
+
+    await reviewEvent(eventId, status, cobaltCookie)
+  } catch (error) {
+    logEventActionError("review", error)
+    throw new Error(getReadableErrorMessage(error))
+  }
+
+  revalidatePath(`/facility/zhq/events/manage`)
+  revalidatePath("/facility", "layout")
 }

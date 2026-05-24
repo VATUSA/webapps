@@ -3,7 +3,12 @@ import type { Metadata } from "next"
 import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 import EventDeleteSuccessToast from "@/components/Events/EventDeleteSuccessToast"
 import EventsIndex from "@/components/Events/EventsIndex"
-import { ACTION, OBJECT } from "@/lib/acl"
+import {
+  ACTION,
+  OBJECT,
+  hasPermission,
+  normalizePermissionCollections,
+} from "@/lib/acl"
 import { checkLivePermission } from "@/lib/auth"
 import { createStaffPageMetadata } from "@/lib/metadata"
 import { buildStaffHomeHref } from "@/lib/navigation"
@@ -50,10 +55,19 @@ export default async function ManageEventsPage({
     )
   }
 
-  const allEvents = await getEventsPage(page)
-  const items = allEvents.filter(
-    (item) => item.facility?.toUpperCase() === facilityId
+  const isHq = facilityId === "ZHQ"
+
+  const { globalPermissions } = normalizePermissionCollections(
+    permissionCheck.liveSession
   )
+  const canReviewEvents =
+    isHq &&
+    hasPermission(globalPermissions, OBJECT.eventApproval, ACTION.write)
+
+  const allEvents = await getEventsPage(page)
+  const items = isHq
+    ? allEvents.filter((item) => item.review_status === "pending")
+    : allEvents.filter((item) => item.facility?.toUpperCase() === facilityId)
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -62,9 +76,10 @@ export default async function ManageEventsPage({
         items={items}
         page={page}
         facilityId={facilitySlug}
-        canCreateEvent
-        canEditEvent
-        canDeleteEvent
+        canCreateEvent={!isHq}
+        canEditEvent={!isHq}
+        canDeleteEvent={!isHq}
+        canReviewEvents={canReviewEvents}
       />
     </main>
   )

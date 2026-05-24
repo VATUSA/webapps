@@ -2,7 +2,7 @@ import Link from "next/link"
 import type { CobaltEvent } from "@workspace/third-party/cobalt"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import DeleteEventButton from "@/components/Events/DeleteEventButton"
-import { deleteEventAction } from "@/actions/events"
+import { deleteEventAction, reviewEventAction } from "@/actions/events"
 
 const PAGE_SIZE = 20
 
@@ -12,6 +12,22 @@ function formatDateTime(value: string) {
   return date.toUTCString()
 }
 
+function ReviewStatusBadge({ status }: { status?: string | null }) {
+  if (!status) return <span className="text-muted-foreground">—</span>
+
+  const variants: Record<string, string> = {
+    pending: "bg-muted text-muted-foreground",
+    approved: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+    rejected: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+  }
+  const cls = variants[status] ?? "bg-muted text-muted-foreground"
+  return (
+    <span className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${cls}`}>
+      {status}
+    </span>
+  )
+}
+
 export default function EventsIndex({
   items,
   page,
@@ -19,6 +35,7 @@ export default function EventsIndex({
   canCreateEvent,
   canEditEvent,
   canDeleteEvent,
+  canReviewEvents,
   newEventHref,
   buildEditHref,
 }: {
@@ -28,6 +45,7 @@ export default function EventsIndex({
   canCreateEvent: boolean
   canEditEvent?: boolean
   canDeleteEvent?: boolean
+  canReviewEvents?: boolean
   newEventHref?: string
   buildEditHref?: (item: CobaltEvent) => string
 }) {
@@ -67,6 +85,7 @@ export default function EventsIndex({
                   <tr className="text-left text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                     <th className="px-4 py-3">Title</th>
                     <th className="px-4 py-3">Facility</th>
+                    <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3">Start</th>
                     <th className="px-4 py-3">End</th>
                     <th className="px-4 py-3 text-right">Actions</th>
@@ -79,6 +98,9 @@ export default function EventsIndex({
                       <td className="px-4 py-4 font-medium text-foreground">{item.title}</td>
                       <td className="px-4 py-4 text-sm text-muted-foreground">
                         {(item.facility ?? "-").toUpperCase()}
+                      </td>
+                      <td className="px-4 py-4 text-sm">
+                        <ReviewStatusBadge status={item.review_status} />
                       </td>
                       <td className="px-4 py-4 text-sm text-muted-foreground">
                         {formatDateTime(item.start_timestamp)}
@@ -111,6 +133,31 @@ export default function EventsIndex({
                               />
                               <DeleteEventButton itemTitle={item.title} />
                             </form>
+                          ) : null}
+
+                          {canReviewEvents && item.review_status === "pending" ? (
+                            <>
+                              <form action={reviewEventAction} className="inline-flex">
+                                <input type="hidden" name="eventId" value={String(item.id)} />
+                                <input type="hidden" name="status" value="approved" />
+                                <button
+                                  type="submit"
+                                  className="inline-flex h-8 items-center justify-center rounded-md border border-green-600/60 bg-background px-3 text-sm font-medium text-green-700 transition-colors hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20"
+                                >
+                                  Approve
+                                </button>
+                              </form>
+                              <form action={reviewEventAction} className="inline-flex">
+                                <input type="hidden" name="eventId" value={String(item.id)} />
+                                <input type="hidden" name="status" value="rejected" />
+                                <button
+                                  type="submit"
+                                  className="inline-flex h-8 items-center justify-center rounded-md border border-red-600/60 bg-background px-3 text-sm font-medium text-red-700 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                                >
+                                  Reject
+                                </button>
+                              </form>
+                            </>
                           ) : null}
                         </div>
                       </td>
