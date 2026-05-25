@@ -159,10 +159,11 @@ function logEventEndpointDiscrepancy(input: {
 }
 
 export async function fetchEventForEdit(
-  id: number | string
+  id: number | string,
+  cobaltCookie?: string
 ): Promise<CobaltEvent | null> {
   try {
-    return await getEventById(id)
+    return await getEventById(id, cobaltCookie)
   } catch (error) {
     console.error(`Server error fetching event ${id}:`, error)
     return null
@@ -261,7 +262,7 @@ export async function updateEventAction(
       }
     }
 
-    const existingEvent = await getEventById(eventId)
+    const existingEvent = await getEventById(eventId, cobaltCookie)
     if (!existingEvent) {
       return {
         error: "Event not found.",
@@ -342,7 +343,7 @@ export async function deleteEventAction(formData: FormData): Promise<void> {
     throw new Error("Missing Cobalt auth cookie.")
   }
 
-  const existingEvent = await getEventById(eventId)
+  const existingEvent = await getEventById(eventId, cobaltCookie)
   if (!existingEvent) {
     throw new Error("Event not found.")
   }

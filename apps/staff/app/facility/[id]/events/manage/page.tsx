@@ -61,8 +61,7 @@ export default async function ManageEventsPage({
     permissionCheck.liveSession
   )
   const canReviewEvents =
-    isHq &&
-    hasPermission(globalPermissions, OBJECT.eventApproval, ACTION.write)
+    isHq && hasPermission(globalPermissions, OBJECT.eventApproval, ACTION.write)
 
   const allEvents = await getEventsPage(page)
   const items = isHq
@@ -77,8 +76,14 @@ export default async function ManageEventsPage({
         page={page}
         facilityId={facilitySlug}
         canCreateEvent={!isHq}
-        canEditEvent={!isHq}
-        canDeleteEvent={!isHq}
+        canEditEvent
+        canDeleteEvent
+        buildEditHref={
+          isHq
+            ? (item) =>
+                `/facility/${(item.facility ?? "zhq").toLowerCase()}/events/${item.id}/edit`
+            : undefined
+        }
         canReviewEvents={canReviewEvents}
       />
     </main>

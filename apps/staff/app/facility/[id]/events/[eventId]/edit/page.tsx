@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
+import { cookies } from "next/headers"
 import EventForm from "@/components/Events/EventForm"
 import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 import { fetchEventForEdit } from "@/actions/events"
@@ -50,7 +51,9 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
     )
   }
 
-  const event = await fetchEventForEdit(parsedEventId)
+  const cookieStore = await cookies()
+  const cobaltCookie = cookieStore.get("vatusa-cobalt-token")?.value
+  const event = await fetchEventForEdit(parsedEventId, cobaltCookie)
   if (!event) {
     notFound()
   }

@@ -361,11 +361,12 @@ export async function getEventsPage(page = 1): Promise<CobaltEvent[]> {
 }
 
 export async function getEventById(
-  id: number | string
+  id: number | string,
+  cobaltCookie?: string
 ): Promise<CobaltEvent | null> {
   return cobaltRequestOrNull<CobaltEvent>(
     `event/${encodeURIComponent(String(id))}`,
-    { method: "GET" }
+    { method: "GET", cobaltCookie, credentials: cobaltCookie ? "omit" : undefined }
   )
 }
 
