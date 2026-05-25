@@ -332,6 +332,9 @@ export type CobaltEvent = {
   facility?: string
   start_timestamp: string
   end_timestamp: string
+  review_status?: string | null
+  reviewed_by?: number | null
+  reviewed_on?: number | null
 }
 
 export type CreateEventInput = {
@@ -358,12 +361,26 @@ export async function getEventsPage(page = 1): Promise<CobaltEvent[]> {
 }
 
 export async function getEventById(
-  id: number | string
+  id: number | string,
+  cobaltCookie?: string
 ): Promise<CobaltEvent | null> {
   return cobaltRequestOrNull<CobaltEvent>(
     `event/${encodeURIComponent(String(id))}`,
-    { method: "GET" }
+    { method: "GET", cobaltCookie, credentials: cobaltCookie ? "omit" : undefined }
   )
+}
+
+export async function reviewEvent(
+  id: number | string,
+  status: "approved" | "rejected",
+  cobaltCookie: string
+): Promise<unknown> {
+  return cobaltRequest<unknown>(`event/${encodeURIComponent(String(id))}/review`, {
+    method: "POST",
+    body: { status },
+    cobaltCookie,
+    credentials: "omit",
+  })
 }
 
 export async function createEvent(

@@ -1,4 +1,7 @@
-import type { CobaltPermission, CobaltSession } from "@workspace/third-party/cobalt"
+import type {
+  CobaltPermission,
+  CobaltSession,
+} from "@workspace/third-party/cobalt"
 
 export const ACTION = {
   read: "read",
@@ -16,6 +19,7 @@ export const OBJECT = {
   facilityJuniorStaffRole: "facility_junior_staff_role",
   facilityTrainingRole: "facility_training_role",
   event: "event",
+  eventApproval: "event_approval",
   newsPost: "news_post",
   userSensitiveDetails: "user_sensitive_details",
 } as const
@@ -84,9 +88,9 @@ export function normalizePermissionCollections(
   source?: RawPermissionSource | null
 ): NormalizedCobaltPermissions {
   const globalPermissions = Array.isArray(source?.global_permissions)
-    ? source.global_permissions.filter(isPermission).map((permission) =>
-        normalizePermission(permission)
-      )
+    ? source.global_permissions
+        .filter(isPermission)
+        .map((permission) => normalizePermission(permission))
     : []
 
   const facilityPermissionsByFacility: Record<string, CobaltPermission[]> = {}
@@ -107,8 +111,13 @@ export function normalizePermissionCollections(
       facilityPermissionsByFacility[facilityId] ??= []
       facilityPermissionsByFacility[facilityId].push(normalized)
     }
-  } else if (rawFacilityPermissions && typeof rawFacilityPermissions === "object") {
-    for (const [facilityKey, permissions] of Object.entries(rawFacilityPermissions)) {
+  } else if (
+    rawFacilityPermissions &&
+    typeof rawFacilityPermissions === "object"
+  ) {
+    for (const [facilityKey, permissions] of Object.entries(
+      rawFacilityPermissions
+    )) {
       if (!Array.isArray(permissions)) continue
 
       const facilityId = normFacility(facilityKey)
@@ -235,7 +244,12 @@ export function hasScopedPermission(input: {
   if (hasPermission(globalPermissions, object, action)) return true
 
   if (facilityId) {
-    return hasFacilityPermission(facilityPermissions, facilityId, object, action)
+    return hasFacilityPermission(
+      facilityPermissions,
+      facilityId,
+      object,
+      action
+    )
   }
 
   return facilityPermissions.some((p) => {
@@ -362,7 +376,8 @@ export function buildStaffSidebarCapabilities(input: {
   return {
     canSeeOverview: true,
 
-    canSeeSrStaff: isSuperAdmin || isDivision || isFacilitySenior || canManageNews,
+    canSeeSrStaff:
+      isSuperAdmin || isDivision || isFacilitySenior || canManageNews,
 
     canSeeArtccStaff:
       isSuperAdmin ||
