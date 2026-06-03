@@ -215,14 +215,14 @@ export const DIVISION_INFO: NavMenuEntry[] = [
   {
     type: "item",
     title: "ACE Team",
-    href: "/info/ace",
+    href: "https://vatusa.net/legacy/info/ace",
     description: "View all our ACE team.",
     icon: RiTeamLine,
   },
   {
     type: "item",
     title: "Solo Endorsements",
-    href: "/info/solo",
+    href: "https://vatusa.net/legacy/info/solo",
     description: "View all active Solo Endorsements.",
     icon: TiStarburst,
   },
@@ -300,7 +300,7 @@ export const SUPPORT: NavMenuEntry[] = [
   {
     type: "item",
     title: "Support Tickets",
-    href: "/support/tickets",
+    href: "https://vatusa.net/legacy/help/ticket/new",
     description: "",
     icon: FaTicket,
   },
