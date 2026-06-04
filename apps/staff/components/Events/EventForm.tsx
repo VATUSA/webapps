@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useActionState, useEffect } from "react"
+import { useActionState, useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { FormSaveButton } from "@/components/Form/FormSaveButton"
@@ -68,6 +68,31 @@ export default function EventForm({ mode, facilityId, event }: EventFormProps) {
   const [state, formAction] = useActionState(action, initialState)
 
   const lastSuccessRef = React.useRef<string | null>(null)
+  const [bannerError, setBannerError] = useState<string | null>(null)
+
+  const checkBannerRatio = useCallback((url: string) => {
+    if (!url) {
+      setBannerError(null)
+      return
+    }
+    const img = new Image()
+    img.onload = () => {
+      if (img.naturalWidth === 0 || img.naturalHeight === 0) {
+        setBannerError(null)
+        return
+      }
+      const ratio = img.naturalWidth / img.naturalHeight
+      if (Math.abs(ratio - 16 / 9) > 0.02) {
+        setBannerError(
+          `Image must be 16:9 (detected ${img.naturalWidth}×${img.naturalHeight})`
+        )
+      } else {
+        setBannerError(null)
+      }
+    }
+    img.onerror = () => setBannerError(null)
+    img.src = url
+  }, [])
 
   useEffect(() => {
     if (!state.success) {
@@ -102,7 +127,13 @@ export default function EventForm({ mode, facilityId, event }: EventFormProps) {
           title={isEdit ? "Failed to update event" : "Failed to create event"}
         />
 
-        <form action={formAction} className="space-y-5">
+        <form
+          action={formAction}
+          onSubmit={(e) => {
+            if (bannerError) e.preventDefault()
+          }}
+          className="space-y-5"
+        >
           {isZhqTeam && !isEdit ? (
             <div className="space-y-2">
               <label htmlFor="facility" className="text-sm font-medium">
@@ -163,7 +194,14 @@ export default function EventForm({ mode, facilityId, event }: EventFormProps) {
               type="url"
               defaultValue={event?.banner_image_url ?? ""}
               placeholder="https://..."
+              onBlur={(e) => checkBannerRatio(e.target.value)}
             />
+            <p className="text-xs text-muted-foreground">
+              Must be 16:9 aspect ratio (e.g. 1920×1080)
+            </p>
+            {bannerError && (
+              <p className="text-sm text-destructive">{bannerError}</p>
+            )}
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
