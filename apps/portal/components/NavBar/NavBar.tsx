@@ -17,7 +17,7 @@ export default function NavBar({ session }: NavBarProps) {
   const isStaff = hasStaffAccess([...globalPermissions, ...facilityPermissions])
   const name = session?.display_name ?? undefined
 
-  const myVatusaProfileUrl = "https://vatusa.net/legacy/my/profile"
+  const myVatusaProfileUrl = "/legacy/my/profile"
   const staffAppUrl = process.env.NEXT_PUBLIC_STAFF_APP_URL ?? "/staff"
   const cobaltBaseUrl =
     process.env.NEXT_PUBLIC_COBALT_EXTERNAL_BASE_URL ??

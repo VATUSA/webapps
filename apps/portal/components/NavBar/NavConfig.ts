@@ -192,14 +192,14 @@ export const DIVISION_INFO: NavMenuEntry[] = [
   {
     type: "item",
     title: "Members and Staff",
-    href: "/info/members-staff",
+    href: "/legacy/info/members", // TODO: Revert to /info/members-staff once that page is fixed
     description: "Learn more about our members and staff.",
     icon: TiGroup,
   },
   {
     type: "item",
     title: "Policies and Downloads",
-    href: "/info/policies",
+    href: "/legacy/info/members", // TODO: Revert to /info/policies once doc management is implemented
     description: "Rules and governing documents.",
     icon: GoFileSubmodule,
   },
