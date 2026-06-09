@@ -32,6 +32,16 @@ export function NavButtons() {
             }
           />
         </NavigationMenuItem>
+        <NavigationMenuItem>
+          <NavigationMenuLink
+            className={navigationMenuTriggerStyle()}
+            render={
+              <Link href={NAV_PRIMARY_LINKS.faq.href}>
+                {NAV_PRIMARY_LINKS.faq.title}
+              </Link>
+            }
+          />
+        </NavigationMenuItem>
 
         {NAV_SECTIONS.map((section) => (
           <NavigationMenuItem key={section.id}>
@@ -60,6 +70,27 @@ export function NavButtons() {
           <NavigationMenuLink
             className={navigationMenuTriggerStyle()}
             render={
+              <Link href={NAV_PRIMARY_LINKS.ntos_tmu.href}>
+                {NAV_PRIMARY_LINKS.ntos_tmu.title}
+              </Link>
+            }
+          />
+        </NavigationMenuItem>
+
+        <NavigationMenuItem>
+          <NavigationMenuLink
+            className={navigationMenuTriggerStyle()}
+            render={
+              <Link href={NAV_PRIMARY_LINKS.join_us.href}>
+                {NAV_PRIMARY_LINKS.join_us.title}
+              </Link>
+            }
+          />
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <NavigationMenuLink
+            className={navigationMenuTriggerStyle()}
+            render={
               <Link href={NAV_PRIMARY_LINKS.donate.href}>
                 {NAV_PRIMARY_LINKS.donate.title}
               </Link>
@@ -82,7 +113,6 @@ function getSectionListClassName(section: NavSection) {
 
   return "inline-flex w-max flex-col gap-0"
 }
-
 
 function ListItem({
   title,

@@ -36,7 +36,7 @@ export function MobileNav() {
       <button
         type="button"
         onClick={toggleMenu}
-        className="rounded-md p-2 transition-colors hover:bg-accent md:hidden"
+        className="rounded-md p-2 transition-colors hover:bg-accent lg:hidden"
         aria-label="Toggle navigation menu"
         aria-expanded={isOpen}
       >
@@ -45,14 +45,14 @@ export function MobileNav() {
 
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
           onClick={closeMenu}
           aria-hidden="true"
         />
       )}
 
       <aside
-        className={`fixed top-0 left-0 z-50 h-screen w-72 transform border-r border-border bg-card text-card-foreground shadow-lg transition-transform duration-300 ease-in-out md:hidden ${
+        className={`fixed top-0 left-0 z-50 h-screen w-72 transform border-r border-border bg-card text-card-foreground shadow-lg transition-transform duration-300 ease-in-out lg:hidden ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -75,6 +75,11 @@ export function MobileNav() {
               title={NAV_PRIMARY_LINKS.academy.title}
               onClose={closeMenu}
             />
+            <SidebarLink
+              href={NAV_PRIMARY_LINKS.faq.href}
+              title={NAV_PRIMARY_LINKS.faq.title}
+              onClose={closeMenu}
+            />
 
             {NAV_SECTIONS.map((section) => (
               <SidebarSection
@@ -87,6 +92,16 @@ export function MobileNav() {
               />
             ))}
 
+            <SidebarLink
+              href={NAV_PRIMARY_LINKS.ntos_tmu.href}
+              title={NAV_PRIMARY_LINKS.ntos_tmu.title}
+              onClose={closeMenu}
+            />
+            <SidebarLink
+              href={NAV_PRIMARY_LINKS.join_us.href}
+              title={NAV_PRIMARY_LINKS.join_us.title}
+              onClose={closeMenu}
+            />
             <SidebarLink
               href={NAV_PRIMARY_LINKS.donate.href}
               title={NAV_PRIMARY_LINKS.donate.title}

@@ -42,6 +42,9 @@ export type NavSection = {
 
 export const NAV_PRIMARY_LINKS = {
   academy: { title: "Academy", href: "https://academy.vatusa.net" },
+  faq: { title: "FAQ", href: "/support/faq" },
+  ntos_tmu: { title: "N.T.O.S.", href: "https://www.vatusa.net/tmu/notices" },
+  join_us: { title: "Join Us", href: "https://www.vatusa.net/info/join" },
   donate: { title: "Donate", href: "https://donorbox.org/donate-to-vatusa" },
 } as const
 

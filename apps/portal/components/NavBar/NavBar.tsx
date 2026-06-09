@@ -52,7 +52,7 @@ export default function NavBar({ session }: NavBarProps) {
             </Link>
           </div>
 
-          <div className="hidden md:block">
+          <div className="hidden lg:block">
             <NavButtons />
           </div>
 
