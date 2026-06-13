@@ -1,6 +1,23 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository. For how this repo relates to the other VATUSA projects, see the workspace `CLAUDE.md` one directory up.
+
+## Role in the larger VATUSA setup
+
+`webapps` is the **new VATUSA frontend** — the modern replacement for the legacy
+`current_site` (PHP/Laravel) website. It is a pnpm + Turbo monorepo of three apps (portal,
+staff, my_vatusa) that share a UI library and API client.
+
+- **Talks to the cobalt backend.** All backend communication goes through the Cobalt API
+  client in `packages/third-party` (see Cobalt API client below) — there is no direct DB
+  access here. As the platform migrates, the backend surface is expected to shift toward
+  the newer Go (`cobalt`) and Rust (`mithril`, the v3 API) services rather than the legacy
+  Laravel API.
+- **Where it sits.** Legacy pair (`current_site` + `current_api`) → newer backends
+  (`cobalt`, `mithril`) → this modern frontend. When a cobalt endpoint contract changes,
+  this repo is the consumer to check; conversely, UI needs here may drive cobalt changes.
+
+See the workspace `CLAUDE.md` for the full project map and migration strategy notes.
 
 ## Commands
 
