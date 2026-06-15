@@ -13,10 +13,9 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@workspace/ui/components/sidebar"
-import { FaBuilding, FaNewspaper, FaPeopleGroup } from "react-icons/fa6"
-import { MdAdminPanelSettings } from "react-icons/md"
+import { FaNewspaper, FaPeopleGroup } from "react-icons/fa6"
+import { MdAdminPanelSettings, MdEventNote, MdSettings } from "react-icons/md"
 import { IoSchool } from "react-icons/io5"
-import { MdEventNote, MdSettings } from "react-icons/md"
 import {
   ACTION,
   OBJECT,
@@ -32,7 +31,7 @@ type AppSideBarProps = React.ComponentProps<typeof Sidebar> & {
 
 type Team = {
   name: string
-  logo: React.ReactNode
+  logoSrc: string
   plan: string
   id: string
 }
@@ -40,139 +39,139 @@ type Team = {
 const teams = [
   {
     name: "VATUSA",
-    logo: <MdAdminPanelSettings />,
+    logoSrc: "/staff/ARTCC-Logos/ZHQ.png",
     plan: "ARTCC",
     id: "ZHQ",
   },
   {
     name: "Albuquerque ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZAB.png",
     plan: "ARTCC",
     id: "ZAB",
   },
   {
     name: "Anchorage ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZAK.png",
     plan: "ARTCC",
     id: "ZAK",
   },
   {
     name: "Atlanta ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZTL.png",
     plan: "ARTCC",
     id: "ZTL",
   },
   {
     name: "Boston ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZBW.png",
     plan: "ARTCC",
     id: "ZBW",
   },
   {
     name: "Chicago ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZAU.png",
     plan: "ARTCC",
     id: "ZAU",
   },
   {
     name: "Cleveland ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZOB.png",
     plan: "ARTCC",
     id: "ZOB",
   },
   {
     name: "Denver ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZDV.png",
     plan: "ARTCC",
     id: "ZDV",
   },
   {
     name: "Fort Worth ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZFW.png",
     plan: "ARTCC",
     id: "ZFW",
   },
   {
     name: "Honolulu ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/HCF.png",
     plan: "ARTCC",
     id: "HCF",
   },
   {
     name: "Houston ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZHU.png",
     plan: "ARTCC",
     id: "ZHU",
   },
   {
     name: "Indianapolis ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZID.png",
     plan: "ARTCC",
     id: "ZID",
   },
   {
     name: "Jacksonville ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZJX.png",
     plan: "ARTCC",
     id: "ZJX",
   },
   {
     name: "Kansas City ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZKC.png",
     plan: "ARTCC",
     id: "ZKC",
   },
   {
     name: "Los Angeles ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZLA.png",
     plan: "ARTCC",
     id: "ZLA",
   },
   {
     name: "Memphis ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZME.png",
     plan: "ARTCC",
     id: "ZME",
   },
   {
     name: "Miami ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZMA.png",
     plan: "ARTCC",
     id: "ZMA",
   },
   {
     name: "Minneapolis ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZMP.png",
     plan: "ARTCC",
     id: "ZMP",
   },
   {
     name: "New York ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZNY.png",
     plan: "ARTCC",
     id: "ZNY",
   },
   {
     name: "Oakland ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZOA.png",
     plan: "ARTCC",
     id: "ZOA",
   },
   {
     name: "Salt Lake City ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZLC.png",
     plan: "ARTCC",
     id: "ZLC",
   },
   {
     name: "Seattle ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZSE.png",
     plan: "ARTCC",
     id: "ZSE",
   },
   {
     name: "Washington, D.C. ARTCC",
-    logo: <FaBuilding />,
+    logoSrc: "/staff/ARTCC-Logos/ZDC.png",
     plan: "ARTCC",
     id: "ZDC",
   },
