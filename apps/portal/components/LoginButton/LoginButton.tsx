@@ -13,6 +13,8 @@ import {
 import { buttonVariants } from "@workspace/ui/lib/button-variants"
 import { cn } from "@workspace/ui/lib/utils"
 
+const legacyManagementUrl = "/legacy/mgt/facility"
+
 type LoginDropdownProps = {
   isLoggedIn: boolean
   name?: string
@@ -67,20 +69,24 @@ export default function LoginButton({
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>
-          <DropdownMenuItem
-            onClick={() => (window.open(myVatusaProfileUrl))}
-          >
+          <DropdownMenuItem onClick={() => window.open(myVatusaProfileUrl)}>
             <UserIcon className="size-4" />
             My VATUSA Profile
           </DropdownMenuItem>
 
           {canAccessStaffApp ? (
-            <DropdownMenuItem
-              onClick={() => (window.open(staffAppUrl))}
-            >
-              <ShieldIcon className="size-4" />
-              Staff Management
-            </DropdownMenuItem>
+            <DropdownMenuGroup>
+              <DropdownMenuItem onClick={() => window.open(staffAppUrl)}>
+                <ShieldIcon className="size-4" />
+                Staff Management
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => window.open(legacyManagementUrl)}
+              >
+                <ShieldIcon className="size-4" />
+                Legacy Management
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
           ) : null}
         </DropdownMenuGroup>
 
