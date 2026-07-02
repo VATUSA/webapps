@@ -34,7 +34,7 @@ const boardMembers: BoardMember[] = [
 const divisionLeaders: DivisionLeader[] = [
   { name: "Brandon Barrett", role: "Division Director" },
   { name: "Brandon Wening", role: "Deputy Director Air Traffic Services" },
-  { name: "Brin Brody", role: "Deputy Director Training Services" },
+  { name: "Joshua Haight", role: "Deputy Director Training Services" },
 ]
 
 const divisionDirectors: DivisionDirector[] = [
