@@ -202,7 +202,7 @@ export const DIVISION_INFO: NavMenuEntry[] = [
   {
     type: "item",
     title: "Policies and Downloads",
-    href: "/legacy/info/members", // TODO: Revert to /info/policies once doc management is implemented
+    href: "/legacy/info/policies", // TODO: Revert to /info/policies once doc management is implemented
     description: "Rules and governing documents.",
     icon: GoFileSubmodule,
   },
