@@ -7,7 +7,7 @@ const nextConfig = {
   basePath: "/staff",
   experimental: {
     serverActions: {
-      allowedOrigins: ["vatusa.dev", "vatusa.net", "localhost:8000"],
+      allowedOrigins: ["www.vatusa.dev", "vatusa.dev", "vatusa.net", "localhost:8000"],
     },
   },
 }
