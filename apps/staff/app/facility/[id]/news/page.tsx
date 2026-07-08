@@ -53,7 +53,7 @@ export default async function FacilityNewsPage({
   }
 
   return (
-    <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
+    <div className="flex flex-1 flex-col gap-4">
       <NewsIndex
         items={result.items}
         page={result.page}
@@ -61,6 +61,6 @@ export default async function FacilityNewsPage({
         canCreatePost
         canManagePost
       />
-    </main>
+    </div>
   )
 }

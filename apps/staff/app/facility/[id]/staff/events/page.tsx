@@ -1,14 +1,6 @@
 import Link from "next/link"
 import type { Metadata } from "next"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@workspace/ui/components/breadcrumb"
 import { CobaltEvent, getUpcomingEvents } from "@workspace/third-party/cobalt"
 import { deleteEventAction } from "@/actions/events"
 import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
@@ -87,29 +79,7 @@ export default async function Page({ params }: EventsPageProps) {
     .sort(sortByStartAsc)
 
   return (
-    <main className="space-y-4">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink render={<Link href="/" />}>
-              Dashboard
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink
-              render={<Link href={`/facility/${facilitySlug}/staff`} />}
-            >
-              Staff
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Events</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
+    <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <header>
           <h1 className="text-2xl font-semibold tracking-tight">
@@ -217,6 +187,6 @@ export default async function Page({ params }: EventsPageProps) {
       )}
 
       <EventDeleteSuccessToast />
-    </main>
+    </div>
   )
 }

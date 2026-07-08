@@ -64,8 +64,8 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
   }
 
   return (
-    <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
+    <div className="flex flex-1 flex-col gap-4">
       <EventForm mode="edit" facilityId={facilityId} event={event} />
-    </main>
+    </div>
   )
 }

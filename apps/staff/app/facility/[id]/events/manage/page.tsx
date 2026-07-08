@@ -69,7 +69,7 @@ export default async function ManageEventsPage({
     : allEvents.filter((item) => item.facility?.toUpperCase() === facilityId)
 
   return (
-    <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
+    <div className="flex flex-1 flex-col gap-4">
       <EventDeleteSuccessToast />
       <EventsIndex
         items={items}
@@ -86,6 +86,6 @@ export default async function ManageEventsPage({
         }
         canReviewEvents={canReviewEvents}
       />
-    </main>
+    </div>
   )
 }

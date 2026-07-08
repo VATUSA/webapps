@@ -25,7 +25,7 @@ export function UnauthorizedPanel({
   toastMessage,
 }: UnauthorizedPanelProps) {
   return (
-    <main className="relative min-h-full overflow-hidden">
+    <div className="relative min-h-full overflow-hidden">
       <PageStatusToast
         message={toastMessage}
         title="Not authorized"
@@ -77,6 +77,6 @@ export function UnauthorizedPanel({
           </CardContent>
         </Card>
       </section>
-    </main>
+    </div>
   )
 }

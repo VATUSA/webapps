@@ -10,7 +10,7 @@ export const metadata: Metadata = createStaffPageMetadata({
 
 export default function NotFound() {
   return (
-    <main className="relative min-h-full overflow-hidden">
+    <div className="relative min-h-full overflow-hidden">
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 -z-20"
@@ -39,6 +39,6 @@ export default function NotFound() {
           </CardContent>
         </Card>
       </section>
-    </main>
+    </div>
   )
 }
