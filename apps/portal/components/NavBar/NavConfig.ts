@@ -124,7 +124,7 @@ export const FACILITIES: NavMenuEntry[] = [
   {
     type: "item",
     title: "Kansas City ARTCC",
-    href: "https://zkcartcc.org/",
+    href: "https://vzkc.org/",
     description: "",
   },
   {
