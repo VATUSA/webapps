@@ -17,7 +17,7 @@ export function SectionPlaceholder({
   facilityId,
 }: SectionPlaceholderProps) {
   return (
-    <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
+    <div className="flex flex-1 flex-col gap-4">
       <Card className="border-border/60 shadow-sm">
         <CardHeader>
           <CardTitle>{title}</CardTitle>
@@ -29,7 +29,7 @@ export function SectionPlaceholder({
           </p>
         </CardContent>
       </Card>
-    </main>
+    </div>
   )
 }
 

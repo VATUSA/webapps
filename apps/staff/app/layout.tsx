@@ -19,6 +19,8 @@ import { DevBanner } from "@/components/Banner/DevBanner"
 import { normalizePermissionCollections } from "@/lib/acl"
 import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 import { STAFF_ROOT_METADATA } from "@/lib/metadata"
+import { ThemeSwitch } from "@/components/Theme/ThemeSwitch"
+import { HeaderBreadcrumb } from "@/components/SideBar/HeaderBreadcrumb"
 
 const fontSans = Inter({
   subsets: ["latin"],
@@ -42,10 +44,12 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const session = await decodeCobaltJwt(await cookies())
+  const cookieStore = await cookies()
+  const session = await decodeCobaltJwt(cookieStore)
   const allowed = requireStaffSession(session)
   const { globalPermissions, allFacilityPermissions } =
     normalizePermissionCollections(session)
+  const sidebarOpen = cookieStore.get("sidebar_state")?.value !== "false"
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -55,32 +59,34 @@ export default async function RootLayout({
         <ClientThemeProvider>
           <TooltipProvider>
             {allowed ? (
-              <div className="flex min-h-screen flex-col">
-                <DevBanner />
-                <SidebarProvider>
-                  <AppSideBar
-                    userName={session?.display_name}
-                    globalPermissions={globalPermissions}
-                    facilityPermissions={allFacilityPermissions}
-                  />
+              <SidebarProvider defaultOpen={sidebarOpen}>
+                <AppSideBar
+                  userName={session?.display_name}
+                  globalPermissions={globalPermissions}
+                  facilityPermissions={allFacilityPermissions}
+                />
 
-                  <SidebarInset>
-                    <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-                      <div className="flex items-center gap-2 px-4">
-                        <SidebarTrigger className="-ml-1" />
-                        <Separator
-                          orientation="vertical"
-                          className="mr-2 data-vertical:h-4 data-vertical:self-auto"
-                        />
-                      </div>
-                    </header>
-
-                    <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
-                      {children}
+                <SidebarInset>
+                  <DevBanner />
+                  <header className="flex h-16 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+                    <div className="flex flex-1 items-center gap-2 px-4">
+                      <SidebarTrigger className="-ml-1" />
+                      <Separator
+                        orientation="vertical"
+                        className="mr-2 data-vertical:h-4 data-vertical:self-auto"
+                      />
+                      <HeaderBreadcrumb />
                     </div>
-                  </SidebarInset>
-                </SidebarProvider>
-              </div>
+                    <div className="flex items-center gap-2 px-4">
+                      <ThemeSwitch />
+                    </div>
+                  </header>
+
+                  <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
+                    {children}
+                  </div>
+                </SidebarInset>
+              </SidebarProvider>
             ) : (
               <UnauthorizedPanel
                 message="You are not authorized to access the staff application."

@@ -65,7 +65,7 @@ export default async function Page() {
   } = normalizePermissionCollections(session)
 
   return (
-    <main className="flex flex-1 flex-col gap-6 p-4 pt-0">
+    <div className="flex flex-1 flex-col gap-6">
       <section className="rounded-2xl border border-border/60 bg-linear-to-br from-slate-950 via-slate-900 to-slate-800 p-6 text-white shadow-sm md:p-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-2">
@@ -98,33 +98,33 @@ export default async function Page() {
             <h2 className="text-lg font-semibold tracking-tight">
               Pre-production Information
             </h2>
-            <p className="max-w-2xl text-sm leading-6 text-white/75">
+            <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
               The following is information based on your user and session. This will only be available on dev servers. Please provide this to a VATUSA dev should they ask for it.
             </p>
             <div className="mt-4">
               <h3 className="font-semibold">Global Permissions</h3>
-              <ul className="list-disc list-inside text-xs text-white/80">
+              <ul className="list-disc list-inside text-xs text-muted-foreground">
                 {globalPermissions.length === 0 && <li>None</li>}
                 {globalPermissions.map((perm: unknown, idx: number) => (
                   <li key={idx}>
-                    {getPermissionLabel(perm)} <span className="text-white/50">({getAction(perm)})</span>
+                    {getPermissionLabel(perm)} <span className="text-muted-foreground/70">({getAction(perm)})</span>
                   </li>
                 ))}
               </ul>
               <h3 className="font-semibold mt-3">Facility Permissions</h3>
               {Object.keys(facilityPermissionsByFacility).length === 0 && (
-                <div className="text-xs text-white/80">None</div>
+                <div className="text-xs text-muted-foreground">None</div>
               )}
               {Object.entries(facilityPermissionsByFacility).map(([fac, perms]) => {
                 const permsArr = Array.isArray(perms) ? perms : []
                 return (
                   <div key={fac} className="mt-1">
-                    <div className="text-xs font-semibold text-white/70">{fac}</div>
-                    <ul className="list-disc list-inside text-xs text-white/80 ml-4">
+                    <div className="text-xs font-semibold text-foreground">{fac}</div>
+                    <ul className="list-disc list-inside text-xs text-muted-foreground ml-4">
                       {permsArr.length === 0 && <li>None</li>}
                       {permsArr.map((perm: unknown, idx) => (
                         <li key={idx}>
-                          {getPermissionLabel(perm)} <span className="text-white/50">({getAction(perm)})</span>
+                          {getPermissionLabel(perm)} <span className="text-muted-foreground/70">({getAction(perm)})</span>
                         </li>
                       ))}
                     </ul>
@@ -132,11 +132,11 @@ export default async function Page() {
                 )
               })}
               <h3 className="font-semibold mt-3">All Facility Permissions</h3>
-              <ul className="list-disc list-inside text-xs text-white/80">
+              <ul className="list-disc list-inside text-xs text-muted-foreground">
                 {allFacilityPermissions.length === 0 && <li>None</li>}
                 {allFacilityPermissions.map((perm: unknown, idx: number) => (
                   <li key={idx}>
-                    {getPermissionLabel(perm)} <span className="text-white/50">({getAction(perm)})</span>
+                    {getPermissionLabel(perm)} <span className="text-muted-foreground/70">({getAction(perm)})</span>
                   </li>
                 ))}
               </ul>
@@ -152,6 +152,6 @@ export default async function Page() {
           </CardContent>
         </Card>
       </div>
-    </main>
+    </div>
   )
 }

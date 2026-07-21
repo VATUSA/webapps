@@ -1,14 +1,6 @@
 import Link from "next/link"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import type { Metadata } from "next"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@workspace/ui/components/breadcrumb"
 import { getUpcomingEvents } from "@workspace/third-party/cobalt"
 import { createStaffPageMetadata } from "@/lib/metadata"
 
@@ -38,21 +30,7 @@ export default async function Page({ params }: StaffPageProps) {
   ).length
 
   return (
-    <main className="space-y-4">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink render={<Link href="/" />}>
-              Dashboard
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Staff</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
+    <div className="space-y-4">
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">
           {facilityId} Staff
@@ -136,6 +114,6 @@ export default async function Page({ params }: StaffPageProps) {
           </div>
         </CardContent>
       </Card>
-    </main>
+    </div>
   )
 }

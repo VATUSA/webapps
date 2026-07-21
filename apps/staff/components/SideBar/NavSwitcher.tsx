@@ -53,7 +53,7 @@ export function NavSwitcher({
               />
             }
           >
-            <div className="flex aspect-square size-8 items-center justify-center overflow-hidden rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+            <div className="flex aspect-square size-8 shrink-0 items-center justify-center">
               <Logo
                 src={activeTeam.logoSrc}
                 alt={`${activeTeam.name} logo`}
@@ -82,11 +82,11 @@ export function NavSwitcher({
                   onClick={() => onTeamChangeAction(team)}
                   className="gap-2 p-2"
                 >
-                  <div className="flex size-6 items-center justify-center rounded-md border">
+                  <div className="flex size-6 shrink-0 items-center justify-center">
                     <Logo
                       src={team.logoSrc}
                       alt={`${team.name} logo`}
-                      className="size-4"
+                      className="size-full object-contain"
                     />
                   </div>
                   {team.name}

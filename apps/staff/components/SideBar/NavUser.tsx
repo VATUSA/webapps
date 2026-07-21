@@ -72,7 +72,9 @@ export function NavUser({
             <Avatar>
               {/* Avatar photos are temporarily disabled until profile image support is implemented. */}
               {/* <AvatarImage src={user.avatar} alt={user.name} /> */}
-              <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+              <AvatarFallback className="bg-primary font-medium text-primary-foreground">
+                {getInitials(user.name)}
+              </AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">{user.name}</span>
@@ -92,7 +94,9 @@ export function NavUser({
                   <Avatar>
                     {/* Avatar photos are temporarily disabled until profile image support is implemented. */}
                     {/* <AvatarImage src={user.avatar} alt={user.name} /> */}
-                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                    <AvatarFallback className="bg-primary font-medium text-primary-foreground">
+                {getInitials(user.name)}
+              </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">{user.name}</span>
@@ -107,7 +111,7 @@ export function NavUser({
               <DropdownMenuItem onClick={handleProfileClick}>
                 <UserIcon />
                 Profile
-              </DropdownMenuItem>{" "}
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleHomeClick}>
                 <FaHome />
                 VATUSA
