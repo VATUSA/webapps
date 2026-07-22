@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import * as Sentry from "@sentry/nextjs"
 import { HomeIcon, RefreshCcwIcon, TriangleAlertIcon } from "lucide-react"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { buttonVariants } from "@workspace/ui/lib/button-variants"
@@ -17,6 +18,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
 
   React.useEffect(() => {
     console.error(error)
+    Sentry.captureException(error)
   }, [error])
 
   React.useEffect(() => {
