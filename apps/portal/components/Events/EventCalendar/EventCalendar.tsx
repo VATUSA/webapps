@@ -6,6 +6,12 @@ import { toast } from "sonner"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip"
 import { cn } from "@workspace/ui/lib/utils"
 import { type CobaltEvent } from "@workspace/third-party/cobalt"
 import { fetchUpcomingEvents } from "@/actions/events"
@@ -15,76 +21,403 @@ interface CalendarProps {
   weekStartsOn?: 0 | 1
 }
 
-function startOfMonth(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth(), 1, 0, 0, 0, 0)
+const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000
+const LANE_HEIGHT = 22
+const LANE_GAP = 2
+const MAX_VISIBLE_ROWS = 4
+const DATE_HEADER_HEIGHT = 28
+
+/** Solid bar colors — keep to darker chart tokens for white text contrast */
+const FACILITY_BAR_CLASSES = [
+  "bg-chart-1 text-white",
+  "bg-chart-2 text-white",
+  "bg-chart-3 text-white",
+] as const
+
+const FACILITY_BORDER_CLASSES = [
+  "border-l-chart-1",
+  "border-l-chart-2",
+  "border-l-chart-3",
+] as const
+
+function eventFacility(ev: CobaltEvent): string | null {
+  const code = ev.facility?.trim().toUpperCase()
+  return code || null
 }
-function endOfMonth(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999)
+
+function facilityColorIndex(facility: string | null) {
+  if (!facility) return 1
+  let hash = 0
+  for (let i = 0; i < facility.length; i++) {
+    hash = (hash * 31 + facility.charCodeAt(i)) >>> 0
+  }
+  return hash % FACILITY_BAR_CLASSES.length
 }
-function startOfWeek(d: Date, weekStartsOn = 0) {
-  const date = new Date(d)
-  const day = (date.getDay() - weekStartsOn + 7) % 7
-  date.setDate(date.getDate() - day)
-  date.setHours(0, 0, 0, 0)
-  return date
+
+function facilityBarClass(facility: string | null) {
+  return FACILITY_BAR_CLASSES[facilityColorIndex(facility)]!
 }
-function endOfWeek(d: Date, weekStartsOn = 0) {
-  const s = startOfWeek(d, weekStartsOn)
-  s.setDate(s.getDate() + 6)
-  s.setHours(23, 59, 59, 999)
-  return s
+
+function facilityBorderClass(facility: string | null) {
+  return FACILITY_BORDER_CLASSES[facilityColorIndex(facility)]!
 }
-function isSameDay(a: Date, b: Date) {
+
+function eventTooltipLabel(ev: CobaltEvent, detail: string) {
+  const facility = eventFacility(ev)
+  return facility
+    ? `${facility} · ${ev.title} · ${detail}`
+    : `${ev.title} · ${detail}`
+}
+
+function previewBody(body?: string) {
+  if (!body?.trim()) return null
+  const plain = body
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/[#>*_`~]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+  if (!plain) return null
+  return plain.length > 140 ? `${plain.slice(0, 137)}…` : plain
+}
+
+function formatHoverWhen(ev: CobaltEvent) {
+  const { start, end } = eventTimes(ev)
+  const time = formatZuluRange(start, end)
+  if (isMultiDayBarEvent(ev)) {
+    return `${formatMultiDayDateRange(start, end)} · ${time}`
+  }
+  return `${formatShortUTCDate(start)} · ${time}`
+}
+
+function EventHoverPreview({ event }: { event: CobaltEvent }) {
+  const facility = eventFacility(event)
+  const when = formatHoverWhen(event)
+  const summary = previewBody(event.body)
+  const multiDay = isMultiDayBarEvent(event)
+
   return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
+    <div className="flex w-full flex-col gap-2 text-left">
+      <div className="flex items-start justify-between gap-3">
+        <p className="min-w-0 text-sm leading-snug font-semibold text-popover-foreground">
+          {event.title}
+        </p>
+        {facility ? (
+          <span
+            className={cn(
+              "inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white",
+              facilityBarClass(facility)
+            )}
+          >
+            {facility}
+          </span>
+        ) : null}
+      </div>
+
+      <div className="space-y-1 text-xs text-muted-foreground">
+        <p className="tabular-nums">{when}</p>
+        {multiDay ? (
+          <p className="font-medium text-popover-foreground/70">Multi-day event</p>
+        ) : null}
+      </div>
+
+      {summary ? (
+        <p className="line-clamp-3 border-t border-border/60 pt-2 text-xs leading-relaxed text-muted-foreground">
+          {summary}
+        </p>
+      ) : null}
+
+      <p className="text-[10px] font-medium tracking-wide text-muted-foreground/80 uppercase">
+        View event details
+      </p>
+    </div>
   )
 }
-function startOfDay(d: Date) {
-  const x = new Date(d)
-  x.setHours(0, 0, 0, 0)
-  return x
+
+function EventHoverLink({
+  event,
+  href,
+  className,
+  style,
+  children,
+  detail,
+}: {
+  event: CobaltEvent
+  href: string
+  className?: string
+  style?: React.CSSProperties
+  children: React.ReactNode
+  detail: string
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        delay={200}
+        closeDelay={80}
+        render={
+          <Link
+            href={href}
+            className={className}
+            style={style}
+            aria-label={eventTooltipLabel(event, detail)}
+          />
+        }
+      >
+        {children}
+      </TooltipTrigger>
+      <TooltipContent
+        side="top"
+        sideOffset={8}
+        align="start"
+        className={cn(
+          "flex z-50 w-72 max-w-[min(18rem,calc(100vw-1.5rem))] flex-col items-stretch gap-0 rounded-lg border border-border/70 bg-popover p-3 text-left text-popover-foreground shadow-lg ring-1 ring-foreground/10",
+          "[&_.rotate-45]:bg-popover [&_.rotate-45]:fill-popover [&_.rotate-45]:ring-1 [&_.rotate-45]:ring-border/70"
+        )}
+      >
+        <EventHoverPreview event={event} />
+      </TooltipContent>
+    </Tooltip>
+  )
 }
-function endOfDay(d: Date) {
-  const x = new Date(d)
-  x.setHours(23, 59, 59, 999)
-  return x
+
+function startOfMonthUTC(d: Date) {
+  return new Date(
+    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1, 0, 0, 0, 0)
+  )
 }
-function eventIntersectsDay(ev: CobaltEvent, day: Date) {
-  const s = new Date(ev.start_timestamp)
-  const e = new Date(ev.end_timestamp)
-  return !(e < startOfDay(day) || s > endOfDay(day))
+
+function startOfWeekUTC(d: Date, weekStartsOn = 0) {
+  const date = new Date(
+    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0)
+  )
+  const day = (date.getUTCDay() - weekStartsOn + 7) % 7
+  date.setUTCDate(date.getUTCDate() - day)
+  return date
+}
+
+function isSameUTCDay(a: Date, b: Date) {
+  return (
+    a.getUTCFullYear() === b.getUTCFullYear() &&
+    a.getUTCMonth() === b.getUTCMonth() &&
+    a.getUTCDate() === b.getUTCDate()
+  )
+}
+
+function startOfUTCDay(d: Date) {
+  return new Date(
+    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0)
+  )
+}
+
+function endOfUTCDay(d: Date) {
+  return new Date(
+    Date.UTC(
+      d.getUTCFullYear(),
+      d.getUTCMonth(),
+      d.getUTCDate(),
+      23,
+      59,
+      59,
+      999
+    )
+  )
+}
+
+function addUTCDays(d: Date, days: number) {
+  const next = new Date(d)
+  next.setUTCDate(next.getUTCDate() + days)
+  return next
+}
+
+function utcDayKey(d: Date) {
+  return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`
+}
+
+function formatZuluHHMM(date: Date) {
+  const hours = String(date.getUTCHours()).padStart(2, "0")
+  const minutes = String(date.getUTCMinutes()).padStart(2, "0")
+  return `${hours}${minutes}`
+}
+
+function formatZuluRange(start: Date, end: Date) {
+  return `${formatZuluHHMM(start)}–${formatZuluHHMM(end)}Z`
+}
+
+function formatShortUTCDate(date: Date) {
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  })
+}
+
+/** e.g. "Jul 24–26" or "Jul 31 – Aug 2" */
+function formatMultiDayDateRange(start: Date, end: Date) {
+  const sameMonth =
+    start.getUTCFullYear() === end.getUTCFullYear() &&
+    start.getUTCMonth() === end.getUTCMonth()
+
+  if (sameMonth) {
+    const month = start.toLocaleDateString("en-US", {
+      month: "short",
+      timeZone: "UTC",
+    })
+    return `${month} ${start.getUTCDate()}–${end.getUTCDate()}`
+  }
+
+  return `${formatShortUTCDate(start)} – ${formatShortUTCDate(end)}`
+}
+
+function eventTimes(ev: CobaltEvent) {
+  return {
+    start: new Date(ev.start_timestamp),
+    end: new Date(ev.end_timestamp),
+  }
+}
+
+function isMultiDayBarEvent(ev: CobaltEvent) {
+  const { start, end } = eventTimes(ev)
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false
+  const spansDays = !isSameUTCDay(start, end)
+  const durationMs = end.getTime() - start.getTime()
+  return spansDays && durationMs > TWELVE_HOURS_MS
+}
+
+/** Chip events: same-day, or short overnight (≤12h) — shown on UTC start day only. */
+function showsAsChipOnDay(ev: CobaltEvent, day: Date) {
+  if (isMultiDayBarEvent(ev)) return false
+  const { start } = eventTimes(ev)
+  if (Number.isNaN(start.getTime())) return false
+  return isSameUTCDay(start, day)
+}
+
+function intervalIntersectsUTCDay(start: Date, end: Date, day: Date) {
+  return !(end < startOfUTCDay(day) || start > endOfUTCDay(day))
+}
+
+type SpanSegment = {
+  event: CobaltEvent
+  startCol: number
+  endCol: number
+  lane: number
+  continuesBefore: boolean
+  continuesAfter: boolean
+}
+
+function packSpanLanes(
+  segments: Omit<SpanSegment, "lane">[]
+): SpanSegment[] {
+  const sorted = [...segments].sort(
+    (a, b) =>
+      a.startCol - b.startCol ||
+      b.endCol - a.endCol ||
+      a.event.id - b.event.id
+  )
+  const laneEnds: number[] = []
+  const packed: SpanSegment[] = []
+
+  for (const seg of sorted) {
+    let lane = 0
+    while (lane < laneEnds.length && laneEnds[lane]! >= seg.startCol) {
+      lane++
+    }
+    if (lane === laneEnds.length) {
+      laneEnds.push(seg.endCol)
+    } else {
+      laneEnds[lane] = seg.endCol
+    }
+    packed.push({ ...seg, lane })
+  }
+
+  return packed
+}
+
+function buildWeekSpanSegments(
+  weekDays: Date[],
+  events: CobaltEvent[]
+): SpanSegment[] {
+  const weekStart = weekDays[0]!
+  const weekEnd = weekDays[6]!
+  const segments: Omit<SpanSegment, "lane">[] = []
+
+  for (const ev of events) {
+    if (!isMultiDayBarEvent(ev)) continue
+    const { start, end } = eventTimes(ev)
+    if (!weekDays.some((d) => intervalIntersectsUTCDay(start, end, d))) {
+      continue
+    }
+
+    const eventStartDay = startOfUTCDay(start)
+    const eventEndDay = startOfUTCDay(end)
+    const clipStart =
+      eventStartDay.getTime() < weekStart.getTime() ? weekStart : eventStartDay
+    const clipEnd =
+      eventEndDay.getTime() > weekEnd.getTime() ? weekEnd : eventEndDay
+
+    if (
+      clipStart.getTime() > weekEnd.getTime() ||
+      clipEnd.getTime() < weekStart.getTime()
+    ) {
+      continue
+    }
+
+    const startCol = weekDays.findIndex((d) => isSameUTCDay(d, clipStart))
+    const endCol = weekDays.findIndex((d) => isSameUTCDay(d, clipEnd))
+    if (startCol < 0 || endCol < 0) continue
+
+    segments.push({
+      event: ev,
+      startCol,
+      endCol,
+      continuesBefore: eventStartDay.getTime() < weekStart.getTime(),
+      continuesAfter: eventEndDay.getTime() > weekEnd.getTime(),
+    })
+  }
+
+  return packSpanLanes(segments)
+}
+
+function multiDayOccupiesDay(seg: SpanSegment, col: number) {
+  return col >= seg.startCol && col <= seg.endCol
 }
 
 export default function EventCalendar({
   initialDate,
   weekStartsOn = 0,
 }: CalendarProps) {
-  const [viewDate, setViewDate] = useState<Date>(
-    initialDate ? new Date(initialDate) : new Date()
-  )
+  const [viewDate, setViewDate] = useState<Date>(() => {
+    if (initialDate) {
+      const d = new Date(initialDate)
+      return startOfMonthUTC(d)
+    }
+    return startOfMonthUTC(new Date())
+  })
   const [events, setEvents] = useState<CobaltEvent[]>([])
+  const [expandedDays, setExpandedDays] = useState<Set<string>>(
+    () => new Set()
+  )
 
-  const monthStart = useMemo(() => startOfMonth(viewDate), [viewDate])
-  const monthEnd = useMemo(() => endOfMonth(viewDate), [viewDate])
+  const monthStart = useMemo(() => startOfMonthUTC(viewDate), [viewDate])
   const gridStart = useMemo(
-    () => startOfWeek(monthStart, weekStartsOn),
+    () => startOfWeekUTC(monthStart, weekStartsOn),
     [monthStart, weekStartsOn]
   )
-  useMemo(() => endOfWeek(monthEnd, weekStartsOn), [monthEnd, weekStartsOn])
   const grid = useMemo(() => {
     const days: Date[] = []
-    const start = new Date(gridStart)
     for (let i = 0; i < 42; i++) {
-      const d = new Date(start)
-      d.setDate(start.getDate() + i)
-      days.push(d)
+      days.push(addUTCDays(gridStart, i))
     }
     return days
   }, [gridStart])
 
-  // Fetch events only once on mount using Server Action
+  const weeks = useMemo(() => {
+    const rows: Date[][] = []
+    for (let i = 0; i < 6; i++) {
+      rows.push(grid.slice(i * 7, i * 7 + 7))
+    }
+    return rows
+  }, [grid])
+
   useEffect(() => {
     let aborted = false
 
@@ -111,28 +444,65 @@ export default function EventCalendar({
   }, [])
 
   function prevMonth() {
-    setViewDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))
+    setExpandedDays(new Set())
+    setViewDate(
+      (d) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - 1, 1))
+    )
   }
   function nextMonth() {
-    setViewDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))
+    setExpandedDays(new Set())
+    setViewDate(
+      (d) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))
+    )
   }
   function goToday() {
-    setViewDate(new Date())
+    setExpandedDays(new Set())
+    setViewDate(startOfMonthUTC(new Date()))
+  }
+
+  function toggleDayExpanded(key: string) {
+    setExpandedDays((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
   }
 
   const dayNames = useMemo(() => {
-    const base = new Date(2021, 7, 1)
-    const names = []
+    const names: string[] = []
+    // 2021-08-01 was a Sunday in UTC
+    const base = new Date(Date.UTC(2021, 7, 1))
     for (let i = 0; i < 7; i++) {
       const idx = (i + weekStartsOn) % 7
-      const name = new Date(base)
-      name.setDate(base.getDate() + idx)
-      names.push(name.toLocaleDateString(undefined, { weekday: "short" }))
+      const name = addUTCDays(base, idx)
+      names.push(
+        name.toLocaleDateString("en-US", {
+          weekday: "short",
+          timeZone: "UTC",
+        })
+      )
     }
     return names
   }, [weekStartsOn])
 
   const today = useMemo(() => new Date(), [])
+
+  const monthLabel = viewDate.toLocaleString("en-US", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  })
+
+  const mobileDays = useMemo(() => {
+    return grid.filter((d) =>
+      events.some(
+        (ev) =>
+          showsAsChipOnDay(ev, d) ||
+          (isMultiDayBarEvent(ev) && isSameUTCDay(eventTimes(ev).start, d))
+      )
+    )
+  }, [grid, events])
 
   return (
     <Card className="w-full border-border/70 bg-card/95 shadow-sm">
@@ -140,10 +510,10 @@ export default function EventCalendar({
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold tracking-tight text-foreground">
-              {viewDate.toLocaleString(undefined, {
-                month: "long",
-                year: "numeric",
-              })}
+              {monthLabel}
+              <span className="ml-2 text-sm font-normal text-muted-foreground">
+                Zulu
+              </span>
             </h3>
           </div>
           <div className="flex items-center gap-2">
@@ -174,95 +544,250 @@ export default function EventCalendar({
           </div>
         </div>
 
-        <div className="rounded-lg border border-border/60 bg-background">
-          <div className="hidden grid-cols-7 gap-px border-b border-border/60 bg-muted/40 text-xs sm:grid">
+        <div className="overflow-hidden rounded-lg border border-border/60 bg-background">
+          <div className="hidden grid-cols-7 border-b border-border/60 bg-muted/40 text-xs sm:grid">
             {dayNames.map((n) => (
               <div
                 key={n}
-                className="px-3 py-2 text-center font-medium tracking-wide text-muted-foreground uppercase"
+                className="px-2 py-2 text-center font-medium tracking-wide text-muted-foreground uppercase"
               >
                 {n}
               </div>
             ))}
           </div>
 
-          <div className="hidden grid-cols-7 gap-1 bg-border/40 p-3 sm:grid">
-            {grid.map((d) => {
-              const inMonth = d.getMonth() === viewDate.getMonth()
-              const isToday = isSameDay(d, today)
-              const dayEvents = events
-                .filter((ev) => eventIntersectsDay(ev, d))
-                .sort(
-                  (a, b) =>
-                    new Date(a.start_timestamp).getTime() -
-                    new Date(b.start_timestamp).getTime()
-                )
+          {/* Desktop: continuous week grid with multi-day bars */}
+          <TooltipProvider delay={200}>
+            <div className="hidden sm:block">
+              {weeks.map((weekDays) => {
+              const spanSegments = buildWeekSpanSegments(weekDays, events)
+              const laneCount =
+                spanSegments.length === 0
+                  ? 0
+                  : Math.max(...spanSegments.map((s) => s.lane)) + 1
+              const visibleLaneCount = Math.min(laneCount, MAX_VISIBLE_ROWS)
+              const lanesHeight =
+                visibleLaneCount === 0
+                  ? 0
+                  : visibleLaneCount * LANE_HEIGHT +
+                    (visibleLaneCount - 1) * LANE_GAP +
+                    4
 
               return (
                 <div
-                  key={d.toISOString()}
-                  className={cn(
-                    "flex min-h-[108px] flex-col overflow-hidden rounded-md border p-3 text-sm transition-colors duration-150",
-                    "border-border/60 bg-card hover:border-border hover:bg-accent/30",
-                    !inMonth &&
-                      "border-border/50 bg-muted/45 text-muted-foreground/85 hover:bg-muted/60"
-                  )}
+                  key={utcDayKey(weekDays[0]!)}
+                  className="relative grid grid-cols-7 border-b border-border/60 last:border-b-0"
                 >
-                  <div className="mb-2 flex items-center justify-between">
-                    <span
-                      className={cn(
-                        "inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium",
-                        isToday
-                          ? "bg-chart-2 text-white ring-2 ring-chart-2/35 ring-offset-2 ring-offset-background"
-                          : inMonth
-                            ? "text-foreground"
-                            : "text-muted-foreground"
-                      )}
-                    >
-                      {d.getDate()}
-                    </span>
-                  </div>
+                  {weekDays.map((d, col) => {
+                    const dayKey = utcDayKey(d)
+                    const inMonth = d.getUTCMonth() === viewDate.getUTCMonth()
+                    const isToday = isSameUTCDay(d, today)
+                    const isExpanded = expandedDays.has(dayKey)
 
-                  <div className="flex-1 overflow-hidden">
-                    {dayEvents.length === 0 ? null : (
-                      <div className="flex flex-col gap-2">
-                        {dayEvents.map((ev) => {
-                          const timeLabel = new Date(
-                            ev.start_timestamp
-                          ).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
+                    const occupyingSpans = spanSegments.filter((seg) =>
+                      multiDayOccupiesDay(seg, col)
+                    )
+                    const visibleSpanSlots = occupyingSpans.filter(
+                      (seg) => seg.lane < MAX_VISIBLE_ROWS
+                    ).length
 
-                          return (
-                            <Link
-                              key={ev.id}
-                              href={`/events/${ev.id}`}
-                              className="flex flex-col gap-1 rounded-md border border-border/50 bg-accent/40 px-3 py-2 text-xs transition-colors duration-150 hover:border-border hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+                    const dayChips = events
+                      .filter((ev) => showsAsChipOnDay(ev, d))
+                      .sort(
+                        (a, b) =>
+                          new Date(a.start_timestamp).getTime() -
+                          new Date(b.start_timestamp).getTime()
+                      )
+
+                    const chipSlotsLeft = Math.max(
+                      0,
+                      MAX_VISIBLE_ROWS - visibleSpanSlots
+                    )
+                    const visibleChips = isExpanded
+                      ? dayChips
+                      : dayChips.slice(0, chipSlotsLeft)
+                    const hiddenChipCount = isExpanded
+                      ? 0
+                      : Math.max(0, dayChips.length - chipSlotsLeft)
+                    const hiddenSpanCount = occupyingSpans.filter(
+                      (seg) => seg.lane >= MAX_VISIBLE_ROWS
+                    ).length
+                    const moreCount = hiddenChipCount + hiddenSpanCount
+
+                    return (
+                      <div
+                        key={dayKey}
+                        className={cn(
+                          "flex min-h-[112px] flex-col border-r border-border/60 p-1 last:border-r-0",
+                          inMonth ? "bg-background" : "bg-muted/35",
+                          isToday && "bg-accent/20"
+                        )}
+                      >
+                        <div
+                          className="flex items-center justify-end px-0.5"
+                          style={{ height: DATE_HEADER_HEIGHT }}
+                        >
+                          <span
+                            className={cn(
+                              "inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium",
+                              isToday
+                                ? "bg-chart-2 text-white"
+                                : inMonth
+                                  ? "text-foreground"
+                                  : "text-muted-foreground"
+                            )}
+                          >
+                            {d.getUTCDate()}
+                          </span>
+                        </div>
+
+                        {lanesHeight > 0 ? (
+                          <div
+                            className="shrink-0"
+                            style={{ height: lanesHeight }}
+                            aria-hidden
+                          />
+                        ) : null}
+
+                        <div className="flex flex-1 flex-col gap-0.5 overflow-hidden pt-0.5">
+                          {visibleChips.map((ev) => {
+                            const { start, end } = eventTimes(ev)
+                            const facility = eventFacility(ev)
+                            const detail = formatZuluRange(start, end)
+                            return (
+                              <EventHoverLink
+                                key={ev.id}
+                                event={ev}
+                                href={`/events/${ev.id}`}
+                                detail={detail}
+                                className={cn(
+                                  "flex h-[22px] items-center gap-1 truncate rounded-sm border-l-2 bg-accent/35 px-1.5 text-[11px] leading-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none",
+                                  facilityBorderClass(facility)
+                                )}
+                              >
+                                <span className="shrink-0 tabular-nums text-muted-foreground">
+                                  {formatZuluHHMM(start)}
+                                </span>
+                                {facility ? (
+                                  <span className="shrink-0 font-semibold text-foreground/80">
+                                    {facility}
+                                  </span>
+                                ) : null}
+                                <span className="truncate font-medium text-foreground">
+                                  {ev.title}
+                                </span>
+                              </EventHoverLink>
+                            )
+                          })}
+
+                          {moreCount > 0 ? (
+                            <button
+                              type="button"
+                              onClick={() => toggleDayExpanded(dayKey)}
+                              className="h-[22px] rounded-sm px-1.5 text-left text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
                             >
-                              <div className="font-medium text-foreground">
-                                {ev.title}
-                              </div>
-                              <div className="text-[11px] text-muted-foreground">
-                                {timeLabel}
-                              </div>
-                            </Link>
+                              +{moreCount} more
+                            </button>
+                          ) : null}
+
+                          {isExpanded && dayChips.length > chipSlotsLeft ? (
+                            <button
+                              type="button"
+                              onClick={() => toggleDayExpanded(dayKey)}
+                              className="h-[22px] rounded-sm px-1.5 text-left text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+                            >
+                              Show less
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+                    )
+                  })}
+
+                  {/* Multi-day bars: gapless overlay aligned to columns */}
+                  {visibleLaneCount > 0 ? (
+                    <div
+                      className="pointer-events-none absolute inset-x-0 z-10 grid grid-cols-7"
+                      style={{ top: DATE_HEADER_HEIGHT }}
+                    >
+                      {spanSegments
+                        .filter((seg) => seg.lane < MAX_VISIBLE_ROWS)
+                        .map((seg) => {
+                          const { start, end } = eventTimes(seg.event)
+                          const facility = eventFacility(seg.event)
+                          const detail = `${formatMultiDayDateRange(start, end)} · ${formatZuluRange(start, end)}`
+                          return (
+                            <EventHoverLink
+                              key={`${seg.event.id}-${seg.startCol}-${seg.endCol}`}
+                              event={seg.event}
+                              href={`/events/${seg.event.id}`}
+                              detail={detail}
+                              className={cn(
+                                "pointer-events-auto mx-0.5 flex items-center gap-1 overflow-hidden px-1.5 text-[11px] font-medium shadow-sm transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none",
+                                facilityBarClass(facility),
+                                seg.continuesBefore
+                                  ? "rounded-l-none"
+                                  : "rounded-l-md",
+                                seg.continuesAfter
+                                  ? "rounded-r-none"
+                                  : "rounded-r-md"
+                              )}
+                              style={{
+                                gridColumn: `${seg.startCol + 1} / ${seg.endCol + 2}`,
+                                gridRow: 1,
+                                marginTop: seg.lane * (LANE_HEIGHT + LANE_GAP),
+                                height: LANE_HEIGHT,
+                                alignSelf: "start",
+                              }}
+                            >
+                              {seg.continuesBefore ? (
+                                <span
+                                  className="shrink-0 opacity-80"
+                                  aria-hidden
+                                >
+                                  ‹
+                                </span>
+                              ) : null}
+                              {facility ? (
+                                <span className="shrink-0 font-semibold opacity-90">
+                                  {facility}
+                                </span>
+                              ) : null}
+                              <span className="truncate">{seg.event.title}</span>
+                              {seg.continuesAfter ? (
+                                <span
+                                  className="shrink-0 opacity-80"
+                                  aria-hidden
+                                >
+                                  ›
+                                </span>
+                              ) : null}
+                            </EventHoverLink>
                           )
                         })}
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  ) : null}
                 </div>
               )
             })}
           </div>
+          </TooltipProvider>
 
+          {/* Mobile: start-day agenda list */}
           <div className="space-y-3 p-3 sm:hidden">
-            {grid
-              .filter((d) => events.some((ev) => eventIntersectsDay(ev, d)))
-              .map((d) => {
+            {mobileDays.length === 0 ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                No upcoming events this month.
+              </p>
+            ) : (
+              mobileDays.map((d) => {
                 const dayEvents = events
-                  .filter((ev) => eventIntersectsDay(ev, d))
+                  .filter(
+                    (ev) =>
+                      showsAsChipOnDay(ev, d) ||
+                      (isMultiDayBarEvent(ev) &&
+                        isSameUTCDay(eventTimes(ev).start, d))
+                  )
                   .sort(
                     (a, b) =>
                       new Date(a.start_timestamp).getTime() -
@@ -271,36 +796,48 @@ export default function EventCalendar({
 
                 return (
                   <div
-                    key={d.toISOString()}
+                    key={utcDayKey(d)}
                     className="rounded-md border border-border/60 p-3"
                   >
                     <div className="mb-2 text-sm font-medium text-foreground">
-                      {d.toLocaleDateString(undefined, {
+                      {d.toLocaleDateString("en-US", {
                         weekday: "short",
                         month: "short",
                         day: "numeric",
+                        timeZone: "UTC",
                       })}
+                      <span className="ml-1 text-muted-foreground">Z</span>
                     </div>
                     <div className="flex flex-col gap-2">
                       {dayEvents.map((ev) => {
-                        const timeLabel = new Date(
-                          ev.start_timestamp
-                        ).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-
+                        const { start, end } = eventTimes(ev)
+                        const multiDay = isMultiDayBarEvent(ev)
+                        const facility = eventFacility(ev)
                         return (
                           <Link
                             key={ev.id}
                             href={`/events/${ev.id}`}
-                            className="flex flex-col gap-1 rounded-md border border-border/50 bg-accent/40 px-3 py-3 text-sm transition-colors duration-150 hover:border-border hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+                            className={cn(
+                              "flex flex-col gap-1 rounded-md border border-border/50 px-3 py-3 text-sm transition-colors duration-150 hover:border-border hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none",
+                              multiDay
+                                ? cn("border-l-4 bg-accent/30", facilityBorderClass(facility))
+                                : "bg-accent/40"
+                            )}
                           >
-                            <div className="font-medium text-foreground">
-                              {ev.title}
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0 font-medium text-foreground">
+                                {ev.title}
+                              </div>
+                              {facility ? (
+                                <span className="shrink-0 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                                  {facility}
+                                </span>
+                              ) : null}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              {timeLabel}
+                              {multiDay
+                                ? `Multi-day · ${formatMultiDayDateRange(start, end)} · ${formatZuluRange(start, end)}`
+                                : formatZuluRange(start, end)}
                             </div>
                           </Link>
                         )
@@ -308,7 +845,8 @@ export default function EventCalendar({
                     </div>
                   </div>
                 )
-              })}
+              })
+            )}
           </div>
         </div>
       </CardContent>
