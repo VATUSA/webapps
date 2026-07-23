@@ -192,12 +192,13 @@ export default function EventForm({ mode, facilityId, event }: EventFormProps) {
               id="banner_image_url"
               name="banner_image_url"
               type="url"
+              required
               defaultValue={event?.banner_image_url ?? ""}
               placeholder="https://..."
               onBlur={(e) => checkBannerRatio(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Must be 16:9 aspect ratio (e.g. 1920×1080)
+              Required. Must be 16:9 aspect ratio (e.g. 1920×1080)
             </p>
             {bannerError && (
               <p className="text-sm text-destructive">{bannerError}</p>
