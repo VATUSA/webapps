@@ -1,12 +1,13 @@
 import { getEventsPage } from "@workspace/third-party/cobalt"
 import type { Metadata } from "next"
+import { cookies } from "next/headers"
 import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 import EventDeleteSuccessToast from "@/components/Events/EventDeleteSuccessToast"
 import EventsIndex from "@/components/Events/EventsIndex"
 import {
   ACTION,
   OBJECT,
-  hasPermission,
+  hasScopedPermission,
   normalizePermissionCollections,
 } from "@/lib/acl"
 import { checkLivePermission } from "@/lib/auth"
@@ -57,16 +58,20 @@ export default async function ManageEventsPage({
 
   const isHq = facilityId === "ZHQ"
 
-  const { globalPermissions } = normalizePermissionCollections(
-    permissionCheck.liveSession
-  )
+  const { globalPermissions, allFacilityPermissions } =
+    normalizePermissionCollections(permissionCheck.liveSession)
   const canReviewEvents =
-    isHq && hasPermission(globalPermissions, OBJECT.eventApproval, ACTION.write)
+    isHq &&
+    hasScopedPermission({
+      globalPermissions,
+      facilityPermissions: allFacilityPermissions,
+      object: OBJECT.eventApproval,
+      action: ACTION.write,
+    })
 
-  const allEvents = await getEventsPage(page)
-  const items = isHq
-    ? allEvents.filter((item) => item.review_status === "pending")
-    : allEvents.filter((item) => item.facility?.toUpperCase() === facilityId)
+  const cookieStore = await cookies()
+  const cobaltCookie = cookieStore.get("vatusa-cobalt-token")?.value
+  const items = await getEventsPage(page, facilityId, cobaltCookie)
 
   return (
     <div className="flex flex-1 flex-col gap-4">

@@ -353,10 +353,17 @@ export async function getUpcomingEvents(count = 5): Promise<CobaltEvent[]> {
   })
 }
 
-export async function getEventsPage(page = 1): Promise<CobaltEvent[]> {
+export async function getEventsPage(
+  page = 1,
+  facility?: string,
+  cobaltCookie?: string
+): Promise<CobaltEvent[]> {
   const safePage = Number.isInteger(page) && page > 0 ? page : 1
-  return cobaltRequest<CobaltEvent[]>(`event/page/${safePage}`, {
+  const query = facility ? `?facility=${encodeURIComponent(facility)}` : ""
+  return cobaltRequest<CobaltEvent[]>(`event/page/${safePage}${query}`, {
     method: "GET",
+    cobaltCookie,
+    credentials: cobaltCookie ? "omit" : undefined,
   })
 }
 

@@ -4,7 +4,8 @@ import { Card, CardContent } from "@workspace/ui/components/card"
 import DeleteEventButton from "@/components/Events/DeleteEventButton"
 import { deleteEventAction, reviewEventAction } from "@/actions/events"
 
-const PAGE_SIZE = 20
+// Must match cobalt's GetEventsPage recordsPerPage (src/endpoints/event.go).
+const PAGE_SIZE = 25
 
 function formatDateTime(value: string) {
   const date = new Date(value)
