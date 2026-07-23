@@ -61,6 +61,7 @@ function buildEventPayload(formData: FormData) {
   if (!title) throw new Error("Event title is required.")
   if (!body) throw new Error("Event body is required.")
   if (!facility) throw new Error("Facility is required.")
+  if (!banner_image_url) throw new Error("Banner image URL is required.")
   if (!startLocal) throw new Error("Start time is required.")
   if (!endLocal) throw new Error("End time is required.")
 
@@ -75,7 +76,7 @@ function buildEventPayload(formData: FormData) {
     facility,
     title,
     body,
-    banner_image_url: banner_image_url || undefined,
+    banner_image_url,
     start_timestamp,
     end_timestamp,
   }

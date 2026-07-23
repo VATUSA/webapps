@@ -14,13 +14,13 @@ type UnauthorizedPanelProps = {
   secondaryLabel?: string
   toastMessage?: string
 }
-//TODO: Figure out proper redirects for unauthorized users
+
 export function UnauthorizedPanel({
   title = "Not Authorized",
   message,
   backHref,
   backLabel = "Back to Staff Home",
-  secondaryHref = "https://www.vatusa.net",
+  secondaryHref = "/",
   secondaryLabel = "Back to VATUSA",
   toastMessage,
 }: UnauthorizedPanelProps) {
@@ -67,12 +67,12 @@ export function UnauthorizedPanel({
                 {backLabel}
               </Link>
 
-              <Link
+              <a
                 href={secondaryHref}
                 className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
               >
                 {secondaryLabel}
-              </Link>
+              </a>
             </div>
           </CardContent>
         </Card>
