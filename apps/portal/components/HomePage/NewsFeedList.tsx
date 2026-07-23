@@ -32,6 +32,8 @@ export default function NewsFeedList({
   emptyText = "No recent news.",
   makeItemHref = (item) => `/news/${item.id}`,
 }: NewsFeedListProps) {
+  const limitedItems = items.slice(0, 10)
+
   return (
     <Card className="h-full border-border/60 bg-card/95">
       <CardHeader className="pb-3">
@@ -47,11 +49,11 @@ export default function NewsFeedList({
       </CardHeader>
 
       <CardContent>
-        {items.length === 0 ? (
+        {limitedItems.length === 0 ? (
           <p className="text-sm text-muted-foreground">{emptyText}</p>
         ) : (
           <ul className="space-y-3">
-            {items.map((item) => {
+            {limitedItems.map((item) => {
               const href = makeItemHref(item)
 
               return (

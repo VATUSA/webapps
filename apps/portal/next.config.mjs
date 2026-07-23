@@ -12,6 +12,11 @@ const nextConfig = {
         destination: "/support/faq",
         permanent: true,
       },
+      {
+        source: "/support/tickets",
+        destination: "https://www.vatusa.net/legacy/help/ticket/new",
+        permanent: true,
+      },
     ]
   },
 }
