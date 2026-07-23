@@ -85,7 +85,7 @@ export default function Footer() {
             </li>
             <li>
               <a
-                href="https://status.vatsim.net"
+                href="https://network-status.vatsim.net/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-foreground/80 transition-colors hover:text-foreground"
