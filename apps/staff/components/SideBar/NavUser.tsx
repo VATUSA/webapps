@@ -48,7 +48,7 @@ export function NavUser({
     "http://localhost:8000/cobalt"
 
   const handleProfileClick = () => {
-    window.open("/profile", "_blank")
+    window.open("https://www.vatusa.net/legacy/my/profile", "_blank")
   }
 
   const handleHomeClick = () => {
