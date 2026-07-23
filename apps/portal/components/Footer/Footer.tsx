@@ -83,16 +83,6 @@ export default function Footer() {
                 GitHub
               </a>
             </li>
-            <li>
-              <a
-                href="https://status.vatsim.net"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-foreground/80 transition-colors hover:text-foreground"
-              >
-                VATSIM Status
-              </a>
-            </li>
           </ul>
         </div>
       </div>
