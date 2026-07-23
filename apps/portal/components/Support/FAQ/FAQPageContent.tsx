@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import type { FAQCategory } from "@/components/Support/FAQ/faq-data"
+import FAQAnswer from "@/components/Support/FAQ/FAQAnswer"
 
 type FAQPageContentProps = {
   categories: FAQCategory[]
@@ -125,9 +126,7 @@ export default function FAQPageContent({
                     <h3 className="font-semibold text-foreground">
                       {item.question}
                     </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                      {item.answer}
-                    </p>
+                    <FAQAnswer content={item.answer} />
                     <div className="mt-2">
                       <Link
                         href={`#q${item.id}`}
