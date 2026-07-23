@@ -19,6 +19,8 @@ services:
   cobalt:
     image: vatusa/cobalt:latest
     # image: localhost/cobalt:latest
+    # Cobalt image is amd64-only; required on Apple Silicon (arm64)
+    platform: linux/amd64
     container_name: cobalt
     restart: unless-stopped
     env_file:
