@@ -77,9 +77,9 @@ const EVENT_REGIONS: readonly EventRegion[] = [
     id: "west",
     label: "West",
     facilities: ["ZAK", "ZAN", "ZHN", "ZLA", "ZLC", "ZOA", "ZSE"],
-    barClass: "bg-teal-700 text-white",
-    borderClass: "border-l-teal-700",
-    swatchClass: "bg-teal-700",
+    barClass: "bg-yellow-500 text-slate-900",
+    borderClass: "border-l-yellow-500",
+    swatchClass: "bg-yellow-500",
   },
   {
     id: "zhq",
