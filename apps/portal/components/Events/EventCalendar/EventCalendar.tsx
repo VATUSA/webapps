@@ -25,41 +25,104 @@ const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000
 const LANE_HEIGHT = 22
 const LANE_GAP = 2
 const MAX_VISIBLE_ROWS = 4
-const DATE_HEADER_HEIGHT = 28
+/** Cell uses p-1 (4px); keep overlay/spacer aligned with that padding. */
+const CELL_PADDING = 4
+const DATE_NUMBER_SIZE = 28
+/** Extra space under the date (esp. today's filled bubble) before event bars. */
+const DATE_EVENTS_GAP = 8
+const DATE_HEADER_HEIGHT = DATE_NUMBER_SIZE + DATE_EVENTS_GAP
+const MULTI_DAY_TOP = CELL_PADDING + DATE_HEADER_HEIGHT
 
-/** Solid bar colors — keep to darker chart tokens for white text contrast */
-const FACILITY_BAR_CLASSES = [
-  "bg-chart-1 text-white",
-  "bg-chart-2 text-white",
-  "bg-chart-3 text-white",
+type EventRegion = {
+  id: string
+  label: string
+  facilities: readonly string[]
+  barClass: string
+  borderClass: string
+  swatchClass: string
+}
+
+const EVENT_REGIONS: readonly EventRegion[] = [
+  {
+    id: "northeast",
+    label: "North East",
+    facilities: ["ZBW", "ZDC", "ZNY", "ZOB", "ZWY"],
+    barClass: "bg-sky-700 text-white",
+    borderClass: "border-l-sky-700",
+    swatchClass: "bg-sky-700",
+  },
+  {
+    id: "southeast",
+    label: "South East",
+    facilities: ["ZID", "ZJX", "ZMA", "ZMO", "ZTL"],
+    barClass: "bg-emerald-700 text-white",
+    borderClass: "border-l-emerald-700",
+    swatchClass: "bg-emerald-700",
+  },
+  {
+    id: "southcentral",
+    label: "South Central",
+    facilities: ["ZAB", "ZFW", "ZHO", "ZHU", "ZME"],
+    barClass: "bg-amber-700 text-white",
+    borderClass: "border-l-amber-700",
+    swatchClass: "bg-amber-700",
+  },
+  {
+    id: "midwest",
+    label: "Midwest",
+    facilities: ["ZAU", "ZDV", "ZKC", "ZMP"],
+    barClass: "bg-violet-700 text-white",
+    borderClass: "border-l-violet-700",
+    swatchClass: "bg-violet-700",
+  },
+  {
+    id: "west",
+    label: "West",
+    facilities: ["ZAK", "ZAN", "ZHN", "ZLA", "ZLC", "ZOA", "ZSE"],
+    barClass: "bg-teal-700 text-white",
+    borderClass: "border-l-teal-700",
+    swatchClass: "bg-teal-700",
+  },
+  {
+    id: "zhq",
+    label: "ZHQ / Large Event",
+    facilities: ["ZHQ"],
+    barClass: "bg-chart-2 text-white",
+    borderClass: "border-l-chart-2",
+    swatchClass: "bg-chart-2",
+  },
 ] as const
 
-const FACILITY_BORDER_CLASSES = [
-  "border-l-chart-1",
-  "border-l-chart-2",
-  "border-l-chart-3",
-] as const
+const FALLBACK_REGION_STYLE = {
+  barClass: "bg-slate-600 text-white",
+  borderClass: "border-l-slate-600",
+  swatchClass: "bg-slate-600",
+} as const
+
+const FACILITY_TO_REGION = new Map<string, EventRegion>(
+  EVENT_REGIONS.flatMap((region) =>
+    region.facilities.map((facility) => [facility, region] as const)
+  )
+)
 
 function eventFacility(ev: CobaltEvent): string | null {
   const code = ev.facility?.trim().toUpperCase()
   return code || null
 }
 
-function facilityColorIndex(facility: string | null) {
-  if (!facility) return 1
-  let hash = 0
-  for (let i = 0; i < facility.length; i++) {
-    hash = (hash * 31 + facility.charCodeAt(i)) >>> 0
-  }
-  return hash % FACILITY_BAR_CLASSES.length
+function regionForFacility(facility: string | null) {
+  if (!facility) return null
+  return FACILITY_TO_REGION.get(facility) ?? null
 }
 
 function facilityBarClass(facility: string | null) {
-  return FACILITY_BAR_CLASSES[facilityColorIndex(facility)]!
+  return regionForFacility(facility)?.barClass ?? FALLBACK_REGION_STYLE.barClass
 }
 
 function facilityBorderClass(facility: string | null) {
-  return FACILITY_BORDER_CLASSES[facilityColorIndex(facility)]!
+  return (
+    regionForFacility(facility)?.borderClass ?? FALLBACK_REGION_STYLE.borderClass
+  )
 }
 
 function eventTooltipLabel(ev: CobaltEvent, detail: string) {
@@ -544,6 +607,21 @@ export default function EventCalendar({
           </div>
         </div>
 
+        <ul
+          className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] text-muted-foreground"
+          aria-label="Event region color legend"
+        >
+          {EVENT_REGIONS.map((region) => (
+            <li key={region.id} className="inline-flex items-center gap-1.5">
+              <span
+                className={cn("size-2.5 shrink-0 rounded-full", region.swatchClass)}
+                aria-hidden
+              />
+              <span>{region.label}</span>
+            </li>
+          ))}
+        </ul>
+
         <div className="overflow-hidden rounded-lg border border-border/60 bg-background">
           <div className="hidden grid-cols-7 border-b border-border/60 bg-muted/40 text-xs sm:grid">
             {dayNames.map((n) => (
@@ -624,12 +702,12 @@ export default function EventCalendar({
                         )}
                       >
                         <div
-                          className="flex items-center justify-end px-0.5"
+                          className="flex items-start justify-end px-0.5"
                           style={{ height: DATE_HEADER_HEIGHT }}
                         >
                           <span
                             className={cn(
-                              "inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium",
+                              "inline-flex size-7 items-center justify-center rounded-full text-sm font-medium",
                               isToday
                                 ? "bg-chart-2 text-white"
                                 : inMonth
@@ -708,7 +786,7 @@ export default function EventCalendar({
                   {visibleLaneCount > 0 ? (
                     <div
                       className="pointer-events-none absolute inset-x-0 z-10 grid grid-cols-7"
-                      style={{ top: DATE_HEADER_HEIGHT }}
+                      style={{ top: MULTI_DAY_TOP }}
                     >
                       {spanSegments
                         .filter((seg) => seg.lane < MAX_VISIBLE_ROWS)
