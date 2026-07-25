@@ -25,10 +25,8 @@ const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000
 const LANE_HEIGHT = 22
 const LANE_GAP = 2
 const MAX_VISIBLE_ROWS = 4
-/** Cell uses p-1 (4px); keep overlay/spacer aligned with that padding. */
 const CELL_PADDING = 4
 const DATE_NUMBER_SIZE = 28
-/** Extra space under the date (esp. today's filled bubble) before event bars. */
 const DATE_EVENTS_GAP = 8
 const DATE_HEADER_HEIGHT = DATE_NUMBER_SIZE + DATE_EVENTS_GAP
 const MULTI_DAY_TOP = CELL_PADDING + DATE_HEADER_HEIGHT
