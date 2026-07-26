@@ -14,7 +14,7 @@ export const EVENT_FACILITY_OPTIONS: FacilityOption[] = [
   { code: "ZOB", name: "Cleveland ARTCC" },
   { code: "ZDV", name: "Denver ARTCC" },
   { code: "ZFW", name: "Fort Worth ARTCC" },
-  { code: "HCF", name: "Honolulu ARTCC" },
+  { code: "HCF", name: "Honolulu CF" },
   { code: "ZHU", name: "Houston ARTCC" },
   { code: "ZID", name: "Indianapolis ARTCC" },
   { code: "ZJX", name: "Jacksonville ARTCC" },

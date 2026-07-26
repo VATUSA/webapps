@@ -93,7 +93,7 @@ const teams = [
     id: "ZFW",
   },
   {
-    name: "Honolulu ARTCC",
+    name: "Honolulu CF",
     logoSrc: "/staff/ARTCC-Logos/HCF.png",
     plan: "Subdivision",
     id: "HCF",

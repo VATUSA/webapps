@@ -99,7 +99,7 @@ export const FACILITIES: NavMenuEntry[] = [
   },
   {
     type: "item",
-    title: "Honolulu ARTCC",
+    title: "Honolulu CF",
     href: "https://www.vhcf.net/",
     description: "",
   },
