@@ -537,6 +537,25 @@ export async function getFacilityRoster(
   )
 }
 
+export type CobaltV3ApiKey = {
+  id: number
+  code: string
+  testing: boolean
+  facility: string | null
+  created_at: number
+  updated_at: number | null
+}
+
+export async function getFacilityApiKeys(
+  facility: string,
+  cobaltCookie?: string
+): Promise<CobaltV3ApiKey[]> {
+  return cobaltRequest<CobaltV3ApiKey[]>(
+    `facility/${encodeURIComponent(facility.toUpperCase())}/v3/apikeys`,
+    { method: "GET", cobaltCookie, credentials: cobaltCookie ? "omit" : undefined }
+  )
+}
+
 /* ============================================================================
  * JWT decoding
  * ========================================================================== */

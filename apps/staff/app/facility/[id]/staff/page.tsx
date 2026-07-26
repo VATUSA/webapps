@@ -78,7 +78,7 @@ export default async function Page({ params }: StaffPageProps) {
             </Link>
 
             <Link
-              href={`/facility/${id}/staff/tech`}
+              href={`/facility/${id}/facility/tech`}
               className="rounded-md border border-border/60 px-3 py-2 text-sm transition-colors hover:bg-accent"
             >
               Tech Config
