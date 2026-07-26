@@ -418,7 +418,17 @@ export function AppSideBar({
     [pathname, router]
   )
 
+  const hasDivisionWideAccess =
+    homeFacility?.toUpperCase() === "ZHQ" ||
+    globalPermissions.some(
+      (p) => p.object?.toLowerCase() === OBJECT.divisionStaffRole
+    )
+
   const accessibleTeamIds = React.useMemo(() => {
+    if (hasDivisionWideAccess) {
+      return new Set(teams.map((t) => t.id.toUpperCase()))
+    }
+
     const ids = new Set<string>(
       facilityPermissions
         .map((p) => p.facility?.toUpperCase())
@@ -428,7 +438,7 @@ export function AppSideBar({
       ids.add("ZHQ")
     }
     return ids
-  }, [facilityPermissions, globalPermissions])
+  }, [facilityPermissions, globalPermissions, hasDivisionWideAccess])
 
   const teamsForSwitcher = React.useMemo(
     () =>
