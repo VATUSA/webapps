@@ -22,6 +22,7 @@ export const OBJECT = {
   eventApproval: "event_approval",
   newsPost: "news_post",
   userSensitiveDetails: "user_sensitive_details",
+  facilityTechConfig: "facility_tech_config",
 } as const
 
 const ACTION_IMPLIES: Record<string, readonly string[]> = {
