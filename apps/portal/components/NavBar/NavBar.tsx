@@ -5,16 +5,13 @@ import LoginDropdown from "@/components/LoginButton/LoginButton"
 import type { CobaltJwtPayload } from "@/lib/auth"
 import { NavButtons } from "@/components/NavBar/NavButtons"
 import { MobileNav } from "@/components/NavBar/MobileNav"
-import { hasStaffAccess } from "@workspace/third-party/acl"
 
 interface NavBarProps {
   session: CobaltJwtPayload | null
 }
 
 export default function NavBar({ session }: NavBarProps) {
-  const globalPermissions = session?.global_permissions ?? []
-  const facilityPermissions = session?.facility_permissions ?? []
-  const isStaff = hasStaffAccess([...globalPermissions, ...facilityPermissions])
+  const isStaff = session?.is_staff ?? false
   const name = session?.display_name ?? undefined
 
   const myVatusaProfileUrl = "/legacy/my/profile"

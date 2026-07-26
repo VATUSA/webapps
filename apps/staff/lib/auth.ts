@@ -3,11 +3,7 @@ import {
   cobaltRequest,
   type CobaltSession,
 } from "@workspace/third-party/cobalt"
-import {
-  hasAnyStaffAccess,
-  hasScopedPermission,
-  normalizePermissionCollections,
-} from "@/lib/acl"
+import { hasScopedPermission, normalizePermissionCollections } from "@/lib/acl"
 
 type LiveSessionResult =
   | { ok: true; liveSession: CobaltSession }
@@ -154,22 +150,4 @@ export async function requireLivePermissionOrThrow(input: {
   }
 
   return liveSessionResult.liveSession
-}
-
-export async function requireStaffAccess(): Promise<{
-  allowed: boolean
-  liveSession: CobaltSession | null
-}> {
-  const result = await getLiveCobaltSessionResult()
-  if (!result.ok) return { allowed: false, liveSession: null }
-
-  const { globalPermissions, allFacilityPermissions } =
-    normalizePermissionCollections(result.liveSession)
-
-  const allowed = hasAnyStaffAccess({
-    globalPermissions,
-    facilityPermissions: allFacilityPermissions,
-  })
-
-  return { allowed, liveSession: result.liveSession }
 }

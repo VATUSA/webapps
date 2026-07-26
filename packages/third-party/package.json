@@ -10,7 +10,6 @@
   "exports": {
     ".": "./src/index.ts",
     "./cobalt": "./src/cobalt.ts",
-    "./vatusa": "./src/vatusa.ts",
-    "./acl": "./src/acl.ts"
+    "./vatusa": "./src/vatusa.ts"
   }
 }
