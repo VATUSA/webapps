@@ -27,6 +27,7 @@ type AppSideBarProps = React.ComponentProps<typeof Sidebar> & {
   userName?: string
   globalPermissions?: CobaltPermission[]
   facilityPermissions?: CobaltPermission[]
+  homeFacility?: string
 }
 
 type Team = {
@@ -371,6 +372,7 @@ export function AppSideBar({
   userName,
   globalPermissions = [],
   facilityPermissions = [],
+  homeFacility,
   ...props
 }: AppSideBarProps) {
   const router = useRouter()
@@ -387,13 +389,21 @@ export function AppSideBar({
     }
 
     const savedId = window.localStorage.getItem(TEAM_STORAGE_KEY)?.toUpperCase()
-    if (!savedId) return
-
-    const savedTeam = teams.find((t) => t.id.toUpperCase() === savedId)
+    const savedTeam = savedId
+      ? teams.find((t) => t.id.toUpperCase() === savedId)
+      : undefined
     if (savedTeam) {
       setActiveTeam((prev) => (prev.id === savedTeam.id ? prev : savedTeam))
+      return
     }
-  }, [pathname])
+
+    const homeTeam = homeFacility
+      ? teams.find((t) => t.id.toUpperCase() === homeFacility.toUpperCase())
+      : undefined
+    if (homeTeam) {
+      setActiveTeam((prev) => (prev.id === homeTeam.id ? prev : homeTeam))
+    }
+  }, [pathname, homeFacility])
 
   const onTeamChangeAction = React.useCallback(
     (team: Team) => {
@@ -406,6 +416,27 @@ export function AppSideBar({
       }
     },
     [pathname, router]
+  )
+
+  const accessibleTeamIds = React.useMemo(() => {
+    const ids = new Set<string>(
+      facilityPermissions
+        .map((p) => p.facility?.toUpperCase())
+        .filter((f): f is string => Boolean(f))
+    )
+    if (globalPermissions.length > 0) {
+      ids.add("ZHQ")
+    }
+    return ids
+  }, [facilityPermissions, globalPermissions])
+
+  const teamsForSwitcher = React.useMemo(
+    () =>
+      teams.map((team) => ({
+        ...team,
+        disabled: !accessibleTeamIds.has(team.id.toUpperCase()),
+      })),
+    [accessibleTeamIds]
   )
 
   const isZhqTeam = activeTeam.id.toUpperCase() === "ZHQ"
@@ -442,7 +473,7 @@ export function AppSideBar({
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <NavSwitcher
-          teams={teams}
+          teams={teamsForSwitcher}
           activeTeam={activeTeam}
           onTeamChangeAction={onTeamChangeAction}
         />

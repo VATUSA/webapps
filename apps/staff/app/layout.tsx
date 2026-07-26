@@ -64,6 +64,7 @@ export default async function RootLayout({
                   userName={session?.display_name}
                   globalPermissions={globalPermissions}
                   facilityPermissions={allFacilityPermissions}
+                  homeFacility={session?.home_facility}
                 />
 
                 <SidebarInset>

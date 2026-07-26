@@ -566,6 +566,7 @@ export type CobaltJwtPayloadInternal = {
   facility_permissions: string // comma-separated "facility:object:action"
   global_permissions: string   // comma-separated "object:action"
   is_staff: boolean
+  home_facility: string
 }
 
 export type CobaltJwtPayload = {
@@ -574,6 +575,7 @@ export type CobaltJwtPayload = {
   facility_permissions: CobaltPermission[]
   global_permissions: CobaltPermission[]
   is_staff: boolean
+  home_facility: string
 }
 
 export function transformCobaltJwt(
@@ -582,6 +584,7 @@ export function transformCobaltJwt(
   return {
     ...decoded,
     is_staff: decoded.is_staff ?? false,
+    home_facility: decoded.home_facility ?? "",
     facility_permissions: decoded.facility_permissions
       .split(",")
       .filter((s) => s.length > 0)

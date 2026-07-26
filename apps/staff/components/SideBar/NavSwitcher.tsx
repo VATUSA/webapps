@@ -24,6 +24,7 @@ type TeamBase = {
   logoSrc: string
   plan: string
   id: string
+  disabled?: boolean
 }
 
 export function NavSwitcher({
@@ -79,6 +80,7 @@ export function NavSwitcher({
               {teams.map((team) => (
                 <DropdownMenuItem
                   key={team.name}
+                  disabled={team.disabled}
                   onClick={() => onTeamChangeAction(team)}
                   className="gap-2 p-2"
                 >
@@ -86,10 +88,18 @@ export function NavSwitcher({
                     <Logo
                       src={team.logoSrc}
                       alt={`${team.name} logo`}
-                      className="size-full object-contain"
+                      className={
+                        team.disabled
+                          ? "size-full object-contain grayscale"
+                          : "size-full object-contain"
+                      }
                     />
                   </div>
-                  {team.name}
+                  <span
+                    className={team.disabled ? "text-muted-foreground" : undefined}
+                  >
+                    {team.name}
+                  </span>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuGroup>

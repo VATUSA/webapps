@@ -8,6 +8,7 @@ test("transformCobaltJwt", () => {
     facility_permissions: "ZDV:roster:read",
     global_permissions: "superadmin:usage",
     is_staff: true,
+    home_facility: "ZDV",
   }
   const data = transformCobaltJwt(cookie)
 
@@ -25,5 +26,6 @@ test("transformCobaltJwt", () => {
       { facility: "*", object: "superadmin", action: "usage" },
     ],
     is_staff: true,
+    home_facility: "ZDV",
   })
 })
