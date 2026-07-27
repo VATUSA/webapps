@@ -28,7 +28,11 @@ export default function FAQPageContent({
 
   React.useEffect(() => {
     const updateHash = () => {
-      setActiveHash(window.location.hash.replace(/^#/, ""))
+      const hash = window.location.hash.replace(/^#/, "")
+      setActiveHash(hash)
+      if (hash) {
+        document.getElementById(hash)?.scrollIntoView()
+      }
     }
 
     updateHash()
