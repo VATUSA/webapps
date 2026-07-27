@@ -418,37 +418,6 @@ export function AppSideBar({
     [pathname, router]
   )
 
-  const hasDivisionWideAccess =
-    homeFacility?.toUpperCase() === "ZHQ" ||
-    globalPermissions.some(
-      (p) => p.object?.toLowerCase() === OBJECT.divisionStaffRole
-    )
-
-  const accessibleTeamIds = React.useMemo(() => {
-    if (hasDivisionWideAccess) {
-      return new Set(teams.map((t) => t.id.toUpperCase()))
-    }
-
-    const ids = new Set<string>(
-      facilityPermissions
-        .map((p) => p.facility?.toUpperCase())
-        .filter((f): f is string => Boolean(f))
-    )
-    if (globalPermissions.length > 0) {
-      ids.add("ZHQ")
-    }
-    return ids
-  }, [facilityPermissions, globalPermissions, hasDivisionWideAccess])
-
-  const teamsForSwitcher = React.useMemo(
-    () =>
-      teams.map((team) => ({
-        ...team,
-        disabled: !accessibleTeamIds.has(team.id.toUpperCase()),
-      })),
-    [accessibleTeamIds]
-  )
-
   const isZhqTeam = activeTeam.id.toUpperCase() === "ZHQ"
   const canManageEvents = hasFacilityScopedPermission({
     globalPermissions,
@@ -483,7 +452,7 @@ export function AppSideBar({
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <NavSwitcher
-          teams={teamsForSwitcher}
+          teams={teams}
           activeTeam={activeTeam}
           onTeamChangeAction={onTeamChangeAction}
         />
