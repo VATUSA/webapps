@@ -148,7 +148,7 @@ export const FACILITIES: NavMenuEntry[] = [
   {
     type: "item",
     title: "Minneapolis ARTCC",
-    href: "https://nyartcc.org/",
+    href: "https://minniecenter.org/",
     description: "",
   },
   {
