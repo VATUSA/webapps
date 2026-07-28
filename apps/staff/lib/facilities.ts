@@ -7,7 +7,7 @@ export const EVENT_FACILITY_OPTIONS: FacilityOption[] = [
   { code: "ZAE", name: "VATUSA" },
   { code: "ZHQ", name: "VATUSA" },
   { code: "ZAB", name: "Albuquerque ARTCC" },
-  { code: "ZAK", name: "Anchorage ARTCC" },
+  { code: "ZAN", name: "Anchorage ARTCC" },
   { code: "ZTL", name: "Atlanta ARTCC" },
   { code: "ZBW", name: "Boston ARTCC" },
   { code: "ZAU", name: "Chicago ARTCC" },

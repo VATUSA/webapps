@@ -52,9 +52,9 @@ const teams = [
   },
   {
     name: "Anchorage ARTCC",
-    logoSrc: "/staff/ARTCC-Logos/ZAK.png",
+    logoSrc: "/staff/ARTCC-Logos/ZAN.png",
     plan: "Subdivision",
-    id: "ZAK",
+    id: "ZAN",
   },
   {
     name: "Atlanta ARTCC",
