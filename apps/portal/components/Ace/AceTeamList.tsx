@@ -1,3 +1,4 @@
+import type { CobaltAceTeamMember } from "@workspace/third-party/cobalt"
 import {
   Card,
   CardContent,
@@ -5,16 +6,8 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 
-export type AceTeamMember = {
-  id: string
-  name: string
-  cid: number
-  rating: string
-  homeFacility: string
-}
-
 type AceTeamListProps = {
-  members: AceTeamMember[]
+  members: CobaltAceTeamMember[]
 }
 
 export default function AceTeamList({ members }: AceTeamListProps) {
@@ -31,29 +24,25 @@ export default function AceTeamList({ members }: AceTeamListProps) {
           </p>
         ) : (
           <div className="overflow-x-auto rounded-md border border-border/60">
-            <div className="min-w-[700px]">
-              <div className="grid grid-cols-[1.6fr_1fr_1fr_1.4fr] border-b border-border/60 bg-muted/30 px-4 py-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+            <div className="min-w-[520px]">
+              <div className="grid grid-cols-[1.6fr_1fr_1.4fr] border-b border-border/60 bg-muted/30 px-4 py-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                 <span>Name</span>
                 <span>CID</span>
-                <span>Home Facility</span>
                 <span>Rating</span>
               </div>
 
               <ul className="divide-y divide-border/60">
                 {members.map((member) => (
                   <li
-                    key={member.id}
-                    className="grid grid-cols-[1.6fr_1fr_1fr_1.4fr] px-4 py-3 transition-colors hover:bg-accent/50"
+                    key={member.cid}
+                    className="grid grid-cols-[1.6fr_1fr_1.4fr] px-4 py-3 transition-colors hover:bg-accent/50"
                   >
                     <span className="font-medium text-foreground">
                       {member.name}
                     </span>
                     <span className="text-muted-foreground">{member.cid}</span>
                     <span className="text-muted-foreground">
-                      {member.homeFacility}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {member.rating}
+                      {member.rating_short}
                     </span>
                   </li>
                 ))}

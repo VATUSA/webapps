@@ -1,51 +1,15 @@
-import AceTeamList, { type AceTeamMember } from "@/components/Ace/AceTeamList"
+import AceTeamList from "@/components/Ace/AceTeamList"
+import { fetchAceTeam } from "@/actions/ace"
+import { type Metadata } from "next"
 
-const mockAceMembers: AceTeamMember[] = [
-  {
-    id: "ace-1",
-    name: "Justin McElvaney",
-    cid: 1155655,
-    rating: "SUP",
-    homeFacility: "ZDC",
-  },
-  {
-    id: "ace-2",
-    name: "Junzhe Yan",
-    cid: 1340265,
-    rating: "SUP",
-    homeFacility: "ZDC",
-  },
-  {
-    id: "ace-3",
-    name: "Jackson Smith",
-    cid: 1471203,
-    rating: "I3",
-    homeFacility: "ZDC",
-  },
-  {
-    id: "ace-4",
-    name: "Carson Berget",
-    cid: 1652726,
-    rating: "SUP",
-    homeFacility: "ZDC",
-  },
-  {
-    id: "ace-5",
-    name: "Maria Garcia",
-    cid: 100002,
-    rating: "C1",
-    homeFacility: "ZTL",
-  },
-  {
-    id: "ace-6",
-    name: "Emma Davis",
-    cid: 100005,
-    rating: "I1",
-    homeFacility: "ZAB",
-  },
-]
+export const metadata: Metadata = {
+  title: "ACE Team | VATUSA",
+  description: "VATUSA ACE team information and roster",
+}
 
-export default function Page() {
+export default async function Page() {
+  const members = await fetchAceTeam()
+
   return (
     <main className="container mx-auto py-6">
       <div className="mb-6 space-y-3">
@@ -68,7 +32,7 @@ export default function Page() {
         </div>
       </div>
 
-      <AceTeamList members={mockAceMembers} />
+      <AceTeamList members={members} />
     </main>
   )
 }

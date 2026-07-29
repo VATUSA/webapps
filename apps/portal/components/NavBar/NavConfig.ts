@@ -218,7 +218,7 @@ export const DIVISION_INFO: NavMenuEntry[] = [
   {
     type: "item",
     title: "ACE Team",
-    href: "/legacy/info/ace",
+    href: "/info/ace",
     description: "View all our ACE team.",
     icon: RiTeamLine,
   },

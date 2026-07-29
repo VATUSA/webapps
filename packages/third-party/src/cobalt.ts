@@ -320,6 +320,19 @@ export async function legacySyncRoles(
   })
 }
 
+export type CobaltAceTeamMember = {
+  cid: number
+  name: string
+  rating: number
+  rating_short: string
+}
+
+export async function getAceTeam(): Promise<CobaltAceTeamMember[]> {
+  return cobaltRequest<CobaltAceTeamMember[]>("roles/ace-team", {
+    method: "GET",
+  })
+}
+
 /* ============================================================================
  * Events
  * ========================================================================== */
