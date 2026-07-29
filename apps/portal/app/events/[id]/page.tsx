@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import EventDetail from "@/components/Events/EventDetail/EventDetail"
+import EventDetail from "@workspace/ui/components/event-detail"
 import { fetchEventById } from "@/actions/events"
 import { Metadata } from "next"
 

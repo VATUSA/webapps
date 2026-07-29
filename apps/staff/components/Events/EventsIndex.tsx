@@ -2,6 +2,7 @@ import Link from "next/link"
 import type { CobaltEvent } from "@workspace/third-party/cobalt"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import DeleteEventButton from "@/components/Events/DeleteEventButton"
+import EventPreviewDialog from "@/components/Events/EventPreviewDialog"
 import { deleteEventAction, reviewEventAction } from "@/actions/events"
 
 // Must match cobalt's GetEventsPage recordsPerPage (src/endpoints/event.go).
@@ -111,6 +112,8 @@ export default function EventsIndex({
                       </td>
                       <td className="px-4 py-4 text-right">
                         <div className="inline-flex items-center gap-2">
+                          <EventPreviewDialog event={item} showTrigger />
+
                           {resolvedCanEditEvent ? (
                             <Link
                               href={

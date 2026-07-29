@@ -196,7 +196,9 @@ export async function createEventAction(
       message: buildLiveEventPermissionMessage(payload.facility),
     })
 
-    await cobaltRequest<unknown>("event/create", {
+    // Cobalt's event/create responds with { success, id }; capture the new id
+    // so we can send the creator straight to a preview of their event.
+    const created = await cobaltRequest<{ id?: number }>("event/create", {
       method: "POST",
       body: payload,
       cobaltCookie,
@@ -208,10 +210,16 @@ export async function createEventAction(
     revalidatePath(`/facility/${facilitySlug}/events/new`)
     revalidatePath(`/facility/${facilitySlug}`)
 
+    const newEventId = created?.id
+    const manageHref = `/facility/${facilitySlug}/events/manage`
+
     return {
       error: null,
       success: "Event created successfully.",
-      redirectTo: `/facility/${facilitySlug}/events/manage`,
+      redirectTo:
+        typeof newEventId === "number" && Number.isInteger(newEventId)
+          ? `${manageHref}?preview=${newEventId}`
+          : manageHref,
     }
   } catch (error) {
     if (
