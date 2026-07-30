@@ -5,10 +5,21 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { MarkdownContent } from "@workspace/ui/components/markdown-content"
-import { type CobaltEvent } from "@workspace/third-party/cobalt"
+
+// Structural subset of the Cobalt event shape used for rendering a posting.
+// Kept local so this package needn't depend on @workspace/third-party; the
+// full CobaltEvent type is structurally assignable to it.
+export type EventDetailData = {
+  title: string
+  body?: string
+  banner_image_url?: string
+  facility?: string
+  start_timestamp: string
+  end_timestamp: string
+}
 
 type EventDetailProps = {
-  event: CobaltEvent
+  event: EventDetailData
 }
 
 function formatZulu(value: string) {
