@@ -17,6 +17,7 @@ import {
   type NavMenuItemEntry,
   type NavSection,
 } from "@/components/NavBar/NavConfig"
+import { legacyLinkProps } from "@/lib/legacy"
 
 export function NavButtons() {
   return (
@@ -70,7 +71,10 @@ export function NavButtons() {
           <NavigationMenuLink
             className={navigationMenuTriggerStyle()}
             render={
-              <Link href={NAV_PRIMARY_LINKS.ntos_tmu.href}>
+              <Link
+                href={NAV_PRIMARY_LINKS.ntos_tmu.href}
+                {...legacyLinkProps(NAV_PRIMARY_LINKS.ntos_tmu.href)}
+              >
                 {NAV_PRIMARY_LINKS.ntos_tmu.title}
               </Link>
             }
@@ -81,7 +85,10 @@ export function NavButtons() {
           <NavigationMenuLink
             className={navigationMenuTriggerStyle()}
             render={
-              <Link href={NAV_PRIMARY_LINKS.join_us.href}>
+              <Link
+                href={NAV_PRIMARY_LINKS.join_us.href}
+                {...legacyLinkProps(NAV_PRIMARY_LINKS.join_us.href)}
+              >
                 {NAV_PRIMARY_LINKS.join_us.title}
               </Link>
             }
@@ -125,7 +132,11 @@ function ListItem({
     <li {...props}>
       <NavigationMenuLink
         render={
-          <Link href={href} className="flex items-start gap-2">
+          <Link
+            href={href}
+            className="flex items-start gap-2"
+            {...legacyLinkProps(href)}
+          >
             {Icon ? (
               <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
             ) : null}

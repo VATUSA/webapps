@@ -9,6 +9,7 @@ import {
   type MenuIcon,
   type NavMenuEntry,
 } from "@/components/NavBar/NavConfig"
+import { legacyLinkProps } from "@/lib/legacy"
 
 export function MobileNav() {
   const [isOpen, setIsOpen] = useState(false)
@@ -127,6 +128,7 @@ function SidebarLink({ href, title, icon: Icon, onClose }: SidebarLinkProps) {
       href={href}
       onClick={onClose}
       className="flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium transition-colors hover:bg-accent"
+      {...legacyLinkProps(href)}
     >
       {Icon ? <Icon className="h-5 w-5" /> : null}
       <span>{title}</span>
@@ -179,6 +181,7 @@ function SidebarSection({
                 href={item.href}
                 onClick={onClose}
                 className="group flex items-center gap-3 rounded-md px-4 py-2 text-sm transition-colors hover:bg-accent"
+                {...legacyLinkProps(item.href)}
               >
                 {item.icon ? (
                   <item.icon className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
