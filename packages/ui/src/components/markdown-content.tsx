@@ -1,7 +1,7 @@
 import * as React from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-import { cn } from "../lib/utils"
+import { cn } from "@workspace/ui/lib/utils"
 
 type MarkdownContentProps = {
   content?: string

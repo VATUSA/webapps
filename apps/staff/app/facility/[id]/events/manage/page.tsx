@@ -1,4 +1,4 @@
-import { getEventsPage } from "@workspace/third-party/cobalt"
+import { getEventById, getEventsPage } from "@workspace/third-party/cobalt"
 import type { Metadata } from "next"
 import { cookies } from "next/headers"
 import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
@@ -21,7 +21,7 @@ export const metadata: Metadata = createStaffPageMetadata({
 
 type PageProps = {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ page?: string }>
+  searchParams: Promise<{ page?: string; preview?: string }>
 }
 
 function parsePositiveInt(value: string | undefined) {
@@ -73,6 +73,16 @@ export default async function ManageEventsPage({
   const cobaltCookie = cookieStore.get("vatusa-cobalt-token")?.value
   const items = await getEventsPage(page, facilityId, cobaltCookie)
 
+  // Auto-open a preview of the just-created event (?preview=<id>). Reuse the
+  // already-fetched list row when present, and only fall back to a by-id fetch
+  // when the event isn't on the current page.
+  const previewId = Number(query.preview)
+  const previewEvent =
+    Number.isInteger(previewId) && previewId > 0
+      ? (items.find((item) => item.id === previewId) ??
+        (await getEventById(previewId, cobaltCookie)))
+      : null
+
   return (
     <div className="flex flex-1 flex-col gap-4">
       <EventDeleteSuccessToast />
@@ -90,6 +100,7 @@ export default async function ManageEventsPage({
             : undefined
         }
         canReviewEvents={canReviewEvents}
+        previewEvent={previewEvent}
       />
     </div>
   )
