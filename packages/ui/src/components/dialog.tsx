@@ -23,7 +23,10 @@ function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
   return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
 }
 
-function DialogOverlay({ className, ...props }: DialogPrimitive.Backdrop.Props) {
+function DialogOverlay({
+  className,
+  ...props
+}: DialogPrimitive.Backdrop.Props) {
   return (
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
@@ -62,7 +65,9 @@ function DialogContent({
             render={
               <Button
                 variant="ghost"
-                className="absolute top-4 right-4"
+                // Subtle backdrop keeps the control legible over media (e.g. an
+                // event banner) while blending into a plain dialog surface.
+                className="absolute top-4 right-4 bg-background/70 backdrop-blur-sm hover:bg-accent"
                 size="icon-sm"
               />
             }
@@ -90,7 +95,10 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-footer"
-      className={cn("mt-auto flex flex-col gap-2 sm:flex-row sm:justify-end", className)}
+      className={cn(
+        "mt-auto flex flex-col gap-2 sm:flex-row sm:justify-end",
+        className
+      )}
       {...props}
     />
   )
