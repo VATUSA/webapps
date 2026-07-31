@@ -3,7 +3,6 @@ import type { Metadata } from "next"
 import { cookies } from "next/headers"
 import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 import EventDeleteSuccessToast from "@/components/Events/EventDeleteSuccessToast"
-import EventPreviewDialog from "@/components/Events/EventPreviewDialog"
 import EventsIndex from "@/components/Events/EventsIndex"
 import {
   ACTION,
@@ -74,20 +73,19 @@ export default async function ManageEventsPage({
   const cobaltCookie = cookieStore.get("vatusa-cobalt-token")?.value
   const items = await getEventsPage(page, facilityId, cobaltCookie)
 
-  // Auto-open a preview of the just-created event (?preview=<id>). Fetch it by
-  // id so it works even if the event isn't on the current page of the list.
+  // Auto-open a preview of the just-created event (?preview=<id>). Reuse the
+  // already-fetched list row when present, and only fall back to a by-id fetch
+  // when the event isn't on the current page.
   const previewId = Number(query.preview)
   const previewEvent =
     Number.isInteger(previewId) && previewId > 0
-      ? await getEventById(previewId, cobaltCookie)
+      ? (items.find((item) => item.id === previewId) ??
+        (await getEventById(previewId, cobaltCookie)))
       : null
 
   return (
     <div className="flex flex-1 flex-col gap-4">
       <EventDeleteSuccessToast />
-      {previewEvent ? (
-        <EventPreviewDialog event={previewEvent} defaultOpen />
-      ) : null}
       <EventsIndex
         items={items}
         page={page}
@@ -102,6 +100,7 @@ export default async function ManageEventsPage({
             : undefined
         }
         canReviewEvents={canReviewEvents}
+        previewEvent={previewEvent}
       />
     </div>
   )
