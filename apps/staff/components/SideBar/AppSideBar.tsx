@@ -3,7 +3,11 @@
 import * as React from "react"
 import { usePathname, useRouter } from "next/navigation"
 import type { CobaltPermission } from "@workspace/third-party/cobalt"
-import { NavMain, type NavItem } from "@/components/SideBar/NavMain"
+import {
+  NavMain,
+  type NavItem,
+  type PermissionGate,
+} from "@/components/SideBar/NavMain"
 import { NavUser } from "@/components/SideBar/NavUser"
 import { NavSwitcher } from "@/components/SideBar/NavSwitcher"
 import {
@@ -284,6 +288,11 @@ const getZhqNavMain = (): NavItem[] => [
     items: [
       { title: "Manage Events", url: "/facility/:id/events/manage" },
       { title: "New Event", url: "/facility/:id/events/new" },
+      {
+        title: "ACE Team Management",
+        url: "/facility/:id/events/ace-team",
+        permissionGate: "division_staff_role_manage",
+      },
     ],
   },
   // News Section
@@ -329,23 +338,45 @@ function replaceIdInUrls(
 
 function filterNavByPermissions(
   items: readonly NavItem[],
-  input: { canManageEvents: boolean; canManageNews: boolean }
+  input: {
+    canManageEvents: boolean
+    canManageNews: boolean
+    canManageDivisionStaffRoles: boolean
+  }
 ): NavItem[] {
-  return items.filter((item) => {
-    if (item.permissionGate === "events_manage" && !input.canManageEvents) {
-      return false
-    }
-
-    if (item.permissionGate === "news_manage" && !input.canManageNews) {
-      return false
-    }
-
-    if (!item.isClickable && Array.isArray(item.items) && item.items.length === 0) {
-      return false
+  const isGateOpen = (gate: PermissionGate | undefined) => {
+    if (gate === "events_manage") return input.canManageEvents
+    if (gate === "news_manage") return input.canManageNews
+    if (gate === "division_staff_role_manage") {
+      return input.canManageDivisionStaffRoles
     }
 
     return true
-  })
+  }
+
+  return items
+    .filter((item) => isGateOpen(item.permissionGate))
+    .map((item) =>
+      Array.isArray(item.items)
+        ? {
+            ...item,
+            items: item.items.filter((subItem) =>
+              isGateOpen(subItem.permissionGate)
+            ),
+          }
+        : item
+    )
+    .filter((item) => {
+      if (
+        !item.isClickable &&
+        Array.isArray(item.items) &&
+        item.items.length === 0
+      ) {
+        return false
+      }
+
+      return true
+    })
 }
 
 const TEAM_STORAGE_KEY = "staff.activeTeamId"
@@ -433,16 +464,35 @@ export function AppSideBar({
     action: ACTION.write,
     facilityId: activeTeam.id,
   })
+  // Mirrors cobalt's checkRoleManagePerm: assigning a division staff role
+  // (which is what ACE Team membership is) requires write on the role object.
+  const canManageDivisionStaffRoles = hasScopedPermission({
+    globalPermissions,
+    facilityPermissions,
+    object: OBJECT.divisionStaffRole,
+    action: ACTION.write,
+    facilityId: activeTeam.id,
+  })
 
   const navSource = isZhqTeam ? getZhqNavMain() : getArtccNavMain()
 
   const updatedNavMain = React.useMemo(
     () =>
       replaceIdInUrls(
-        filterNavByPermissions(navSource, { canManageEvents, canManageNews }),
+        filterNavByPermissions(navSource, {
+          canManageEvents,
+          canManageNews,
+          canManageDivisionStaffRoles,
+        }),
         activeTeam.id.toLowerCase()
       ),
-    [activeTeam.id, canManageEvents, canManageNews, navSource]
+    [
+      activeTeam.id,
+      canManageEvents,
+      canManageNews,
+      canManageDivisionStaffRoles,
+      navSource,
+    ]
   )
 
   // Prepare user data from session

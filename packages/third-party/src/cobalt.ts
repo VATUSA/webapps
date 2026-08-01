@@ -333,6 +333,90 @@ export async function getAceTeam(): Promise<CobaltAceTeamMember[]> {
   })
 }
 
+export async function grantUserRole(
+  cid: number | string,
+  facility: string,
+  role: string,
+  cobaltCookie?: string
+): Promise<unknown> {
+  return cobaltRequest<unknown>(
+    `user/${encodeURIComponent(String(cid))}/role/${encodeURIComponent(
+      facility
+    )}`,
+    {
+      method: "POST",
+      body: { role },
+      cobaltCookie,
+      credentials: cobaltCookie ? "omit" : undefined,
+    }
+  )
+}
+
+export type CobaltUserNetworkDetails = {
+  first_name: string | null
+  last_name: string | null
+  email: string | null
+  rating: number
+  region: string
+  division: string
+  subdivision: string | null
+  pilot_rating: number
+  military_rating: number
+}
+
+export type CobaltUserDivisionDetails = {
+  display_name: string
+  controller_rating: number
+  instructor_rating: number
+  facility: string
+  visiting_facilities: string[]
+  discord_id: string | null
+  last_promotion_timestamp: number | null
+  last_transfer_timestamp: number | null
+}
+
+export type CobaltUserSearchResult = {
+  cid: number
+  network_user: CobaltUserNetworkDetails | null
+  division_user: CobaltUserDivisionDetails | null
+}
+
+
+export async function searchUsers(
+  query: string,
+  limit = 5,
+  cobaltCookie?: string
+): Promise<CobaltUserSearchResult[]> {
+  const params = new URLSearchParams({ q: query, limit: String(limit) })
+
+  return cobaltRequest<CobaltUserSearchResult[]>(
+    `user/search?${params.toString()}`,
+    {
+      method: "GET",
+      cobaltCookie,
+      credentials: cobaltCookie ? "omit" : undefined,
+    }
+  )
+}
+
+export async function revokeUserRole(
+  cid: number | string,
+  facility: string,
+  role: string,
+  cobaltCookie?: string
+): Promise<unknown> {
+  return cobaltRequest<unknown>(
+    `user/${encodeURIComponent(String(cid))}/role/${encodeURIComponent(
+      facility
+    )}/${encodeURIComponent(role)}`,
+    {
+      method: "DELETE",
+      cobaltCookie,
+      credentials: cobaltCookie ? "omit" : undefined,
+    }
+  )
+}
+
 /* ============================================================================
  * Events
  * ========================================================================== */
