@@ -77,10 +77,21 @@ function toUrl(path: string): string {
   return `${getApiBaseUrl()}/${cleanPath}`
 }
 
+/** Body types fetch can send as-is, rather than being JSON-encoded. */
+function isPassthroughBody(body: unknown): body is BodyInit {
+  return typeof body === "string" || body instanceof FormData
+}
+
 function buildHeaders(options: CobaltRequestOptions): Headers {
   const headers = new Headers(options.headers ?? {})
 
-  if (options.body !== undefined && !headers.has("Content-Type")) {
+  // FormData bodies are left alone: fetch has to set Content-Type itself so it
+  // can include the multipart boundary.
+  if (
+    options.body !== undefined &&
+    !isPassthroughBody(options.body) &&
+    !headers.has("Content-Type")
+  ) {
     headers.set("Content-Type", "application/json")
   }
 
@@ -122,7 +133,7 @@ export async function cobaltRequest<T>(
     body:
       options.body === undefined
         ? undefined
-        : typeof options.body === "string"
+        : isPassthroughBody(options.body)
           ? options.body
           : JSON.stringify(options.body),
     signal: options.signal,
