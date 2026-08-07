@@ -50,18 +50,60 @@ function withEventDeletedFlag(path: string): string {
   return nextQuery ? `${pathname}?${nextQuery}` : pathname
 }
 
-function buildEventPayload(formData: FormData) {
+/**
+ * Banners are uploaded to us and hosted on DigitalOcean Spaces rather than
+ * linked from Imgur or Discord. Cobalt does the upload, so these limits only
+ * exist to fail fast with a readable message — Cobalt re-checks all of them.
+ */
+const MAX_BANNER_BYTES = 8 * 1024 * 1024
+const ACCEPTED_BANNER_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+]
+
+type EventPayload = {
+  facility: string
+  formData: FormData
+}
+
+function readBannerFile(formData: FormData): File | null {
+  const value = formData.get("banner_image")
+  if (!(value instanceof File) || value.size === 0) return null
+
+  if (value.size > MAX_BANNER_BYTES) {
+    throw new Error(
+      `Banner image must be ${MAX_BANNER_BYTES / (1024 * 1024)} MB or smaller.`
+    )
+  }
+  if (value.type && !ACCEPTED_BANNER_TYPES.includes(value.type)) {
+    throw new Error("Banner image must be a PNG, JPG, GIF or WebP file.")
+  }
+
+  return value
+}
+
+/**
+ * Builds the multipart body Cobalt expects. The banner arrives as a file when
+ * the user picked one; otherwise `banner_image_url` carries the URL the event
+ * already had, which is what lets an edit leave the existing banner in place.
+ */
+function buildEventPayload(formData: FormData): EventPayload {
   const title = readStringField(formData, "title")
   const body = readStringField(formData, "body")
   const facility = readStringField(formData, "facility").toUpperCase()
-  const banner_image_url = readStringField(formData, "banner_image_url")
+  const existingBannerUrl = readStringField(formData, "banner_image_url")
   const startLocal = readStringField(formData, "start_timestamp")
   const endLocal = readStringField(formData, "end_timestamp")
+  const bannerFile = readBannerFile(formData)
 
   if (!title) throw new Error("Event title is required.")
   if (!body) throw new Error("Event body is required.")
   if (!facility) throw new Error("Facility is required.")
-  if (!banner_image_url) throw new Error("Banner image URL is required.")
+  if (!bannerFile && !existingBannerUrl) {
+    throw new Error("A banner image is required.")
+  }
   if (!startLocal) throw new Error("Start time is required.")
   if (!endLocal) throw new Error("End time is required.")
 
@@ -72,14 +114,18 @@ function buildEventPayload(formData: FormData) {
     throw new Error("Invalid event timestamps.")
   }
 
-  return {
-    facility,
-    title,
-    body,
-    banner_image_url,
-    start_timestamp,
-    end_timestamp,
+  const payload = new FormData()
+  payload.set("facility", facility)
+  payload.set("title", title)
+  payload.set("body", body)
+  payload.set("start_timestamp", start_timestamp)
+  payload.set("end_timestamp", end_timestamp)
+  payload.set("banner_image_url", existingBannerUrl)
+  if (bannerFile) {
+    payload.set("banner_image", bannerFile, bannerFile.name)
   }
+
+  return { facility, formData: payload }
 }
 
 async function getCobaltCookie() {
@@ -200,7 +246,7 @@ export async function createEventAction(
     // so we can send the creator straight to a preview of their event.
     const created = await cobaltRequest<{ id?: number }>("event/create", {
       method: "POST",
-      body: payload,
+      body: payload.formData,
       cobaltCookie,
       credentials: "omit",
     })
@@ -295,19 +341,18 @@ export async function updateEventAction(
       message: buildLiveEventPermissionMessage(targetFacility),
     })
 
-    const payload = {
-      ...submittedPayload,
-      facility: targetFacility,
-    }
+    // An edit never moves the event between facilities; the authoritative
+    // facility is the one already on the record.
+    submittedPayload.formData.set("facility", targetFacility)
 
     await cobaltRequest<unknown>(`event/${encodeURIComponent(eventId)}`, {
       method: "POST",
-      body: payload,
+      body: submittedPayload.formData,
       cobaltCookie,
       credentials: "omit",
     })
 
-    const facilitySlug = parseFacilitySlug(payload.facility)
+    const facilitySlug = parseFacilitySlug(targetFacility)
     revalidatePath(`/facility/${facilitySlug}/events/manage`)
     revalidatePath(`/facility/${facilitySlug}/events/new`)
     revalidatePath(`/facility/${facilitySlug}`)
