@@ -10,6 +10,10 @@ const nextConfig = {
   experimental: {
     serverActions: {
       allowedOrigins: ["www.vatusa.dev", "vatusa.dev", "www.vatusa.net", "vatusa.net", "localhost:8000"],
+      // Event banners are uploaded through a Server Action; the 1 MB default
+      // would reject them well before Cobalt's own 8 MB limit. The margin
+      // covers multipart encoding overhead and the other form fields.
+      bodySizeLimit: "10mb",
     },
   },
 }
