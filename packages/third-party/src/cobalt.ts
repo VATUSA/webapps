@@ -1,5 +1,10 @@
 const DEFAULT_BASE_URL = "http://localhost:8000/cobalt"
 
+// A dead/stale connection with no timeout hangs the request forever, which
+// during SSR blocks the page's liveness/readiness probe and gets the whole
+// pod killed. Bound every request so a hung backend fails fast instead.
+const DEFAULT_TIMEOUT_MS = 8_000
+
 export type CobaltRequestOptions = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
   body?: unknown
@@ -124,6 +129,10 @@ export async function cobaltRequest<T>(
 ): Promise<T> {
   const url = toUrl(path)
   const method = options.method ?? "GET"
+  const timeoutSignal = AbortSignal.timeout(DEFAULT_TIMEOUT_MS)
+  const signal = options.signal
+    ? AbortSignal.any([options.signal, timeoutSignal])
+    : timeoutSignal
 
   const resp = await fetch(url, {
     method,
@@ -136,7 +145,7 @@ export async function cobaltRequest<T>(
         : isPassthroughBody(options.body)
           ? options.body
           : JSON.stringify(options.body),
-    signal: options.signal,
+    signal,
     next: options.next,
   })
 
