@@ -40,4 +40,4 @@ COPY --from=builder --chown=node:node /app/apps/portal/public ./apps/portal/publ
 
 USER node
 EXPOSE 3000
-CMD ["node", "apps/portal/server.js"]
+CMD ["node", "--report-on-fatalerror", "--report-uncaught-exception", "apps/portal/server.js"]
