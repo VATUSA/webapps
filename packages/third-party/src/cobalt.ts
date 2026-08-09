@@ -1,10 +1,39 @@
 const DEFAULT_BASE_URL = "http://localhost:8000/cobalt"
 
+/**
+ * Node's fetch (undici) defaults to a 300s headers timeout and a 300s body
+ * timeout. That is effectively unbounded on an SSR render path: a backend that
+ * accepts the connection and then stalls holds the request — and whatever
+ * server component awaited it — for five minutes.
+ *
+ * This is hardening, not an incident fix. Cobalt was confirmed healthy and
+ * sub-10ms through the crash windows we investigated, so this is not what was
+ * killing portal pods. It bounds the failure mode for the next time a backend
+ * does go slow, which is worth having on its own terms.
+ *
+ * Override per-request with `timeoutMs`, or globally with the
+ * COBALT_REQUEST_TIMEOUT_MS env var so it can be tuned from the ConfigMap
+ * without a rebuild.
+ */
+const DEFAULT_TIMEOUT_MS = 8_000
+
+function resolveTimeoutMs(explicit?: number): number {
+  if (explicit !== undefined) return explicit
+
+  const raw = process.env.COBALT_REQUEST_TIMEOUT_MS
+  if (!raw) return DEFAULT_TIMEOUT_MS
+
+  const parsed = Number(raw)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_TIMEOUT_MS
+}
+
 export type CobaltRequestOptions = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
   body?: unknown
   headers?: HeadersInit
   signal?: AbortSignal
+  /** Overrides DEFAULT_TIMEOUT_MS / COBALT_REQUEST_TIMEOUT_MS for this call. */
+  timeoutMs?: number
   cache?: RequestCache
   credentials?: RequestCredentials
   next?: NextFetchRequestConfig
@@ -38,6 +67,37 @@ export class CobaltHttpError extends Error {
     this.statusText = input.statusText
     this.url = input.url
     this.body = input.body
+  }
+}
+
+/**
+ * Thrown when *our* timeout fires. A caller-supplied signal aborting is that
+ * caller's business and propagates untouched, so `instanceof` here always means
+ * "the backend was too slow", never "someone cancelled".
+ *
+ * Distinct from CobaltHttpError because a timeout has no status, no body, and
+ * no response — and because callers currently catch CobaltHttpError to map 404s
+ * to null, which a timeout must not be folded into.
+ */
+export class CobaltTimeoutError extends Error {
+  url: string
+  method: string
+  timeoutMs: number
+
+  constructor(input: {
+    url: string
+    method: string
+    timeoutMs: number
+    cause?: unknown
+  }) {
+    super(
+      `Cobalt request timed out after ${input.timeoutMs}ms (${input.method} ${input.url})`,
+      { cause: input.cause }
+    )
+    this.name = "CobaltTimeoutError"
+    this.url = input.url
+    this.method = input.method
+    this.timeoutMs = input.timeoutMs
   }
 }
 
@@ -124,23 +184,58 @@ export async function cobaltRequest<T>(
 ): Promise<T> {
   const url = toUrl(path)
   const method = options.method ?? "GET"
+  const timeoutMs = resolveTimeoutMs(options.timeoutMs)
 
-  const resp = await fetch(url, {
-    method,
-    cache: options.cache ?? "no-store",
-    credentials: options.credentials ?? "include",
-    headers: buildHeaders(options),
-    body:
-      options.body === undefined
-        ? undefined
-        : isPassthroughBody(options.body)
-          ? options.body
-          : JSON.stringify(options.body),
-    signal: options.signal,
-    next: options.next,
-  })
+  // Composed rather than replacing options.signal, so caller cancellation still
+  // works. The body read is inside the try as well as the fetch: undici aborts
+  // the response stream when the signal fires, so a backend that sends headers
+  // and then stalls mid-body is bounded too, not just a slow connect.
+  const timeoutSignal = AbortSignal.timeout(timeoutMs)
+  const signal = options.signal
+    ? AbortSignal.any([options.signal, timeoutSignal])
+    : timeoutSignal
 
-  const body = await parseResponseBody(resp)
+  let resp: Response
+  let body: unknown
+
+  try {
+    resp = await fetch(url, {
+      method,
+      cache: options.cache ?? "no-store",
+      credentials: options.credentials ?? "include",
+      headers: buildHeaders(options),
+      body:
+        options.body === undefined
+          ? undefined
+          : isPassthroughBody(options.body)
+            ? options.body
+            : JSON.stringify(options.body),
+      signal,
+      next: options.next,
+    })
+
+    body = await parseResponseBody(resp)
+  } catch (error) {
+    if (timeoutSignal.aborted && !options.signal?.aborted) {
+      // webapps-prod pods have no log shipping, so this line only survives if
+      // someone is watching the container — but it is the one signal that says
+      // "the backend was too slow" rather than a generic failure in a caller's
+      // catch block. Same msg-keyed shape as the diagnostics in
+      // apps/portal/instrumentation.ts so it greps alongside them.
+      console.error(
+        JSON.stringify({
+          msg: "cobalt_request_timeout",
+          method,
+          url,
+          timeoutMs,
+        })
+      )
+
+      throw new CobaltTimeoutError({ url, method, timeoutMs, cause: error })
+    }
+
+    throw error
+  }
 
   if (!resp.ok) {
     throw new CobaltHttpError({
