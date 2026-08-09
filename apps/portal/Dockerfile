@@ -40,4 +40,11 @@ COPY --from=builder --chown=node:node /app/apps/portal/public ./apps/portal/publ
 
 USER node
 EXPOSE 3000
-CMD ["node", "--report-on-fatalerror", "--report-uncaught-exception", "apps/portal/server.js"]
+# --report-on-signal is the one that matters for the hang investigation: the
+# other two only fire on fatal V8 errors and uncaught exceptions, neither of
+# which happens when the pod goes unresponsive. With this, `kill -USR2 1` in a
+# wedged container dumps a report including the full libuv handle list and what
+# each handle is waiting on. Use SIGUSR2, not SIGUSR1 — SIGUSR1 starts the V8
+# inspector, and an open inspector session blocks process exit.
+# Reports go to /tmp because /app is root-owned and the process runs as `node`.
+CMD ["node", "--report-on-fatalerror", "--report-uncaught-exception", "--report-on-signal", "--report-directory=/tmp", "apps/portal/server.js"]
