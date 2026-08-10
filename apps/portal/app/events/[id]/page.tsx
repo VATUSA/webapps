@@ -3,6 +3,18 @@ import EventDetail from "@workspace/ui/components/event-detail"
 import { fetchEventById } from "@/actions/events"
 import { Metadata } from "next"
 
+// Keep in sync with PUBLIC_REVALIDATE_SECONDS in @/lib/cache — Next.js requires
+// this to be a statically analyzable literal.
+export const revalidate = 300
+
+// Returning an empty array prerenders nothing at build time but marks the route
+// static-capable, so each event is rendered once on first visit and then served
+// from cache. Without this Next.js renders every request from scratch, which is
+// what let scraper traffic saturate the event loop.
+export async function generateStaticParams() {
+  return []
+}
+
 type EventPageProps = {
   params: Promise<{
     id: string

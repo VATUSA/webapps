@@ -48,6 +48,40 @@ export type CobaltRequestOptions = {
   bearerToken?: string
 }
 
+/**
+ * Opt-in caching for public read endpoints.
+ *
+ * Caching is off by default: `cobaltRequest` sends `no-store` unless a caller
+ * asks otherwise. Callers that render public, non-personalized content (the
+ * portal) pass a `revalidate` to let the response into the Next.js Data Cache,
+ * which in turn lets the route be prerendered and cached at the CDN.
+ */
+export type CobaltCacheOptions = {
+  /** Seconds before the entry is revalidated. Omitted or `false` means no caching. */
+  revalidate?: number | false
+}
+
+/**
+ * Resolves cache options for a public GET.
+ *
+ * Invariant: a request carrying a `cobaltCookie` is scoped to one user (e.g.
+ * staff viewing unapproved events) and is never cached, regardless of what the
+ * caller asked for.
+ */
+function readCache(
+  tags: string[],
+  cache?: CobaltCacheOptions,
+  cobaltCookie?: string
+): Pick<CobaltRequestOptions, "cache" | "next"> {
+  const revalidate = cache?.revalidate
+
+  if (cobaltCookie || revalidate === undefined || revalidate === false) {
+    return { cache: "no-store" }
+  }
+
+  return { next: { revalidate, tags } }
+}
+
 export class CobaltHttpError extends Error {
   status: number
   statusText: string
@@ -195,13 +229,19 @@ export async function cobaltRequest<T>(
     ? AbortSignal.any([options.signal, timeoutSignal])
     : timeoutSignal
 
+  // Uncached by default, so nothing is accidentally shared between users. A
+  // caller that opts in via `next.revalidate` must not have that overridden
+  // back to `no-store` here, or the route can never be prerendered.
+  const wantsRevalidate = typeof options.next?.revalidate === "number"
+  const cache = options.cache ?? (wantsRevalidate ? undefined : "no-store")
+
   let resp: Response
   let body: unknown
 
   try {
     resp = await fetch(url, {
       method,
-      cache: options.cache ?? "no-store",
+      cache,
       credentials: options.credentials ?? "include",
       headers: buildHeaders(options),
       body:
@@ -452,17 +492,22 @@ export type CreateEventInput = {
   end_timestamp: string
 }
 
-export async function getUpcomingEvents(count = 5): Promise<CobaltEvent[]> {
+export async function getUpcomingEvents(
+  count = 5,
+  cache?: CobaltCacheOptions
+): Promise<CobaltEvent[]> {
   const safeCount = Number.isInteger(count) && count > 0 ? count : 5
   return cobaltRequest<CobaltEvent[]>(`event/upcoming/${safeCount}`, {
     method: "GET",
+    ...readCache(["events"], cache),
   })
 }
 
 export async function getEventsPage(
   page = 1,
   facility?: string,
-  cobaltCookie?: string
+  cobaltCookie?: string,
+  cache?: CobaltCacheOptions
 ): Promise<CobaltEvent[]> {
   const safePage = Number.isInteger(page) && page > 0 ? page : 1
   const query = facility ? `?facility=${encodeURIComponent(facility)}` : ""
@@ -470,16 +515,23 @@ export async function getEventsPage(
     method: "GET",
     cobaltCookie,
     credentials: cobaltCookie ? "omit" : undefined,
+    ...readCache(["events"], cache, cobaltCookie),
   })
 }
 
 export async function getEventById(
   id: number | string,
-  cobaltCookie?: string
+  cobaltCookie?: string,
+  cache?: CobaltCacheOptions
 ): Promise<CobaltEvent | null> {
   return cobaltRequestOrNull<CobaltEvent>(
     `event/${encodeURIComponent(String(id))}`,
-    { method: "GET", cobaltCookie, credentials: cobaltCookie ? "omit" : undefined }
+    {
+      method: "GET",
+      cobaltCookie,
+      credentials: cobaltCookie ? "omit" : undefined,
+      ...readCache(["events", `events:${id}`], cache, cobaltCookie),
+    }
   )
 }
 
@@ -548,30 +600,37 @@ export type CreateNewsPostInput = {
 
 export type UpdateNewsPostInput = Partial<CreateNewsPostInput>
 
-export async function getNewsPage(page = 1): Promise<CobaltNewsItem[]> {
+export async function getNewsPage(
+  page = 1,
+  cache?: CobaltCacheOptions
+): Promise<CobaltNewsItem[]> {
   const safePage = Number.isInteger(page) && page > 0 ? page : 1
   const raw = await cobaltRequest<CobaltNewsResponseEnvelope>(
     `news/page/${safePage}`,
-    { method: "GET" }
+    { method: "GET", ...readCache(["news"], cache) }
   )
   return extractNewsItems(raw)
 }
 
-export async function getNewsPosts(count = 20): Promise<CobaltNewsItem[]> {
+export async function getNewsPosts(
+  count = 20,
+  cache?: CobaltCacheOptions
+): Promise<CobaltNewsItem[]> {
   const safeCount = Number.isInteger(count) && count > 0 ? count : 20
   const raw = await cobaltRequest<CobaltNewsResponseEnvelope>(
     `news/${safeCount}`,
-    { method: "GET" }
+    { method: "GET", ...readCache(["news"], cache) }
   )
   return extractNewsItems(raw)
 }
 
 export async function getNewsPostById(
-  id: number | string
+  id: number | string,
+  cache?: CobaltCacheOptions
 ): Promise<CobaltNewsItem | null> {
   return cobaltRequestOrNull<CobaltNewsItem>(
     `news/post/${encodeURIComponent(String(id))}`,
-    { method: "GET" }
+    { method: "GET", ...readCache(["news", `news:${id}`], cache) }
   )
 }
 
@@ -635,11 +694,16 @@ export type CobaltFacilityRoster = {
 }
 
 export async function getFacilityRoster(
-  facility: string
+  facility: string,
+  cache?: CobaltCacheOptions
 ): Promise<CobaltFacilityRoster> {
+  const safeFacility = facility.toUpperCase()
   return cobaltRequest<CobaltFacilityRoster>(
-    `roster/${encodeURIComponent(facility.toUpperCase())}`,
-    { method: "GET" }
+    `roster/${encodeURIComponent(safeFacility)}`,
+    {
+      method: "GET",
+      ...readCache(["roster", `roster:${safeFacility}`], cache),
+    }
   )
 }
 
