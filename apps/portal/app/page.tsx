@@ -12,6 +12,7 @@ import {
 } from "@workspace/third-party/cobalt"
 import { Metadata } from "next"
 import { PUBLIC_CACHE } from "@/lib/cache"
+import { HOME_FEED_LIMIT } from "@/lib/homeFeed"
 
 export const metadata: Metadata = {
   title: "Home | VATUSA",
@@ -43,7 +44,7 @@ export default async function Page() {
   let cobaltNews: CobaltNewsItem[] = []
 
   const [eventsResult, newsResult] = await Promise.allSettled([
-    getUpcomingEvents(5, PUBLIC_CACHE),
+    getUpcomingEvents(HOME_FEED_LIMIT, PUBLIC_CACHE),
     getNewsPage(1, PUBLIC_CACHE),
   ])
 
