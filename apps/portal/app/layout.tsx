@@ -1,6 +1,5 @@
 import { Inter, Merriweather, JetBrains_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/Theme/theme-provider"
-import { getCobaltSession } from "@/lib/auth"
 import NavBar from "@/components/NavBar/NavBar"
 import "./globals.css"
 import Footer from "@/components/Footer/Footer"
@@ -22,12 +21,15 @@ const fontMono = JetBrains_Mono({
   variable: "--font-mono",
 })
 
-export default async function RootLayout({
+// NOTE: this layout must not read `cookies()`/`headers()`. A request-time API
+// read here forces every route in the app to render dynamically, which makes the
+// whole site uncacheable at the CDN. Session state is fetched client-side by
+// <SessionMenu />.
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const session = await getCobaltSession()
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -35,7 +37,7 @@ export default async function RootLayout({
       >
         <ThemeProvider>
           <div className="flex min-h-screen flex-col">
-            <NavBar session={session} />
+            <NavBar />
             <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
               {children}
             </div>

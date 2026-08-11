@@ -1,19 +1,11 @@
 import Image from "next/image"
 import Link from "next/link"
 import { ThemeSwitch } from "@/components/Theme/ThemeSwitch"
-import LoginDropdown from "@/components/LoginButton/LoginButton"
-import type { CobaltJwtPayload } from "@/lib/auth"
+import SessionMenu from "@/components/NavBar/SessionMenu"
 import { NavButtons } from "@/components/NavBar/NavButtons"
 import { MobileNav } from "@/components/NavBar/MobileNav"
 
-interface NavBarProps {
-  session: CobaltJwtPayload | null
-}
-
-export default function NavBar({ session }: NavBarProps) {
-  const isStaff = session?.is_staff ?? false
-  const name = session?.display_name ?? undefined
-
+export default function NavBar() {
   const myVatusaProfileUrl = "/legacy/my/profile"
   const staffAppUrl = process.env.NEXT_PUBLIC_STAFF_APP_URL ?? "/staff"
   const cobaltBaseUrl =
@@ -55,12 +47,9 @@ export default function NavBar({ session }: NavBarProps) {
 
           <div className="flex items-center space-x-2 md:space-x-4">
             <ThemeSwitch />
-            <LoginDropdown
-              isLoggedIn={session !== null}
-              name={name}
+            <SessionMenu
               myVatusaProfileUrl={myVatusaProfileUrl}
               staffAppUrl={staffAppUrl}
-              canAccessStaffApp={isStaff}
               cobaltBaseUrl={cobaltBaseUrl}
             />
             <MobileNav />

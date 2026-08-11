@@ -2,7 +2,6 @@
 
 import React, { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { toast } from "sonner"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
@@ -14,9 +13,14 @@ import {
 } from "@workspace/ui/components/tooltip"
 import { cn } from "@workspace/ui/lib/utils"
 import { type CobaltEvent } from "@workspace/third-party/cobalt"
-import { fetchUpcomingEvents } from "@/actions/events"
 
 interface CalendarProps {
+  /**
+   * Fetched on the server so this route can be prerendered and cached at the
+   * CDN. Previously this component called a server action on mount, which is a
+   * POST and therefore never cacheable.
+   */
+  events: CobaltEvent[]
   initialDate?: string | Date
   weekStartsOn?: 0 | 1
 }
@@ -443,6 +447,7 @@ function multiDayOccupiesDay(seg: SpanSegment, col: number) {
 }
 
 export default function EventCalendar({
+  events,
   initialDate,
   weekStartsOn = 0,
 }: CalendarProps) {
@@ -453,7 +458,6 @@ export default function EventCalendar({
     }
     return startOfMonthUTC(new Date())
   })
-  const [events, setEvents] = useState<CobaltEvent[]>([])
   const [expandedDays, setExpandedDays] = useState<Set<string>>(
     () => new Set()
   )
@@ -478,31 +482,6 @@ export default function EventCalendar({
     }
     return rows
   }, [grid])
-
-  useEffect(() => {
-    let aborted = false
-
-    async function load() {
-      try {
-        const data = await fetchUpcomingEvents(50)
-        if (aborted) return
-        setEvents(data || [])
-      } catch (e) {
-        if (!aborted) {
-          console.error("Error loading events:", e)
-          toast.error("Failed to load events", {
-            description:
-              "Unable to fetch events from the server. Please try again later.",
-          })
-        }
-      }
-    }
-
-    void load()
-    return () => {
-      aborted = true
-    }
-  }, [])
 
   function prevMonth() {
     setExpandedDays(new Set())
@@ -547,7 +526,13 @@ export default function EventCalendar({
     return names
   }, [weekStartsOn])
 
-  const today = useMemo(() => new Date(), [])
+  // Resolved after mount rather than during render: this route is prerendered
+  // and cached, so a render-time "today" would be baked into the HTML and could
+  // highlight the wrong day (and mismatch on hydration).
+  const [today, setToday] = useState<Date | null>(null)
+  useEffect(() => {
+    setToday(new Date())
+  }, [])
 
   const monthLabel = viewDate.toLocaleString("en-US", {
     month: "long",
@@ -657,7 +642,7 @@ export default function EventCalendar({
                   {weekDays.map((d, col) => {
                     const dayKey = utcDayKey(d)
                     const inMonth = d.getUTCMonth() === viewDate.getUTCMonth()
-                    const isToday = isSameUTCDay(d, today)
+                    const isToday = today ? isSameUTCDay(d, today) : false
                     const isExpanded = expandedDays.has(dayKey)
 
                     const occupyingSpans = spanSegments.filter((seg) =>
