@@ -16,6 +16,7 @@ import {
   CobaltPermissionError,
   requireLivePermissionOrThrow,
 } from "@/lib/auth"
+import { withNotice } from "@/lib/notice"
 
 export type NewsActionState = {
   error: string | null
@@ -370,9 +371,11 @@ export async function deleteNewsPostAction(formData: FormData): Promise<void> {
       })
     }
     logNewsActionError("delete", error)
-    throw new Error(getReadableErrorMessage(error, "delete", facilityId))
+    redirect(
+      withNotice(returnTo, "error", getReadableErrorMessage(error, "delete", facilityId))
+    )
   }
 
   revalidateNewsPaths(facilitySlug, newsId)
-  redirect(returnTo)
+  redirect(withNotice(returnTo, "success", "News post deleted successfully."))
 }

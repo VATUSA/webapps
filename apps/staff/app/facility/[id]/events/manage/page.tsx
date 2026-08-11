@@ -2,7 +2,6 @@ import { getEventById, getEventsPage } from "@workspace/third-party/cobalt"
 import type { Metadata } from "next"
 import { cookies } from "next/headers"
 import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
-import EventDeleteSuccessToast from "@/components/Events/EventDeleteSuccessToast"
 import EventsIndex from "@/components/Events/EventsIndex"
 import {
   ACTION,
@@ -85,7 +84,6 @@ export default async function ManageEventsPage({
 
   return (
     <div className="flex flex-1 flex-col gap-4">
-      <EventDeleteSuccessToast />
       <EventsIndex
         items={items}
         page={page}
