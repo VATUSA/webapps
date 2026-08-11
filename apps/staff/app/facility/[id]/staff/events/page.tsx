@@ -5,7 +5,6 @@ import { CobaltEvent, getUpcomingEvents } from "@workspace/third-party/cobalt"
 import { deleteEventAction } from "@/actions/events"
 import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 import DeleteEventButton from "@/components/Events/DeleteEventButton"
-import EventDeleteSuccessToast from "@/components/Events/EventDeleteSuccessToast"
 import { ACTION, OBJECT } from "@/lib/acl"
 import { checkLivePermission } from "@/lib/auth"
 import { createStaffPageMetadata } from "@/lib/metadata"
@@ -185,8 +184,6 @@ export default async function Page({ params }: EventsPageProps) {
           </CardContent>
         </Card>
       )}
-
-      <EventDeleteSuccessToast />
     </div>
   )
 }
