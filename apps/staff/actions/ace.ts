@@ -13,8 +13,8 @@ import {
   ACE_TEAM_ROLE,
   GLOBAL_ROLE_FACILITY as ACE_TEAM_FACILITY,
   canManageAceTeam,
-  fetchAssignableRoles,
 } from "@/lib/assignableRoles"
+import { fetchAssignableRoles } from "@/lib/auth"
 
 const PERMISSION_MESSAGE = "You do not have permission to manage the ACE Team."
 
@@ -93,25 +93,39 @@ export async function searchAceCandidatesAction(
   }
 }
 
+export type AceActionState = {
+  error: string | null
+  success: string | null
+}
+
+/**
+ * Returns state rather than throwing so recoverable outcomes -- an already-added
+ * controller (409) or an unknown CID (404) -- surface next to the input instead
+ * of replacing the page with an error boundary.
+ */
 export async function addAceTeamMemberAction(
+  _prevState: AceActionState,
   formData: FormData
-): Promise<void> {
+): Promise<AceActionState> {
   const cid = readStringField(formData, "cid")
   if (!cid) {
-    throw new Error("CID is required.")
+    return { error: "CID is required.", success: null }
   }
   if (!/^\d+$/.test(cid)) {
-    throw new Error("Enter a numeric CID, or pick a controller from the list.")
+    return {
+      error: "Enter a numeric CID, or pick a controller from the list.",
+      success: null,
+    }
   }
 
   const cookieStore = await cookies()
   const cobaltCookie = cookieStore.get("vatusa-cobalt-token")?.value
   if (!cobaltCookie) {
-    throw new Error("Missing Cobalt auth cookie.")
+    return { error: "Missing Cobalt auth cookie.", success: null }
   }
 
   if (!canManageAceTeam(await fetchAssignableRoles())) {
-    throw new Error(PERMISSION_MESSAGE)
+    return { error: PERMISSION_MESSAGE, success: null }
   }
 
   try {
@@ -133,10 +147,12 @@ export async function addAceTeamMemberAction(
     }
 
     console.error("ACE Team action failed (grant):", error)
-    throw new Error(getReadableErrorMessage(error))
+    return { error: getReadableErrorMessage(error), success: null }
   }
 
   revalidatePath(`/facility/${ACE_TEAM_FACILITY.toLowerCase()}/events/ace-team`)
+
+  return { error: null, success: `Added ${cid} to the ACE Team.` }
 }
 
 export async function removeAceTeamMemberAction(

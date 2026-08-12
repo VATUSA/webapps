@@ -26,7 +26,7 @@ export default function AceTeamIndex({
 
       {canManageAceTeam ? (
         <CardContent className="pb-0">
-          <AddAceMemberForm />
+          <AddAceMemberForm existingCids={members.map((m) => m.cid)} />
         </CardContent>
       ) : null}
 
