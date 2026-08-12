@@ -2,8 +2,7 @@ import { getAceTeam } from "@workspace/third-party/cobalt"
 import type { Metadata } from "next"
 import AceTeamIndex from "@/components/Ace/AceTeamIndex"
 import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
-import { ACTION, OBJECT } from "@/lib/acl"
-import { checkLivePermission } from "@/lib/auth"
+import { canManageAceTeam, fetchAssignableRoles } from "@/lib/assignableRoles"
 import { createStaffPageMetadata } from "@/lib/metadata"
 import { buildStaffHomeHref } from "@/lib/navigation"
 
@@ -20,21 +19,16 @@ export default async function AceManagementPage({
   const { id } = await params
   const facilityId = id.trim().toUpperCase()
 
-  // ACE Team membership is a division staff role, so managing it requires
-  // write on that role object -- the same check cobalt runs server-side.
-  const permissionCheck = await checkLivePermission({
-    object: OBJECT.divisionStaffRole,
-    action: ACTION.write,
-    facilityId,
-    message: `You do not have live Cobalt permission to manage the ACE Team for ${facilityId}.`,
-  })
+  const assignableRoles = await fetchAssignableRoles()
 
-  if (!permissionCheck.allowed) {
+  if (!canManageAceTeam(assignableRoles)) {
+    const message = "You do not have permission to manage the ACE Team."
+
     return (
       <UnauthorizedPanel
-        message={permissionCheck.message}
+        message={message}
         backHref={buildStaffHomeHref(facilityId)}
-        toastMessage={permissionCheck.message}
+        toastMessage={message}
       />
     )
   }

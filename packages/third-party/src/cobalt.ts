@@ -326,6 +326,19 @@ export type CobaltAceTeamMember = {
   rating: number
   rating_short: string
 }
+export type CobaltAssignableRoles = {
+  roles: Record<string, string[]>
+}
+
+export async function getMyAssignableRoles(
+  cobaltCookie?: string
+): Promise<CobaltAssignableRoles> {
+  return cobaltRequest<CobaltAssignableRoles>("my/roles/assignable", {
+    method: "GET",
+    cobaltCookie,
+    credentials: cobaltCookie ? "omit" : undefined,
+  })
+}
 
 export async function getAceTeam(): Promise<CobaltAceTeamMember[]> {
   return cobaltRequest<CobaltAceTeamMember[]>("roles/ace-team", {

@@ -26,12 +26,17 @@ import {
   hasFacilityScopedPermission,
   hasScopedPermission,
 } from "@/lib/acl"
+import {
+  canManageAceTeam,
+  type AssignableRoles,
+} from "@/lib/assignableRoles"
 
 type AppSideBarProps = React.ComponentProps<typeof Sidebar> & {
   userName?: string
   globalPermissions?: CobaltPermission[]
   facilityPermissions?: CobaltPermission[]
   homeFacility?: string
+  assignableRoles?: AssignableRoles
 }
 
 type Team = {
@@ -291,7 +296,7 @@ const getZhqNavMain = (): NavItem[] => [
       {
         title: "ACE Team Management",
         url: "/facility/:id/events/ace-team",
-        permissionGate: "division_staff_role_manage",
+        permissionGate: "ace_team_manage",
       },
     ],
   },
@@ -341,14 +346,14 @@ function filterNavByPermissions(
   input: {
     canManageEvents: boolean
     canManageNews: boolean
-    canManageDivisionStaffRoles: boolean
+    canManageAceTeamNav: boolean
   }
 ): NavItem[] {
   const isGateOpen = (gate: PermissionGate | undefined) => {
     if (gate === "events_manage") return input.canManageEvents
     if (gate === "news_manage") return input.canManageNews
-    if (gate === "division_staff_role_manage") {
-      return input.canManageDivisionStaffRoles
+    if (gate === "ace_team_manage") {
+      return input.canManageAceTeamNav
     }
 
     return true
@@ -404,6 +409,7 @@ export function AppSideBar({
   globalPermissions = [],
   facilityPermissions = [],
   homeFacility,
+  assignableRoles,
   ...props
 }: AppSideBarProps) {
   const router = useRouter()
@@ -464,15 +470,9 @@ export function AppSideBar({
     action: ACTION.write,
     facilityId: activeTeam.id,
   })
-  // Mirrors cobalt's checkRoleManagePerm: assigning a division staff role
-  // (which is what ACE Team membership is) requires write on the role object.
-  const canManageDivisionStaffRoles = hasScopedPermission({
-    globalPermissions,
-    facilityPermissions,
-    object: OBJECT.divisionStaffRole,
-    action: ACTION.write,
-    facilityId: activeTeam.id,
-  })
+  // Cobalt reports which roles this user may assign; that is the sole gate for
+  // role-assignment nav entries.
+  const canManageAce = canManageAceTeam(assignableRoles)
 
   const navSource = isZhqTeam ? getZhqNavMain() : getArtccNavMain()
 
@@ -482,7 +482,7 @@ export function AppSideBar({
         filterNavByPermissions(navSource, {
           canManageEvents,
           canManageNews,
-          canManageDivisionStaffRoles,
+          canManageAceTeamNav: canManageAce,
         }),
         activeTeam.id.toLowerCase()
       ),
@@ -490,7 +490,7 @@ export function AppSideBar({
       activeTeam.id,
       canManageEvents,
       canManageNews,
-      canManageDivisionStaffRoles,
+      canManageAce,
       navSource,
     ]
   )

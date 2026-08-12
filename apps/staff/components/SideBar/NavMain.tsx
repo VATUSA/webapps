@@ -21,7 +21,7 @@ import Link from "next/link"
 export type PermissionGate =
   | "events_manage"
   | "news_manage"
-  | "division_staff_role_manage"
+  | "ace_team_manage"
 
 export type NavItem = {
   title: string

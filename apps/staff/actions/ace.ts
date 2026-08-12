@@ -7,18 +7,16 @@ import {
   grantUserRole,
   revokeUserRole,
   searchUsers,
-  type CobaltSession,
   type CobaltUserSearchResult,
 } from "@workspace/third-party/cobalt"
-import { ACTION, OBJECT } from "@/lib/acl"
-import { CobaltPermissionError, requireLivePermissionOrThrow } from "@/lib/auth"
+import {
+  ACE_TEAM_ROLE,
+  GLOBAL_ROLE_FACILITY as ACE_TEAM_FACILITY,
+  canManageAceTeam,
+  fetchAssignableRoles,
+} from "@/lib/assignableRoles"
 
-// ACE Team is a division-wide role, so it is always scoped to ZHQ.
-const ACE_TEAM_FACILITY = "ZHQ"
-const ACE_TEAM_ROLE = "ace_team"
-
-const PERMISSION_MESSAGE =
-  "You do not have live Cobalt permission to manage the ACE Team."
+const PERMISSION_MESSAGE = "You do not have permission to manage the ACE Team."
 
 function readStringField(formData: FormData, key: string) {
   const value = formData.get(key)
@@ -26,16 +24,8 @@ function readStringField(formData: FormData, key: string) {
 }
 
 function getReadableErrorMessage(error: unknown) {
-  if (error instanceof CobaltPermissionError) {
-    if (error.failureKind === "verification_failed") {
-      return "Unable to verify permissions with Cobalt right now."
-    }
-
-    return PERMISSION_MESSAGE
-  }
-
   if (error instanceof CobaltHttpError && error.status === 403) {
-    return "Cobalt rejected this change after live permission verification."
+    return "Cobalt rejected this change after permission verification."
   }
 
   if (error instanceof CobaltHttpError && error.status === 409) {
@@ -120,32 +110,21 @@ export async function addAceTeamMemberAction(
     throw new Error("Missing Cobalt auth cookie.")
   }
 
-  let liveSession: CobaltSession | undefined
+  if (!canManageAceTeam(await fetchAssignableRoles())) {
+    throw new Error(PERMISSION_MESSAGE)
+  }
 
   try {
-    liveSession = await requireLivePermissionOrThrow({
-      object: OBJECT.divisionStaffRole,
-      action: ACTION.write,
-      facilityId: ACE_TEAM_FACILITY,
-      message: PERMISSION_MESSAGE,
-    })
-
     await grantUserRole(cid, ACE_TEAM_FACILITY, ACE_TEAM_ROLE, cobaltCookie)
   } catch (error) {
-    if (
-      error instanceof CobaltHttpError &&
-      error.status === 403 &&
-      liveSession
-    ) {
+    if (error instanceof CobaltHttpError && error.status === 403) {
       console.error(
-        "Role endpoint rejected request after live permission preflight.",
+        "Role endpoint rejected request after assignable-role preflight.",
         {
           action: "grant",
           role: ACE_TEAM_ROLE,
           facility: ACE_TEAM_FACILITY,
           cid,
-          actorCid: liveSession.user?.cid,
-          preflightAllowed: true,
           status: error.status,
           url: error.url,
           body: error.body,
@@ -174,32 +153,21 @@ export async function removeAceTeamMemberAction(
     throw new Error("Missing Cobalt auth cookie.")
   }
 
-  let liveSession: CobaltSession | undefined
+  if (!canManageAceTeam(await fetchAssignableRoles())) {
+    throw new Error(PERMISSION_MESSAGE)
+  }
 
   try {
-    liveSession = await requireLivePermissionOrThrow({
-      object: OBJECT.divisionStaffRole,
-      action: ACTION.write,
-      facilityId: ACE_TEAM_FACILITY,
-      message: PERMISSION_MESSAGE,
-    })
-
     await revokeUserRole(cid, ACE_TEAM_FACILITY, ACE_TEAM_ROLE, cobaltCookie)
   } catch (error) {
-    if (
-      error instanceof CobaltHttpError &&
-      error.status === 403 &&
-      liveSession
-    ) {
+    if (error instanceof CobaltHttpError && error.status === 403) {
       console.error(
-        "Role endpoint rejected request after live permission preflight.",
+        "Role endpoint rejected request after assignable-role preflight.",
         {
           action: "revoke",
           role: ACE_TEAM_ROLE,
           facility: ACE_TEAM_FACILITY,
           cid,
-          actorCid: liveSession.user?.cid,
-          preflightAllowed: true,
           status: error.status,
           url: error.url,
           body: error.body,

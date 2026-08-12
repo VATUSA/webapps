@@ -17,6 +17,7 @@ import { cookies } from "next/headers"
 import { requireStaffSession } from "@/lib/permissions"
 import { DevBanner } from "@/components/Banner/DevBanner"
 import { normalizePermissionCollections } from "@/lib/acl"
+import { fetchAssignableRoles } from "@/lib/assignableRoles"
 import { UnauthorizedPanel } from "@/components/Auth/UnauthorizedPanel"
 import { STAFF_ROOT_METADATA } from "@/lib/metadata"
 import { ThemeSwitch } from "@/components/Theme/ThemeSwitch"
@@ -50,6 +51,7 @@ export default async function RootLayout({
   const { globalPermissions, allFacilityPermissions } =
     normalizePermissionCollections(session)
   const sidebarOpen = cookieStore.get("sidebar_state")?.value !== "false"
+  const assignableRoles = allowed ? await fetchAssignableRoles() : {}
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -65,6 +67,7 @@ export default async function RootLayout({
                   globalPermissions={globalPermissions}
                   facilityPermissions={allFacilityPermissions}
                   homeFacility={session?.home_facility}
+                  assignableRoles={assignableRoles}
                 />
 
                 <SidebarInset>
