@@ -2,7 +2,18 @@ import { notFound } from "next/navigation"
 import NewsPostDetail from "@/components/News/NewsPostDetail"
 import { fetchNewsPostById } from "@/actions/news"
 import { Metadata } from "next"
-import { getNewsPostById } from "@workspace/third-party/cobalt"
+
+// Keep in sync with PUBLIC_REVALIDATE_SECONDS in @/lib/cache — Next.js requires
+// this to be a statically analyzable literal.
+export const revalidate = 300
+
+// Returning an empty array prerenders nothing at build time but marks the route
+// static-capable, so each post is rendered once on first visit and then served
+// from cache. Without this Next.js renders every request from scratch, which is
+// what let scraper traffic saturate the event loop.
+export async function generateStaticParams() {
+  return []
+}
 
 type NewsPageProps = {
   params: Promise<{
@@ -16,7 +27,7 @@ export async function generateMetadata({
   const { id } = await params
 
   try {
-    const post = await getNewsPostById(id)
+    const post = await fetchNewsPostById(id)
     return {
       title: `${post?.title} | VATUSA News`,
       description: post?.body?.substring(0, 160) || "VATUSA News Post",

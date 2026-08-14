@@ -179,6 +179,11 @@ export default function EventsIndex({
                                     name="status"
                                     value="approved"
                                   />
+                                  <input
+                                    type="hidden"
+                                    name="returnTo"
+                                    value={`/facility/${facilityId}/events/manage?page=${page}`}
+                                  />
                                   <button
                                     type="submit"
                                     className="inline-flex h-8 items-center justify-center rounded-md border border-green-600/60 bg-background px-3 text-sm font-medium text-green-700 transition-colors hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20"
@@ -199,6 +204,11 @@ export default function EventsIndex({
                                     type="hidden"
                                     name="status"
                                     value="rejected"
+                                  />
+                                  <input
+                                    type="hidden"
+                                    name="returnTo"
+                                    value={`/facility/${facilityId}/events/manage?page=${page}`}
                                   />
                                   <button
                                     type="submit"

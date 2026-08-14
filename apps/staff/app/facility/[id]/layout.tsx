@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
-import type { ReactNode } from "react"
+import { Suspense, type ReactNode } from "react"
+import NoticeToast from "@/components/Toast/NoticeToast"
 import { buildFacilityMetadata } from "@/lib/metadata"
 
 type FacilityMetadataProps = {
@@ -21,5 +22,12 @@ export async function generateMetadata({
 }
 
 export default function FacilityLayout({ children }: FacilityLayoutProps) {
-  return children
+  return (
+    <>
+      <Suspense fallback={null}>
+        <NoticeToast />
+      </Suspense>
+      {children}
+    </>
+  )
 }

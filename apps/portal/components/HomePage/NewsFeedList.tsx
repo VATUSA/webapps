@@ -5,6 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import { HOME_FEED_LIMIT } from "@/lib/homeFeed"
 
 export type CobaltNewsItem = {
   id: number
@@ -32,7 +33,7 @@ export default function NewsFeedList({
   emptyText = "No recent news.",
   makeItemHref = (item) => `/news/${item.id}`,
 }: NewsFeedListProps) {
-  const limitedItems = items.slice(0, 10)
+  const limitedItems = items.slice(0, HOME_FEED_LIMIT)
 
   return (
     <Card className="h-full border-border/60 bg-card/95">

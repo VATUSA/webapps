@@ -16,6 +16,7 @@ import {
   CobaltPermissionError,
   requireLivePermissionOrThrow,
 } from "@/lib/auth"
+import { withNotice } from "@/lib/notice"
 
 export type EventActionState = {
   error: string | null
@@ -41,14 +42,6 @@ function normalizeFacilityId(value: string) {
   return value.trim().toUpperCase()
 }
 
-function withEventDeletedFlag(path: string): string {
-  const [pathname = "", query = ""] = path.split("?")
-  const params = new URLSearchParams(query)
-  params.set("eventDeleted", "1")
-  const nextQuery = params.toString()
-
-  return nextQuery ? `${pathname}?${nextQuery}` : pathname
-}
 
 /**
  * Banners are uploaded to us and hosted on DigitalOcean Spaces rather than
@@ -441,7 +434,13 @@ export async function deleteEventAction(formData: FormData): Promise<void> {
       })
     }
     logEventActionError("delete", error)
-    throw new Error(getReadableErrorMessage(error, targetFacility, "delete"))
+    redirect(
+      withNotice(
+        returnTo,
+        "error",
+        getReadableErrorMessage(error, targetFacility, "delete")
+      )
+    )
   }
 
   revalidatePath(`/facility/${targetFacilitySlug}/events/manage`)
@@ -450,12 +449,14 @@ export async function deleteEventAction(formData: FormData): Promise<void> {
   revalidatePath(`/facility/${targetFacilitySlug}/division/events`)
   revalidatePath(`/facility/zhq/division/events`)
 
-  redirect(withEventDeletedFlag(returnTo))
+  redirect(withNotice(returnTo, "success", "Event deleted successfully."))
 }
 
 export async function reviewEventAction(formData: FormData): Promise<void> {
   const eventId = readStringField(formData, "eventId")
   const status = readStringField(formData, "status")
+  const returnTo =
+    readStringField(formData, "returnTo") || "/facility/zhq/events/manage"
 
   if (!eventId) throw new Error("Event ID is required.")
   if (status !== "approved" && status !== "rejected") throw new Error("Invalid review status.")
@@ -473,9 +474,16 @@ export async function reviewEventAction(formData: FormData): Promise<void> {
     await reviewEvent(eventId, status, cobaltCookie)
   } catch (error) {
     logEventActionError("review", error)
-    throw new Error(getReadableErrorMessage(error))
+    redirect(withNotice(returnTo, "error", getReadableErrorMessage(error)))
   }
 
   revalidatePath(`/facility/zhq/events/manage`)
   revalidatePath("/facility", "layout")
+  redirect(
+    withNotice(
+      returnTo,
+      "success",
+      status === "approved" ? "Event approved." : "Event rejected."
+    )
+  )
 }
