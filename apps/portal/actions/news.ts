@@ -5,12 +5,13 @@ import {
   getNewsPostById,
   type CobaltNewsItem,
 } from "@workspace/third-party/cobalt"
+import { PUBLIC_CACHE } from "@/lib/cache"
 
 export async function fetchNewsPostById(
   id: number | string
 ): Promise<CobaltNewsItem | null> {
   try {
-    return await getNewsPostById(id)
+    return await getNewsPostById(id, PUBLIC_CACHE)
   } catch (error) {
     console.error(`Server error fetching news post ${id}:`, error)
     return null
@@ -32,8 +33,8 @@ export async function fetchNewsPage(
   try {
     // Probe next page so we can render proper pagination controls
     const [currentItems, nextItems] = await Promise.all([
-      getNewsPage(safePage),
-      getNewsPage(safePage + 1),
+      getNewsPage(safePage, PUBLIC_CACHE),
+      getNewsPage(safePage + 1, PUBLIC_CACHE),
     ])
 
     return {

@@ -16,6 +16,7 @@ import {
   CobaltPermissionError,
   requireLivePermissionOrThrow,
 } from "@/lib/auth"
+import { withNotice } from "@/lib/notice"
 
 export type EventActionState = {
   error: string | null
@@ -41,27 +42,61 @@ function normalizeFacilityId(value: string) {
   return value.trim().toUpperCase()
 }
 
-function withEventDeletedFlag(path: string): string {
-  const [pathname = "", query = ""] = path.split("?")
-  const params = new URLSearchParams(query)
-  params.set("eventDeleted", "1")
-  const nextQuery = params.toString()
 
-  return nextQuery ? `${pathname}?${nextQuery}` : pathname
+/**
+ * Banners are uploaded to us and hosted on DigitalOcean Spaces rather than
+ * linked from Imgur or Discord. Cobalt does the upload, so these limits only
+ * exist to fail fast with a readable message — Cobalt re-checks all of them.
+ */
+const MAX_BANNER_BYTES = 8 * 1024 * 1024
+const ACCEPTED_BANNER_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+]
+
+type EventPayload = {
+  facility: string
+  formData: FormData
 }
 
-function buildEventPayload(formData: FormData) {
+function readBannerFile(formData: FormData): File | null {
+  const value = formData.get("banner_image")
+  if (!(value instanceof File) || value.size === 0) return null
+
+  if (value.size > MAX_BANNER_BYTES) {
+    throw new Error(
+      `Banner image must be ${MAX_BANNER_BYTES / (1024 * 1024)} MB or smaller.`
+    )
+  }
+  if (value.type && !ACCEPTED_BANNER_TYPES.includes(value.type)) {
+    throw new Error("Banner image must be a PNG, JPG, GIF or WebP file.")
+  }
+
+  return value
+}
+
+/**
+ * Builds the multipart body Cobalt expects. The banner arrives as a file when
+ * the user picked one; otherwise `banner_image_url` carries the URL the event
+ * already had, which is what lets an edit leave the existing banner in place.
+ */
+function buildEventPayload(formData: FormData): EventPayload {
   const title = readStringField(formData, "title")
   const body = readStringField(formData, "body")
   const facility = readStringField(formData, "facility").toUpperCase()
-  const banner_image_url = readStringField(formData, "banner_image_url")
+  const existingBannerUrl = readStringField(formData, "banner_image_url")
   const startLocal = readStringField(formData, "start_timestamp")
   const endLocal = readStringField(formData, "end_timestamp")
+  const bannerFile = readBannerFile(formData)
 
   if (!title) throw new Error("Event title is required.")
   if (!body) throw new Error("Event body is required.")
   if (!facility) throw new Error("Facility is required.")
-  if (!banner_image_url) throw new Error("Banner image URL is required.")
+  if (!bannerFile && !existingBannerUrl) {
+    throw new Error("A banner image is required.")
+  }
   if (!startLocal) throw new Error("Start time is required.")
   if (!endLocal) throw new Error("End time is required.")
 
@@ -72,14 +107,18 @@ function buildEventPayload(formData: FormData) {
     throw new Error("Invalid event timestamps.")
   }
 
-  return {
-    facility,
-    title,
-    body,
-    banner_image_url,
-    start_timestamp,
-    end_timestamp,
+  const payload = new FormData()
+  payload.set("facility", facility)
+  payload.set("title", title)
+  payload.set("body", body)
+  payload.set("start_timestamp", start_timestamp)
+  payload.set("end_timestamp", end_timestamp)
+  payload.set("banner_image_url", existingBannerUrl)
+  if (bannerFile) {
+    payload.set("banner_image", bannerFile, bannerFile.name)
   }
+
+  return { facility, formData: payload }
 }
 
 async function getCobaltCookie() {
@@ -196,9 +235,11 @@ export async function createEventAction(
       message: buildLiveEventPermissionMessage(payload.facility),
     })
 
-    await cobaltRequest<unknown>("event/create", {
+    // Cobalt's event/create responds with { success, id }; capture the new id
+    // so we can send the creator straight to a preview of their event.
+    const created = await cobaltRequest<{ id?: number }>("event/create", {
       method: "POST",
-      body: payload,
+      body: payload.formData,
       cobaltCookie,
       credentials: "omit",
     })
@@ -208,10 +249,16 @@ export async function createEventAction(
     revalidatePath(`/facility/${facilitySlug}/events/new`)
     revalidatePath(`/facility/${facilitySlug}`)
 
+    const newEventId = created?.id
+    const manageHref = `/facility/${facilitySlug}/events/manage`
+
     return {
       error: null,
       success: "Event created successfully.",
-      redirectTo: `/facility/${facilitySlug}/events/manage`,
+      redirectTo:
+        typeof newEventId === "number" && Number.isInteger(newEventId)
+          ? `${manageHref}?preview=${newEventId}`
+          : manageHref,
     }
   } catch (error) {
     if (
@@ -287,19 +334,18 @@ export async function updateEventAction(
       message: buildLiveEventPermissionMessage(targetFacility),
     })
 
-    const payload = {
-      ...submittedPayload,
-      facility: targetFacility,
-    }
+    // An edit never moves the event between facilities; the authoritative
+    // facility is the one already on the record.
+    submittedPayload.formData.set("facility", targetFacility)
 
     await cobaltRequest<unknown>(`event/${encodeURIComponent(eventId)}`, {
       method: "POST",
-      body: payload,
+      body: submittedPayload.formData,
       cobaltCookie,
       credentials: "omit",
     })
 
-    const facilitySlug = parseFacilitySlug(payload.facility)
+    const facilitySlug = parseFacilitySlug(targetFacility)
     revalidatePath(`/facility/${facilitySlug}/events/manage`)
     revalidatePath(`/facility/${facilitySlug}/events/new`)
     revalidatePath(`/facility/${facilitySlug}`)
@@ -388,7 +434,13 @@ export async function deleteEventAction(formData: FormData): Promise<void> {
       })
     }
     logEventActionError("delete", error)
-    throw new Error(getReadableErrorMessage(error, targetFacility, "delete"))
+    redirect(
+      withNotice(
+        returnTo,
+        "error",
+        getReadableErrorMessage(error, targetFacility, "delete")
+      )
+    )
   }
 
   revalidatePath(`/facility/${targetFacilitySlug}/events/manage`)
@@ -397,12 +449,14 @@ export async function deleteEventAction(formData: FormData): Promise<void> {
   revalidatePath(`/facility/${targetFacilitySlug}/division/events`)
   revalidatePath(`/facility/zhq/division/events`)
 
-  redirect(withEventDeletedFlag(returnTo))
+  redirect(withNotice(returnTo, "success", "Event deleted successfully."))
 }
 
 export async function reviewEventAction(formData: FormData): Promise<void> {
   const eventId = readStringField(formData, "eventId")
   const status = readStringField(formData, "status")
+  const returnTo =
+    readStringField(formData, "returnTo") || "/facility/zhq/events/manage"
 
   if (!eventId) throw new Error("Event ID is required.")
   if (status !== "approved" && status !== "rejected") throw new Error("Invalid review status.")
@@ -420,9 +474,16 @@ export async function reviewEventAction(formData: FormData): Promise<void> {
     await reviewEvent(eventId, status, cobaltCookie)
   } catch (error) {
     logEventActionError("review", error)
-    throw new Error(getReadableErrorMessage(error))
+    redirect(withNotice(returnTo, "error", getReadableErrorMessage(error)))
   }
 
   revalidatePath(`/facility/zhq/events/manage`)
   revalidatePath("/facility", "layout")
+  redirect(
+    withNotice(
+      returnTo,
+      "success",
+      status === "approved" ? "Event approved." : "Event rejected."
+    )
+  )
 }

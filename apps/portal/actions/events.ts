@@ -5,12 +5,13 @@ import {
   getEventById,
   type CobaltEvent,
 } from "@workspace/third-party/cobalt"
+import { PUBLIC_CACHE } from "@/lib/cache"
 
 export async function fetchUpcomingEvents(
   count: number = 5
 ): Promise<CobaltEvent[]> {
   try {
-    const events = await getUpcomingEvents(count)
+    const events = await getUpcomingEvents(count, PUBLIC_CACHE)
     return events
   } catch (error) {
     console.error("Server error fetching upcoming events:", error)
@@ -22,7 +23,7 @@ export async function fetchEventById(
   id: number | string
 ): Promise<CobaltEvent | null> {
   try {
-    return await getEventById(id)
+    return await getEventById(id, undefined, PUBLIC_CACHE)
   } catch (error) {
     console.error(`Server error fetching event ${id}:`, error)
     return null

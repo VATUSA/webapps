@@ -11,11 +11,17 @@ import {
   type CobaltNewsItem,
 } from "@workspace/third-party/cobalt"
 import { Metadata } from "next"
+import { PUBLIC_CACHE } from "@/lib/cache"
+import { HOME_FEED_LIMIT } from "@/lib/homeFeed"
 
 export const metadata: Metadata = {
   title: "Home | VATUSA",
   description: "Welcome to VATUSA - The United States Division of VATSIM",
 }
+
+// Must be a literal: Next.js requires `revalidate` to be statically analyzable,
+// so it cannot reference PUBLIC_REVALIDATE_SECONDS. Keep the two in sync.
+export const revalidate = 300
 
 function formatZulu(value: string) {
   const date = new Date(value)
@@ -38,8 +44,8 @@ export default async function Page() {
   let cobaltNews: CobaltNewsItem[] = []
 
   const [eventsResult, newsResult] = await Promise.allSettled([
-    getUpcomingEvents(5),
-    getNewsPage(1),
+    getUpcomingEvents(HOME_FEED_LIMIT, PUBLIC_CACHE),
+    getNewsPage(1, PUBLIC_CACHE),
   ])
 
   if (eventsResult.status === "fulfilled") {
