@@ -24,6 +24,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   promotion: "Controller Promotion",
   events: "Events",
   manage: "Manage",
+  "ace-team": "ACE Team Management",
   new: "New",
   edit: "Edit",
   news: "News",

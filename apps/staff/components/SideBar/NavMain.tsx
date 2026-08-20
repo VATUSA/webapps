@@ -18,16 +18,22 @@ import {
 import { ChevronRightIcon } from "lucide-react"
 import Link from "next/link"
 
+export type PermissionGate =
+  | "events_manage"
+  | "news_manage"
+  | "ace_team_manage"
+
 export type NavItem = {
   title: string
   url: string
-  permissionGate?: "events_manage" | "news_manage"
+  permissionGate?: PermissionGate
   icon?: React.ReactNode
   isActive?: boolean
   isClickable?: boolean
   items?: {
     title: string
     url: string
+    permissionGate?: PermissionGate
   }[]
 }
 

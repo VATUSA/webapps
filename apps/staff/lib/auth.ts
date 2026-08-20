@@ -1,9 +1,11 @@
 import { cookies } from "next/headers"
 import {
   cobaltRequest,
+  getMyAssignableRoles,
   type CobaltSession,
 } from "@workspace/third-party/cobalt"
 import { hasScopedPermission, normalizePermissionCollections } from "@/lib/acl"
+import type { AssignableRoles } from "@/lib/assignableRoles"
 
 type LiveSessionResult =
   | { ok: true; liveSession: CobaltSession }
@@ -150,4 +152,18 @@ export async function requireLivePermissionOrThrow(input: {
   }
 
   return liveSessionResult.liveSession
+}
+
+export async function fetchAssignableRoles(): Promise<AssignableRoles> {
+  const cookieStore = await cookies()
+  const cobaltCookie = cookieStore.get("vatusa-cobalt-token")?.value
+  if (!cobaltCookie) return {}
+
+  try {
+    const result = await getMyAssignableRoles(cobaltCookie)
+    return result?.roles ?? {}
+  } catch (error) {
+    console.error("Failed to fetch assignable roles:", error)
+    return {}
+  }
 }
