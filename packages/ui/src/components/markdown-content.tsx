@@ -1,12 +1,33 @@
 import * as React from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+import rehypeRaw from "rehype-raw"
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize"
 import { cn } from "@workspace/ui/lib/utils"
+
+// Content is authored as Markdown but may contain a small allowlist of raw
+// HTML (e.g. <br>, <u>) that Markdown has no syntax for. rehype-raw parses
+// that inline HTML and rehype-sanitize then strips anything outside this
+// allowlist. This is the single place in the app that needs to reason about
+// which raw tags are safe to let through — every markdown surface (news,
+// events, FAQ) renders through this component.
+const sanitizeSchema = {
+  ...defaultSchema,
+  tagNames: [...(defaultSchema.tagNames ?? []), "u", "br"],
+}
+
+type MarkdownVariant = "article" | "compact"
 
 type MarkdownContentProps = {
   content?: string
   emptyFallback?: string
   className?: string
+  /**
+   * "article" (default) is the larger, serif-headed styling used for news
+   * posts and events. "compact" is the smaller, muted styling used for
+   * things like FAQ answers, and opens links in a new tab.
+   */
+  variant?: MarkdownVariant
 }
 
 function toCodeText(children: React.ReactNode) {
@@ -45,16 +66,22 @@ export function MarkdownContent({
   content,
   emptyFallback = "_No content provided._",
   className,
+  variant = "article",
 }: MarkdownContentProps) {
+  const isCompact = variant === "compact"
+
   return (
     <div
       className={cn(
-        "max-w-none text-[1.02rem] leading-8 text-foreground",
+        isCompact
+          ? "space-y-2 text-sm leading-relaxed text-muted-foreground"
+          : "max-w-none text-[1.02rem] leading-8 text-foreground",
         className
       )}
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeRaw, [rehypeSanitize, sanitizeSchema]]}
         components={{
           h1: ({ node: _node, ...props }) => (
             <h1
@@ -93,22 +120,37 @@ export function MarkdownContent({
             />
           ),
           p: ({ node: _node, ...props }) => (
-            <p className="my-4 leading-8 first:mt-0 last:mb-0" {...props} />
+            <p
+              className={
+                isCompact
+                  ? "first:mt-0 last:mb-0"
+                  : "my-4 leading-8 first:mt-0 last:mb-0"
+              }
+              {...props}
+            />
           ),
           ul: ({ node: _node, ...props }) => (
             <ul
-              className="my-4 list-disc space-y-2 pl-8 marker:text-muted-foreground"
+              className={
+                isCompact
+                  ? "list-disc space-y-1 pl-5"
+                  : "my-4 list-disc space-y-2 pl-8 marker:text-muted-foreground"
+              }
               {...props}
             />
           ),
           ol: ({ node: _node, ...props }) => (
             <ol
-              className="my-4 list-decimal space-y-2 pl-8 marker:text-muted-foreground"
+              className={
+                isCompact
+                  ? "list-decimal space-y-1 pl-5"
+                  : "my-4 list-decimal space-y-2 pl-8 marker:text-muted-foreground"
+              }
               {...props}
             />
           ),
           li: ({ node: _node, ...props }) => (
-            <li className="pl-1 leading-8" {...props} />
+            <li className={isCompact ? undefined : "pl-1 leading-8"} {...props} />
           ),
           blockquote: ({ node: _node, ...props }) => (
             <blockquote
@@ -116,12 +158,20 @@ export function MarkdownContent({
               {...props}
             />
           ),
-          a: ({ node: _node, ...props }) => (
-            <a
-              className="text-primary underline decoration-primary/50 underline-offset-4 transition-colors hover:decoration-primary"
-              {...props}
-            />
-          ),
+          a: ({ node: _node, ...props }) =>
+            isCompact ? (
+              <a
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-primary underline-offset-4 hover:underline"
+                {...props}
+              />
+            ) : (
+              <a
+                className="text-primary underline decoration-primary/50 underline-offset-4 transition-colors hover:decoration-primary"
+                {...props}
+              />
+            ),
           hr: ({ node: _node, ...props }) => (
             <hr className="my-8 border-border/80" {...props} />
           ),
