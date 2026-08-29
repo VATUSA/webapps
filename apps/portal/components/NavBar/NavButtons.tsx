@@ -18,6 +18,9 @@ import {
   type NavSection,
 } from "@/components/NavBar/NavConfig"
 import { legacyLinkProps } from "@/lib/legacy"
+import { cn } from "@workspace/ui/lib/utils"
+
+const navHoverClassName = cn(navigationMenuTriggerStyle(), "hover:text-primary")
 
 export function NavButtons() {
   return (
@@ -25,7 +28,7 @@ export function NavButtons() {
       <NavigationMenuList>
         <NavigationMenuItem>
           <NavigationMenuLink
-            className={navigationMenuTriggerStyle()}
+            className={navHoverClassName}
             render={
               <Link href={NAV_PRIMARY_LINKS.academy.href}>
                 {NAV_PRIMARY_LINKS.academy.title}
@@ -35,7 +38,7 @@ export function NavButtons() {
         </NavigationMenuItem>
         <NavigationMenuItem>
           <NavigationMenuLink
-            className={navigationMenuTriggerStyle()}
+            className={navHoverClassName}
             render={
               <Link href={NAV_PRIMARY_LINKS.faq.href}>
                 {NAV_PRIMARY_LINKS.faq.title}
@@ -46,7 +49,9 @@ export function NavButtons() {
 
         {NAV_SECTIONS.map((section) => (
           <NavigationMenuItem key={section.id}>
-            <NavigationMenuTrigger>{section.title}</NavigationMenuTrigger>
+            <NavigationMenuTrigger className="hover:text-primary">
+              {section.title}
+            </NavigationMenuTrigger>
             <NavigationMenuContent className="w-fit max-w-[min(90vw,42rem)]">
               <ul className={getSectionListClassName(section)}>
                 {section.items.map((entry) =>
@@ -69,7 +74,7 @@ export function NavButtons() {
 
         <NavigationMenuItem>
           <NavigationMenuLink
-            className={navigationMenuTriggerStyle()}
+            className={navHoverClassName}
             render={
               <Link
                 href={NAV_PRIMARY_LINKS.ntos_tmu.href}
@@ -83,7 +88,7 @@ export function NavButtons() {
 
         <NavigationMenuItem>
           <NavigationMenuLink
-            className={navigationMenuTriggerStyle()}
+            className={navHoverClassName}
             render={
               <Link
                 href={NAV_PRIMARY_LINKS.join_us.href}
@@ -96,7 +101,7 @@ export function NavButtons() {
         </NavigationMenuItem>
         <NavigationMenuItem>
           <NavigationMenuLink
-            className={navigationMenuTriggerStyle()}
+            className={navHoverClassName}
             render={
               <Link href={NAV_PRIMARY_LINKS.donate.href}>
                 {NAV_PRIMARY_LINKS.donate.title}
@@ -134,7 +139,7 @@ function ListItem({
         render={
           <Link
             href={href}
-            className="flex items-start gap-2"
+            className="flex items-start gap-2 hover:text-primary"
             {...legacyLinkProps(href)}
           >
             {Icon ? (
