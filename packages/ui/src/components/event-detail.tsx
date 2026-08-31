@@ -41,7 +41,7 @@ function formatZulu(value: string) {
 
 export default function EventDetail({ event }: EventDetailProps) {
   return (
-    <Card className="overflow-hidden border-border/60 bg-card/95 pt-0">
+    <Card className="shrink-0 overflow-hidden border-border/60 bg-card/95 pt-0">
       {event.banner_image_url ? (
         <div className="relative aspect-video w-full overflow-hidden bg-muted">
           {/* Banner URLs may come from any host; next/image allowlist is too restrictive here. */}
