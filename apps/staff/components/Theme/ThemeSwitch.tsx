@@ -12,7 +12,7 @@ export function ThemeSwitch() {
     setMounted(true)
   }, [])
 
-  const isDark = resolvedTheme === "dark"
+  const isDark = mounted && resolvedTheme === "dark"
 
   return (
     <button
@@ -21,7 +21,7 @@ export function ThemeSwitch() {
       title={`Switch to ${isDark ? "light" : "dark"} theme`}
       className="inline-flex size-8 items-center justify-center rounded-md text-foreground/80 transition-colors hover:bg-muted/50 hover:text-foreground"
     >
-      {mounted && isDark ? (
+      {isDark ? (
         <Sun className="h-4 w-4" />
       ) : (
         <Moon className="h-4 w-4" />
