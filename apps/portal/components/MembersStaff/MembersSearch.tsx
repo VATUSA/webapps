@@ -9,19 +9,11 @@ import {
 } from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
 import { SelectField } from "@workspace/ui/components/select-field"
-import { fetchFacilityRoster } from "@/actions/roster"
+import { fetchFacilityRoster, fetchFacilityStaff } from "@/actions/roster"
 
 type FacilityOption = {
   id: string
   label: string
-}
-
-// Kept for compatibility with current imports/caller shape.
-export type FacilityRoster = {
-  id: string
-  facility: string
-  staff: unknown[]
-  members: unknown[]
 }
 
 type RosterUser = {
@@ -42,12 +34,37 @@ type CobaltFacilityRoster = {
   visitors: RosterUser[] | null
 }
 
-type MembersSearchProps = {
-  facilities?: FacilityOption[]
-  rosters?: FacilityRoster[]
+type FacilityStaffMember = {
+  role: string
+  cid: number
+  display_name: string
 }
 
-const DEFAULT_ARTCC_OPTIONS: FacilityOption[] = [
+type CobaltFacilityStaff = {
+  staff: FacilityStaffMember[]
+}
+
+type MembersSearchProps = {
+  facilities?: FacilityOption[]
+}
+
+// Cobalt's facility staff roles, in display order, mapped to the alias used
+// for the {facility}-{alias}@vatusa.net mailto convention.
+const FACILITY_STAFF_ROLE_LABELS: Record<string, { title: string; alias: string }> = {
+  air_traffic_manager: { title: "Air Traffic Manager", alias: "ATM" },
+  deputy_air_traffic_manager: {
+    title: "Deputy Air Traffic Manager",
+    alias: "DATM",
+  },
+  training_administrator: { title: "Training Administrator", alias: "TA" },
+  event_coordinator: { title: "Event Coordinator", alias: "EC" },
+  facility_engineer: { title: "Facility Engineer", alias: "FE" },
+  web_maintainer: { title: "Web Maintainer", alias: "WM" },
+}
+
+const FACILITY_STAFF_ROLE_ORDER = Object.keys(FACILITY_STAFF_ROLE_LABELS)
+
+const ARTCC_FACILITY_OPTIONS: FacilityOption[] = [
   { id: "ZAB", label: "Albuquerque ARTCC (ZAB)" },
   { id: "ZAN", label: "Anchorage ARTCC (ZAN)" },
   { id: "ZAU", label: "Chicago ARTCC (ZAU)" },
@@ -87,13 +104,14 @@ function matchesQuery(user: RosterUser, q: string): boolean {
 }
 
 export default function MembersSearch({
-  facilities = DEFAULT_ARTCC_OPTIONS,
+  facilities = ARTCC_FACILITY_OPTIONS,
 }: MembersSearchProps) {
   const [selectedFacilityId, setSelectedFacilityId] = React.useState("")
   const [query, setQuery] = React.useState("")
   const [isLoading, setIsLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [roster, setRoster] = React.useState<CobaltFacilityRoster | null>(null)
+  const [staff, setStaff] = React.useState<CobaltFacilityStaff | null>(null)
 
   const selectedFacility = React.useMemo(
     () => facilities.find((facility) => facility.id === selectedFacilityId),
@@ -103,6 +121,7 @@ export default function MembersSearch({
   React.useEffect(() => {
     if (!selectedFacilityId) {
       setRoster(null)
+      setStaff(null)
       setError(null)
       setIsLoading(false)
       return
@@ -115,13 +134,18 @@ export default function MembersSearch({
       setError(null)
 
       try {
-        const next = await fetchFacilityRoster(selectedFacilityId)
+        const [nextRoster, nextStaff] = await Promise.all([
+          fetchFacilityRoster(selectedFacilityId),
+          fetchFacilityStaff(selectedFacilityId),
+        ])
         if (!cancelled) {
-          setRoster(next)
+          setRoster(nextRoster)
+          setStaff(nextStaff)
         }
       } catch {
         if (!cancelled) {
           setRoster(null)
+          setStaff(null)
           setError("Could not load roster. Please try again.")
         }
       } finally {
@@ -137,6 +161,15 @@ export default function MembersSearch({
       cancelled = true
     }
   }, [selectedFacilityId])
+
+  const orderedStaff = React.useMemo(() => {
+    const members = staff?.staff ?? []
+    return [...members].sort((a, b) => {
+      const orderA = FACILITY_STAFF_ROLE_ORDER.indexOf(a.role)
+      const orderB = FACILITY_STAFF_ROLE_ORDER.indexOf(b.role)
+      return orderA - orderB
+    })
+  }, [staff])
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -199,6 +232,46 @@ export default function MembersSearch({
             <h3 className="text-xl font-semibold tracking-tight text-foreground">
               {selectedFacility?.label ?? selectedFacilityId}
             </h3>
+
+            <section className="space-y-2">
+              <h4 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+                Facility Staff
+              </h4>
+              {orderedStaff.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No facility staff on record.
+                </p>
+              ) : (
+                <ul className="divide-y divide-border/60 overflow-hidden rounded-md border border-border/60">
+                  {orderedStaff.map((member) => {
+                    const label = FACILITY_STAFF_ROLE_LABELS[member.role]
+                    const alias = label?.alias ?? member.role
+                    return (
+                      <li
+                        key={`staff-${member.role}-${member.cid}`}
+                        className="group flex items-center justify-between gap-4 px-4 py-3 transition-colors focus-within:bg-accent/50 hover:bg-accent/50"
+                      >
+                        <span className="text-sm font-medium text-foreground">
+                          {label?.title ?? member.role}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground transition-colors group-hover:text-foreground">
+                            {member.display_name}
+                          </span>
+                          <a
+                            href={`mailto:${selectedFacilityId}-${alias}@vatusa.net`}
+                            aria-label={`Email ${label?.title ?? member.role}`}
+                            className="text-sm text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                          >
+                            {selectedFacilityId}-{alias}@vatusa.net
+                          </a>
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </section>
 
             <section className="space-y-2">
               <h4 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">

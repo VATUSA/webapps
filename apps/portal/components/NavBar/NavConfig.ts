@@ -195,7 +195,7 @@ export const DIVISION_INFO: NavMenuEntry[] = [
   {
     type: "item",
     title: "Members and Staff",
-    href: "/legacy/info/members", // TODO: Revert to /info/members-staff once that page is fixed
+    href: "/info/members-staff",
     description: "Learn more about our members and staff.",
     icon: TiGroup,
   },

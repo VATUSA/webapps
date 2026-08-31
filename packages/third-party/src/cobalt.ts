@@ -817,6 +817,30 @@ export async function getFacilityRoster(
   )
 }
 
+export type CobaltFacilityStaffMember = {
+  role: string
+  cid: number
+  display_name: string
+}
+
+export type CobaltFacilityStaff = {
+  staff: CobaltFacilityStaffMember[]
+}
+
+export async function getFacilityStaff(
+  facility: string,
+  cache?: CobaltCacheOptions
+): Promise<CobaltFacilityStaff> {
+  const safeFacility = facility.toUpperCase()
+  return cobaltRequest<CobaltFacilityStaff>(
+    `roster/${encodeURIComponent(safeFacility)}/staff`,
+    {
+      method: "GET",
+      ...readCache(["roster", `roster:${safeFacility}:staff`], cache),
+    }
+  )
+}
+
 export type CobaltV3ApiKey = {
   id: number
   code: string
