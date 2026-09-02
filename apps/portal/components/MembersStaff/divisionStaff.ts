@@ -55,7 +55,7 @@ export const DIVISION_STAFF: StaffEntry[] = [
   },
   {
     id: "vatusa9",
-    position: "VATUSA9 - Training Content and Curriculum Manager",
+    position: "VATUSA9 - Learning Services Manager",
     name: "Andrew Selder",
     email: "vatusa9@vatusa.net",
   },
