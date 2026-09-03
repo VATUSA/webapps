@@ -2,96 +2,35 @@
 
 import * as React from "react"
 import { Button } from "@workspace/ui/components/button"
+import { Card, CardContent } from "@workspace/ui/components/card"
 import { cn } from "@workspace/ui/lib/utils"
-import PoliciesListTab from "@/components/Policies/PoliciesListTab"
+import type { CobaltPolicyCategory } from "@workspace/third-party/cobalt"
+import PoliciesListTab, {
+  type PolicyListItem,
+} from "@/components/Policies/PoliciesListTab"
 
-const tabConfig = {
-  "general-division": {
-    label: "General Division",
-    cardTitle: "General Division Policies",
-    emptyText: "No policy documents available.",
-    items: [
-      {
-        id: "DP001",
-        title: "General Division Policy",
-        summary:
-          "Provides a standard for the general administration of VATUSA Division.",
-        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/general-division-policy.pdf",
-      },
-      {
-        id: "DP002",
-        title: "General Training Policy",
-        summary: "Training Policy",
-        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/division-training-policy.pdf",
-      },
-      {
-        id: "DP003",
-        title: "General Events Policy",
-        summary:
-          "Establishes division-wide clarification and standardization of event processes and procedures.",
-        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/general-events-policy.pdf",
-      },
-      {
-        id: "7210.35C",
-        title: "VATUSA Air Traffic Control System Command Center",
-        summary:
-          "Prescribes the organization, functions, procedures, and policies of the VATUSA Air Traffic Control System Command Center.",
-        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/vatusa-command-center.pdf",
-      },
-      {
-        id: "7210.932",
-        title: "NTML Entry Codes",
-        summary: "Reference for NTML entry codes.",
-        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/ntml-entry-codes-reference.pdf",
-      },
-      {
-        id: "GRPFLT",
-        title: "Flight Notification and Staffing Request Guide",
-        summary:
-          "A brief guide on how to submit requests for staffing and group flight notifications for VA/VSO/group flight/streamers.",
-        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/group-flight-notification-staffing-guide.pdf",
-      },
-      {
-        id: "ORG",
-        title: "VATUSA Organizational Chart",
-        summary:
-          "This graphic defines the staff structure and chain-of-command of VATUSA.",
-        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/vatusa-organizational-chart.jpeg",
-      },
-    ],
-  },
-  media: {
-    label: "Media",
-    cardTitle: "Media Policies",
-    emptyText: "No media policy items available.",
-    items: [
-      {
-        id: "SMT001",
-        title: "Social Media Team Standard Operating Procedure",
-        summary: "",
-        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/social-media-team-standard-operating-procedure-.pdf",
-      },
-      {
-        id: "BSG2021.1",
-        title: "VATUSA Brand Style Guide",
-        summary: "VATUSA Branding & Styling Guidelines v.2021.1",
-        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/brand-style-guide.pdf",
-      },
-      {
-        id: "PLA2021.1",
-        title: "VATUSA Public Logo Assets",
-        summary: "VATUSA Public Logo Assets",
-        href: "https://vatusa-storage.nyc3.cdn.digitaloceanspaces.com/docs/vatusa-public-logo-assets.zip",
-      },
-    ],
-  },
+type PoliciesContentProps = {
+  categories: CobaltPolicyCategory[]
+  loadFailed: boolean
 }
 
-export default function PoliciesContent() {
-  const [activeTab, setActiveTab] =
-    React.useState<keyof typeof tabConfig>("general-division")
+function toListItems(category: CobaltPolicyCategory): PolicyListItem[] {
+  return category.documents.map((document) => ({
+    id: document.ident,
+    title: document.title,
+    summary: document.summary,
+    href: document.document_url,
+    effectiveDate: document.effective_date,
+  }))
+}
 
-  const tabs = Object.entries(tabConfig)
+export default function PoliciesContent({
+  categories,
+  loadFailed,
+}: PoliciesContentProps) {
+  const [activeTab, setActiveTab] = React.useState(categories[0]?.id)
+
+  const activeCategory = categories.find((c) => c.id === activeTab) ?? categories[0]
 
   return (
     <main className="container mx-auto max-w-4xl py-6">
@@ -104,31 +43,55 @@ export default function PoliciesContent() {
         </p>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="mb-6 inline-flex rounded-lg border border-border/60 bg-muted/40 p-1">
-        {tabs.map(([key, config]) => (
-          <Button
-            key={key}
-            type="button"
-            variant={activeTab === key ? "default" : "ghost"}
-            className={cn(
-              "rounded-md",
-              activeTab !== key && "text-muted-foreground"
-            )}
-            onClick={() => setActiveTab(key as keyof typeof tabConfig)}
-            aria-pressed={activeTab === key}
-          >
-            {config.label}
-          </Button>
-        ))}
-      </div>
+      {loadFailed ? (
+        <Card className="mb-6 border-destructive/40 bg-destructive/5">
+          <CardContent className="py-4 text-sm text-destructive">
+            We couldn&apos;t load policies right now. Please try again
+            shortly.
+          </CardContent>
+        </Card>
+      ) : null}
 
-      {/* Tab Content */}
-      <PoliciesListTab
-        cardTitle={tabConfig[activeTab].cardTitle}
-        items={tabConfig[activeTab].items}
-        emptyText={tabConfig[activeTab].emptyText}
-      />
+      {categories.length === 0 ? (
+        loadFailed ? null : (
+          <Card className="border-border/60 bg-card/95">
+            <CardContent className="py-10 text-center text-sm text-muted-foreground">
+              No policy documents are available right now.
+            </CardContent>
+          </Card>
+        )
+      ) : (
+        <>
+          {categories.length > 1 ? (
+            <div className="mb-6 inline-flex flex-wrap rounded-lg border border-border/60 bg-muted/40 p-1">
+              {categories.map((category) => (
+                <Button
+                  key={category.id}
+                  type="button"
+                  variant={activeCategory?.id === category.id ? "default" : "ghost"}
+                  className={cn(
+                    "rounded-md",
+                    activeCategory?.id !== category.id &&
+                      "text-muted-foreground"
+                  )}
+                  onClick={() => setActiveTab(category.id)}
+                  aria-pressed={activeCategory?.id === category.id}
+                >
+                  {category.title}
+                </Button>
+              ))}
+            </div>
+          ) : null}
+
+          {activeCategory ? (
+            <PoliciesListTab
+              cardTitle={activeCategory.title}
+              items={toListItems(activeCategory)}
+              emptyText="No policy documents available."
+            />
+          ) : null}
+        </>
+      )}
     </main>
   )
 }

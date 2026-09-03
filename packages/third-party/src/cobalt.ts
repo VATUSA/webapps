@@ -773,6 +773,55 @@ export async function deleteNewsPost(id: number | string): Promise<unknown> {
   })
 }
 
+/* ============================================================================
+ * Policies
+ * ========================================================================== */
+
+export type CobaltPolicyDocument = {
+  id: number
+  policy_category_id: number
+  ident: string
+  title: string
+  summary: string
+  document_url: string
+  effective_date: string
+  hidden: boolean
+  sort_order: number
+  created_by_cid: number
+  updated_by_cid: number
+  created_at: string
+  updated_at: string
+}
+
+export type CobaltPolicyCategory = {
+  id: number
+  title: string
+  sort_order: number
+  documents: CobaltPolicyDocument[]
+}
+
+/**
+ * GET /policy is the only read endpoint -- there's no by-id fetch, so an edit
+ * page has to fetch the whole tree and find its document by id.
+ *
+ * The response shape (and hidden documents' presence in it) depends on the
+ * caller's permissions: anonymous/no-cookie callers get only visible
+ * documents, so the portal must call this WITHOUT a cobaltCookie both to stay
+ * prerenderable and so a hidden document can never leak into a shared cache.
+ * The staff app calls it WITH a cookie to see everything.
+ */
+export async function getPolicies(
+  cobaltCookie?: string,
+  cache?: CobaltCacheOptions
+): Promise<CobaltPolicyCategory[]> {
+  return cobaltRequest<CobaltPolicyCategory[]>("policy", {
+    method: "GET",
+    cobaltCookie,
+    credentials: cobaltCookie ? "omit" : undefined,
+    ...readCache(["policies"], cache, cobaltCookie),
+  })
+}
+
 export type CobaltRosterUser = {
   cid: number
   network_user: {

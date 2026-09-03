@@ -22,6 +22,7 @@ export type PermissionGate =
   | "events_manage"
   | "news_manage"
   | "ace_team_manage"
+  | "policies_manage"
 
 export type NavItem = {
   title: string

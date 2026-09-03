@@ -35,11 +35,6 @@ const nextConfig = {
         destination: "https://www.vatusa.net/legacy/help/ticket/new",
         permanent: true,
       },
-      {
-        source: "/info/policies",
-        destination: "https://www.vatusa.net/legacy/info/policies",
-        permanent: true,
-      },
     ]
   },
 }

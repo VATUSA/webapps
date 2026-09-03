@@ -1,4 +1,3 @@
-import Link from "next/link"
 import {
   Card,
   CardContent,
@@ -11,6 +10,7 @@ export type PolicyListItem = {
   title: string
   summary: string
   href: string
+  effectiveDate?: string
   badge?: string
 }
 
@@ -18,6 +18,17 @@ type PoliciesListTabProps = {
   cardTitle: string
   emptyText: string
   items: PolicyListItem[]
+}
+
+function formatEffectiveDate(value: string) {
+  const date = new Date(`${value}T00:00:00Z`)
+  if (Number.isNaN(date.getTime())) return null
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  })
 }
 
 export default function PoliciesListTab({
@@ -50,9 +61,16 @@ export default function PoliciesListTab({
                   <p className="font-medium text-foreground">
                     {item.id} - {item.title}
                   </p>
-                  <p className="text-sm text-muted-foreground transition-colors group-hover:text-foreground/80">
-                    {item.summary}
-                  </p>
+                  {item.summary ? (
+                    <p className="text-sm text-muted-foreground transition-colors group-hover:text-foreground/80">
+                      {item.summary}
+                    </p>
+                  ) : null}
+                  {item.effectiveDate ? (
+                    <p className="text-xs text-muted-foreground/80">
+                      Effective {formatEffectiveDate(item.effectiveDate)}
+                    </p>
+                  ) : null}
                 </a>
 
                 {item.badge ? (
