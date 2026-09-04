@@ -18,7 +18,12 @@ import {
   SidebarRail,
 } from "@workspace/ui/components/sidebar"
 import { FaNewspaper, FaPeopleGroup } from "react-icons/fa6"
-import { MdAdminPanelSettings, MdEventNote, MdSettings } from "react-icons/md"
+import {
+  MdAdminPanelSettings,
+  MdDescription,
+  MdEventNote,
+  MdSettings,
+} from "react-icons/md"
 import { IoSchool } from "react-icons/io5"
 import {
   ACTION,
@@ -324,6 +329,19 @@ const getZhqNavMain = (): NavItem[] => [
       { title: "Staff POCs", url: "/facility/:id/roles/poc" },
     ],
   },
+  // Policies & Documents Section
+  {
+    title: "Policies & Documents",
+    url: "#",
+    permissionGate: "policies_manage",
+    icon: <MdDescription />,
+    isClickable: false,
+    items: [
+      { title: "Manage Documents", url: "/facility/:id/policies" },
+      { title: "New Document", url: "/facility/:id/policies/new" },
+      { title: "Categories", url: "/facility/:id/policies/categories" },
+    ],
+  },
 ]
 
 
@@ -347,6 +365,7 @@ function filterNavByPermissions(
     canManageEvents: boolean
     canManageNews: boolean
     canManageAceTeamNav: boolean
+    canManagePolicies: boolean
   }
 ): NavItem[] {
   const isGateOpen = (gate: PermissionGate | undefined) => {
@@ -355,6 +374,7 @@ function filterNavByPermissions(
     if (gate === "ace_team_manage") {
       return input.canManageAceTeamNav
     }
+    if (gate === "policies_manage") return input.canManagePolicies
 
     return true
   }
@@ -474,6 +494,15 @@ export function AppSideBar({
   // role-assignment nav entries.
   const canManageAce = canManageAceTeam(assignableRoles)
 
+  // write:policy is a global permission (not facility-scoped), so this omits
+  // facilityId -- matching how the policies pages/actions check it too.
+  const canManagePolicies = hasScopedPermission({
+    globalPermissions,
+    facilityPermissions,
+    object: OBJECT.policy,
+    action: ACTION.write,
+  })
+
   const navSource = isZhqTeam ? getZhqNavMain() : getArtccNavMain()
 
   const updatedNavMain = React.useMemo(
@@ -483,6 +512,7 @@ export function AppSideBar({
           canManageEvents,
           canManageNews,
           canManageAceTeamNav: canManageAce,
+          canManagePolicies,
         }),
         activeTeam.id.toLowerCase()
       ),
@@ -491,6 +521,7 @@ export function AppSideBar({
       canManageEvents,
       canManageNews,
       canManageAce,
+      canManagePolicies,
       navSource,
     ]
   )

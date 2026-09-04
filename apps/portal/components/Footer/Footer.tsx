@@ -1,6 +1,5 @@
 import Link from "next/link"
 import config from "package.json" with { type: "json" }
-import { legacyLinkProps } from "@/lib/legacy"
 
 export default function Footer() {
   const year = new Date().getFullYear()
@@ -38,9 +37,8 @@ export default function Footer() {
             </li>
             <li>
               <Link
-                href="/legacy/info/policies"
+                href="/info/policies"
                 className="text-foreground/80 transition-colors hover:text-foreground"
-                {...legacyLinkProps("/legacy/info/policies")}
               >
                 Policies
               </Link>

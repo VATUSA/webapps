@@ -10,7 +10,7 @@ export function buildStaffHomeHref(facilityId?: string) {
   }
 
   if (normalized === "ZHQ") {
-    return "/facility/zhq/division/events"
+    return "/facility/zhq/events/manage"
   }
 
   return `/facility/${normalized.toLowerCase()}/staff`

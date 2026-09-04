@@ -17,8 +17,8 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
   cobalt:
-    image: vatusa/cobalt:latest
-    # image: localhost/cobalt:latest
+    # image: vatusa/cobalt:latest
+    image: localhost/cobalt:latest
     # Cobalt image is amd64-only; required on Apple Silicon (arm64)
     platform: linux/amd64
     container_name: cobalt
