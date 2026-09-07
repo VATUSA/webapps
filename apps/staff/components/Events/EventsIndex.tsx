@@ -1,6 +1,8 @@
+import { TriangleAlert } from "lucide-react"
 import Link from "next/link"
 import type { CobaltEvent } from "@workspace/third-party/cobalt"
 import { Card, CardContent } from "@workspace/ui/components/card"
+import { getEventUrgency } from "@workspace/ui/lib/event-urgency"
 import DeleteEventButton from "@/components/Events/DeleteEventButton"
 import {
   EventPreviewButton,
@@ -95,6 +97,9 @@ export default function EventsIndex({
                 <table className="min-w-full divide-y divide-border/60">
                   <thead className="bg-muted/40">
                     <tr className="text-left text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                      <th className="px-4 py-3">
+                        <span className="sr-only">Warning</span>
+                      </th>
                       <th className="px-4 py-3">Title</th>
                       <th className="px-4 py-3">Facility</th>
                       <th className="px-4 py-3">Status</th>
@@ -105,8 +110,27 @@ export default function EventsIndex({
                   </thead>
 
                   <tbody className="divide-y divide-border/60">
-                    {items.map((item) => (
+                    {items.map((item) => {
+                      const urgency = getEventUrgency(
+                        item.created_at,
+                        item.start_timestamp
+                      )
+                      return (
                       <tr key={item.id} className="align-top">
+                        <td className="px-4 py-4">
+                          {urgency.level !== "none" ? (
+                            <span title={urgency.reason ?? undefined}>
+                              <TriangleAlert
+                                className={
+                                  urgency.level === "danger"
+                                    ? "h-4 w-4 text-red-600 dark:text-red-400"
+                                    : "h-4 w-4 text-yellow-600 dark:text-yellow-400"
+                                }
+                                aria-label={urgency.reason ?? undefined}
+                              />
+                            </span>
+                          ) : null}
+                        </td>
                         <td className="px-4 py-4 font-medium text-foreground">
                           {item.title}
                         </td>
@@ -222,7 +246,8 @@ export default function EventsIndex({
                           </div>
                         </td>
                       </tr>
-                    ))}
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
