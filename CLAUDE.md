@@ -13,7 +13,7 @@ staff, my_vatusa) that share a UI library and API client.
   access here. As the platform migrates, the backend surface is expected to shift toward
   the newer Go (`cobalt`) and Rust (`mithril`, the v3 API) services rather than the legacy
   Laravel API.
-- **Where it sits.** Legacy pair (`current_site` + `current_api`) → newer backends
+- **Where it sits.** Legacy pair (`current` + `api`) → newer backends
   (`cobalt`, `mithril`) → this modern frontend. When a cobalt endpoint contract changes,
   this repo is the consumer to check; conversely, UI needs here may drive cobalt changes.
 
