@@ -588,6 +588,7 @@ export type CobaltEvent = {
   facility?: string
   start_timestamp: string
   end_timestamp: string
+  created_at: string
   review_status?: string | null
   reviewed_by?: number | null
   reviewed_on?: number | null

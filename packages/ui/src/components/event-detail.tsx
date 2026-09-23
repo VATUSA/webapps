@@ -1,3 +1,4 @@
+import { TriangleAlert } from "lucide-react"
 import {
   Card,
   CardContent,
@@ -5,6 +6,8 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { MarkdownContent } from "@workspace/ui/components/markdown-content"
+import { getEventUrgency } from "@workspace/ui/lib/event-urgency"
+import { cn } from "@workspace/ui/lib/utils"
 
 // Structural subset of the Cobalt event shape used for rendering a posting.
 // Kept local so this package needn't depend on @workspace/third-party; the
@@ -16,6 +19,7 @@ export type EventDetailData = {
   facility?: string
   start_timestamp: string
   end_timestamp: string
+  created_at: string
 }
 
 type EventDetailProps = {
@@ -40,6 +44,8 @@ function formatZulu(value: string) {
 }
 
 export default function EventDetail({ event }: EventDetailProps) {
+  const urgency = getEventUrgency(event.created_at, event.start_timestamp)
+
   return (
     <Card className="shrink-0 overflow-hidden border-border/60 bg-card/95 pt-0">
       {event.banner_image_url ? (
@@ -74,6 +80,20 @@ export default function EventDetail({ event }: EventDetailProps) {
             {formatZulu(event.start_timestamp)} -{" "}
             {formatZulu(event.end_timestamp)}
           </p>
+
+          {urgency.level !== "none" ? (
+            <span
+              className={cn(
+                "inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+                urgency.level === "danger"
+                  ? "border-red-600/30 bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                  : "border-yellow-600/30 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+              )}
+            >
+              <TriangleAlert className="h-3.5 w-3.5" />
+              {urgency.reason}
+            </span>
+          ) : null}
         </CardHeader>
 
         <MarkdownContent
