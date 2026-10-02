@@ -10,19 +10,28 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 
-const LAST_UPDATED = "March 27, 2026"
+const LAST_UPDATED = "October 2, 2026"
+
+const DPO_EMAIL = "dpo@vatusa.net"
 
 const sections = [
   { id: "information-we-collect", label: "Information We Collect" },
   { id: "information-usage", label: "Information Usage" },
   { id: "who-we-share-with", label: "Who We Share With" },
+  { id: "international-transfers", label: "International Transfers" },
+  { id: "data-retention", label: "Data Retention" },
   { id: "cookie-usage", label: "Cookie Usage" },
-  { id: "opt-out", label: "Opt Out" },
+  { id: "your-rights", label: "Your Privacy Rights (GDPR)" },
+  { id: "controller-dpo", label: "Data Controller & DPO" },
+  { id: "opt-out", label: "Opt Out & Deletion" },
 ] as const
 
 type SectionId = (typeof sections)[number]["id"]
 
 const defaultSection: SectionId = "information-we-collect"
+
+const linkClassName =
+  "font-medium text-primary underline-offset-4 hover:underline"
 
 function isSectionId(value: string): value is SectionId {
   return sections.some((section) => section.id === value)
@@ -53,65 +62,83 @@ function useHashSection() {
   return { activeSection, selectSection }
 }
 
+function DpoEmailLink() {
+  return (
+    <a href={`mailto:${DPO_EMAIL}`} className={linkClassName}>
+      {DPO_EMAIL}
+    </a>
+  )
+}
+
+function SectionLink({ id, children }: { id: SectionId; children: string }) {
+  return (
+    <a href={`#${id}`} className={linkClassName}>
+      {children}
+    </a>
+  )
+}
+
 function PrivacySectionContent({ section }: { section: SectionId }) {
   if (section === "information-we-collect") {
     return (
       <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">
         <p>
-          To help enhance the VATUSA experience, we collect information across a
-          series of products and services all to enhance the user experience. We
-          collect information in the following ways:
+          To provide VATUSA services, we collect information in the following
+          ways:
         </p>
         <ul className="list-disc space-y-2 pl-5">
           <li>
             <span className="font-medium text-foreground">
-              Information you give us.
+              Information from you and VATSIM.
             </span>{" "}
-            When you register an account with VATSIM and transfer to VATUSA,
-            login to the VATUSA service, take a quiz, use our Computer Based
-            Training (CBT) system, or participate in the forums, information
-            that is generally considered personal is given to us from you and
-            VATSIM to include, but is not limited to: your name and email
-            address.
+            When you register an account with VATSIM and join or transfer to
+            VATUSA, log in to a VATUSA service, take an exam, or use the VATUSA
+            Academy, information that is generally considered personal is given
+            to us by you and by VATSIM (through VATSIM Connect). This includes,
+            but is not limited to: your VATSIM CERT Identification Number (CID),
+            name, email address, ratings, and region and division assignment.
           </li>
           <li>
             <span className="font-medium text-foreground">
-              Information we get from you.
+              Training and membership records.
             </span>{" "}
-            Some other information is passed by your computer or electronic
-            device, web browser, and VATSIM client. Information can include:
-            your IP address, web browser type and version, device-specific
-            information (such as operating system, unique device identifiers,
-            and mobile network information). This information may be linked to
+            As you take part in the division, we record your facility
+            assignments, transfers and visits, training sessions and
+            evaluations, exam results, certifications, rating changes, and
+            actions taken on your account by VATUSA and facility staff.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">
+              Linked accounts.
+            </span>{" "}
+            If you choose to link your Discord account, we store your Discord
+            user ID so that roles can be assigned to you on VATUSA Discord
+            servers.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">
+              Information from your device.
+            </span>{" "}
+            Some information is passed by your computer or electronic device and
+            web browser, including your IP address, web browser type and
+            version, and operating system. This information may be linked to
             your account.
           </li>
           <li>
             <span className="font-medium text-foreground">
               Log Information.
             </span>{" "}
-            Each time you perform an action on VATUSA services, your action is
-            logged. Information logged can include: type of action, data being
-            sent and received, IP address the request originated from, software
-            used to make the request, identification cookies, and the results of
-            the request.
+            When you use VATUSA services, requests are logged. Information
+            logged can include: the page or resource requested, the time of the
+            request, the IP address the request originated from, the software
+            used to make the request, and the result of the request.
           </li>
           <li>
             <span className="font-medium text-foreground">
               Location Information.
             </span>{" "}
-            Your location information may be associated with each request
-            through geolocation against the originating IP address, information
-            given to us by you, or given to us by you through VATSIM.
-          </li>
-          <li>
-            <span className="font-medium text-foreground">
-              Analytical Information.
-            </span>{" "}
-            Via Google Analytics, we may collect anonymized statistical
-            information to include: age, gender, location, device information,
-            web browser type and version, ISPs, mobile network provider
-            information, etc. for the purposes of identifying trends and better
-            target our platforms.
+            Your approximate location may be derived from your IP address, or
+            from information given to us by you or by VATSIM.
           </li>
           <li>
             <span className="font-medium text-foreground">
@@ -121,6 +148,10 @@ function PrivacySectionContent({ section }: { section: SectionId }) {
             within the United States.
           </li>
         </ul>
+        <p>
+          We do not use third-party analytics or advertising services, and we do
+          not sell your information.
+        </p>
       </div>
     )
   }
@@ -129,13 +160,47 @@ function PrivacySectionContent({ section }: { section: SectionId }) {
     return (
       <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">
         <p>
-          To help enhance the VATUSA experience, we collect information across a
-          series of products and services all to enhance the user experience.
-        </p>
-        <p>
           We use the information collected to provide, maintain, protect, and
-          improve our services.
+          improve our services. Each use has a legal basis under the EU and UK
+          General Data Protection Regulation (GDPR):
         </p>
+        <ul className="list-disc space-y-2 pl-5">
+          <li>
+            <span className="font-medium text-foreground">
+              Operating the division
+            </span>{" "}
+            (legitimate interests): maintaining the membership roster, facility
+            assignments, transfers and visits, training, exams, certifications,
+            and ratings, and enabling VATUSA facilities to do the same.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">
+              Security and abuse prevention
+            </span>{" "}
+            (legitimate interests): keeping logs and IP addresses to detect,
+            investigate, and prevent misuse of our services and of the VATSIM
+            network.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">
+              Communicating with you
+            </span>{" "}
+            (legitimate interests): sending emails about your membership,
+            training, transfers, and requests you make.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Legal requests</span>{" "}
+            (legal obligation): responding to valid requests from law
+            enforcement or other authorities.
+          </li>
+        </ul>
+        <p>
+          Where we rely on legitimate interests, you have the right to object;
+          see <SectionLink id="your-rights">Your Privacy Rights</SectionLink>.
+          We do not make decisions about you based solely on automated
+          processing that have legal or similarly significant effects.
+        </p>
+
         <p>
           The information we collect is maintained with confidentiality to the
           extent possible. The following information is shared with VATUSA
@@ -150,6 +215,7 @@ function PrivacySectionContent({ section }: { section: SectionId }) {
             VATUSA facility associations, VATSIM region and division
             associations
           </li>
+          <li>Your VATUSA training and certification records</li>
           <li>VATUSA staff associations and VATUSA staff email addresses</li>
         </ul>
 
@@ -172,7 +238,7 @@ function PrivacySectionContent({ section }: { section: SectionId }) {
         </p>
         <ul className="list-disc space-y-1 pl-5">
           <li>The above listed public information</li>
-          <li>All IP addresses used and associated with your account</li>
+          <li>IP addresses used and associated with your account</li>
           <li>Geolocation against aforementioned IP addresses</li>
           <li>Activities performed with the VATUSA web services</li>
         </ul>
@@ -198,13 +264,76 @@ function PrivacySectionContent({ section }: { section: SectionId }) {
             VATUSA associated facilities (listed under &quot;Facilities&quot; on
             the navigation bar at www.vatusa.net)
           </li>
-          <li>Other VATUSA partners</li>
           <li>Law Enforcement agencies</li>
-          <li>Google Analytics</li>
         </ul>
         <p>
-          For more information on what is shared with whom, please see &quot;How
-          We Use Information&quot;.
+          We also use service providers that process information on our behalf
+          and only to provide their service to us:
+        </p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li>Cloudflare (content delivery and security)</li>
+          <li>DigitalOcean and Microsoft Azure (hosting and data storage)</li>
+          <li>Google Workspace (VATUSA staff email accounts)</li>
+          <li>Our email delivery provider (sending emails to you)</li>
+          <li>Discord (only if you link your Discord account)</li>
+        </ul>
+        <p>
+          For more information on what is shared with whom, please see{" "}
+          <SectionLink id="information-usage">Information Usage</SectionLink>.
+        </p>
+      </div>
+    )
+  }
+
+  if (section === "international-transfers") {
+    return (
+      <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+        <p>
+          VATUSA services and data are hosted in the United States. If you use
+          VATUSA services from outside the United States, including from the
+          European Economic Area (EEA), the United Kingdom, or Switzerland, your
+          information is transferred to and processed in the United States.
+        </p>
+        <p>
+          This transfer is necessary to provide the services you request from
+          us. Where our service providers process personal data from the EEA or
+          the UK, they do so under the EU-U.S. Data Privacy Framework (and its
+          UK extension) or the European Commission&apos;s Standard Contractual
+          Clauses.
+        </p>
+      </div>
+    )
+  }
+
+  if (section === "data-retention") {
+    return (
+      <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+        <p>
+          We keep your VATUSA account information, including your profile,
+          facility and roster history, training records, certifications, rating
+          history, and the record of actions taken on your account, for as long
+          as you hold a VATSIM account associated with VATUSA, and afterward
+          until you ask us to delete it. These records support transfers,
+          visiting, and returning members, and let facilities verify past
+          training and certifications.
+        </p>
+        <p>
+          Server access logs, which include IP addresses and browser
+          information, are kept for 90 days and then deleted automatically.
+        </p>
+        <p>Database backups are kept for 7 days on a rolling basis.</p>
+        <p>
+          <span className="font-medium text-foreground">
+            Deletion requests.
+          </span>{" "}
+          You can ask us to delete your data at any time by contacting our Data
+          Protection Officer at <DpoEmailLink />. We will complete your request
+          within 30 days. This removes your account and roster record, training
+          and certification records, and your records on the VATUSA Academy.
+          Copies in our backups expire within 7 days after that. A minimal
+          record of administrative actions taken on your account, such as rating
+          changes, is kept for the integrity of the division&apos;s records; it
+          is identified only by your CID.
         </p>
       </div>
     )
@@ -214,23 +343,109 @@ function PrivacySectionContent({ section }: { section: SectionId }) {
     return (
       <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">
         <p>
-          We use various technologies to collect and store information when you
-          visit and use a VATUSA service. This may include a cookie or other
-          similar technologies to identify your browser or device. We also use
-          Google Analytics to help analyze the traffic to our websites and the
-          information may be linked, by Google Analytics, with customers for
-          information across multiple websites.
+          We use cookies and similar technologies, such as web storage, only
+          where they are necessary to provide VATUSA services: to keep you
+          logged in, to perform authentication and authorization checks for
+          restricted areas, and to remember basic preferences. Our content
+          delivery provider, Cloudflare, may also set cookies needed to protect
+          our services from abuse.
         </p>
-        <p>
-          Our cookies are mainly used as a means of tracking virtual users
-          across the VATUSA domain. This allows us to know who is requesting and
-          using our services, provide authentication and authorization checks to
-          restricted areas.
-        </p>
+        <p>We do not use analytics, advertising, or tracking cookies.</p>
         <p>
           You may choose to disable cookie usage via your browser, but know that
-          doing so will prevent access and use across restricted areas of the
-          website and severely degrade your experience.
+          doing so will prevent you from logging in and using restricted areas
+          of the website.
+        </p>
+      </div>
+    )
+  }
+
+  if (section === "your-rights") {
+    return (
+      <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+        <p>
+          Under the EU and UK General Data Protection Regulation (GDPR), you
+          have the following rights over your personal data. VATUSA honors these
+          requests regardless of where you live.
+        </p>
+        <ul className="list-disc space-y-2 pl-5">
+          <li>
+            <span className="font-medium text-foreground">Access.</span> Ask for
+            a copy of the personal data we hold about you.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Rectification.</span>{" "}
+            Ask us to correct inaccurate or incomplete data. Data that comes
+            from VATSIM, such as your name and email address, must be corrected
+            with VATSIM, and will update with us the next time you log in.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Erasure.</span> Ask us
+            to delete your personal data. See{" "}
+            <SectionLink id="data-retention">Data Retention</SectionLink> for
+            what is removed.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Restriction.</span>{" "}
+            Ask us to limit how we use your data, for example while a correction
+            is being reviewed.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Objection.</span>{" "}
+            Object to processing we carry out based on our legitimate interests.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Portability.</span>{" "}
+            Receive data you provided to us in a structured, commonly used,
+            machine-readable format.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Complaint.</span>{" "}
+            Lodge a complaint with a data protection supervisory authority,
+            particularly in the country where you live or work. In the UK, this
+            is the Information Commissioner&apos;s Office (ICO).
+          </li>
+        </ul>
+        <p>
+          <span className="font-medium text-foreground">
+            How to make a request.
+          </span>{" "}
+          Email our Data Protection Officer at <DpoEmailLink /> from the email
+          address associated with your VATSIM account, and include your CID. We
+          may ask you to verify your identity before acting on a request. There
+          is no charge, and we will respond within 30 days.
+        </p>
+      </div>
+    )
+  }
+
+  if (section === "controller-dpo") {
+    return (
+      <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+        <p>
+          VATUSA, the United States Division of the Virtual Air Traffic
+          Simulation Network (VATSIM), is the data controller for personal data
+          processed through VATUSA services.
+        </p>
+        <p>
+          VATUSA has designated a Data Protection Officer (DPO), who is
+          responsible for overseeing how VATUSA handles personal data and for
+          handling privacy questions and requests. You can contact the DPO at{" "}
+          <DpoEmailLink />.
+        </p>
+        <p>
+          VATSIM is a separate data controller for your VATSIM account. For
+          questions about data held by VATSIM, please refer to VATSIM&apos;s
+          privacy policy at{" "}
+          <a
+            href="https://vatsim.net/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClassName}
+          >
+            https://vatsim.net/
+          </a>
+          .
         </p>
       </div>
     )
@@ -240,38 +455,39 @@ function PrivacySectionContent({ section }: { section: SectionId }) {
     <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">
       <p>
         Given the nature of our services, it is not possible to opt out of data
-        collection and use our services. But if you desire to opt out and no
-        longer desire to use our services, we will purge all information we have
-        collected upon written request.
+        collection and still use our services. If you no longer wish to use our
+        services, you can ask us to delete the information we have collected
+        about you by emailing our Data Protection Officer at <DpoEmailLink />.
+        See <SectionLink id="data-retention">Data Retention</SectionLink> for
+        what is removed and how long it takes.
       </p>
       <p>
-        The first step is to deactivate and request VATSIM to purge your data.
-        Please head to:
+        Deleting your data from VATUSA does not delete your VATSIM account. To
+        deactivate your VATSIM account and request that VATSIM purge your data,
+        please head to:
       </p>
       <p>
         <a
           href="https://membership.vatsim.net/"
           target="_blank"
           rel="noopener noreferrer"
-          className="font-medium text-primary underline-offset-4 hover:underline"
+          className={linkClassName}
         >
           https://membership.vatsim.net/
         </a>
       </p>
       <p>
-        VATSIM, after processing your opt out, will forward the request to
-        VATUSA for processing.
+        Deletion requests that VATSIM forwards to VATUSA are processed the same
+        way as requests made directly to us.
       </p>
       <p>
         Note: VATUSA cannot guarantee that information collected by parties
-        outside of VATUSA will be purged in the process.
+        outside of VATUSA, such as independently operated facility websites,
+        will be purged in the process.
       </p>
       <p>
         If you need help, visit{" "}
-        <Link
-          href="/support/faq"
-          className="font-medium text-primary underline-offset-4 hover:underline"
-        >
+        <Link href="/support/faq" className={linkClassName}>
           Support / FAQ
         </Link>
         .
