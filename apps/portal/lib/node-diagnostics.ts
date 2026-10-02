@@ -1,11 +1,7 @@
-import * as Sentry from "@sentry/nextjs"
-
 /**
  * Diagnostics for the crash-looping-hourly investigation (portal pods going
  * fully unresponsive with no application logs before kubelet SIGTERMs them).
- * Everything here reports to Sentry, since it's the only sink that survives
- * a pod restart — there's no log shipping configured for webapps-prod pods.
- * Remove once the cause is found.
+ * Everything here goes to the console. Remove once the cause is found.
  *
  * Note on what these numbers can and cannot show: process.resourceUsage() and
  * a bare performance.eventLoopUtilization() are both cumulative since process
@@ -27,13 +23,8 @@ export async function registerNodeDiagnostics() {
   histogram.enable()
 
   const HEARTBEAT_INTERVAL_MS = 5_000
-  const LAG_WARNING_THRESHOLD_MS = 2_000
-  /** Heartbeats between unconditional Sentry events (~1/min at a 5s interval). */
-  const SENTRY_HEARTBEAT_EVERY = 12
   /** Windows retained for the crash snapshot (~1 min of history). */
   const ELU_WINDOW_HISTORY = 12
-  /** Last resort if the shutdown path itself wedges. Under the 30s grace period. */
-  const SHUTDOWN_WATCHDOG_MS = 15_000
 
   type EluWindow = {
     utilization: number
@@ -46,7 +37,6 @@ export async function registerNodeDiagnostics() {
 
   const recentEluWindows: EluWindow[] = []
   let lastElu = performance.eventLoopUtilization()
-  let heartbeatCount = 0
 
   /**
    * A raw handle count can't distinguish accumulated inbound sockets from stuck
@@ -98,47 +88,6 @@ export async function registerNodeDiagnostics() {
       })
     )
 
-    // Breadcrumbs cost nothing until something is captured and then ride along
-    // with it, so the SIGTERM event carries the last minute of windows even
-    // when no threshold was ever crossed.
-    Sentry.addBreadcrumb({
-      category: "diagnostic",
-      level: "info",
-      message: "event_loop_heartbeat",
-      data: window,
-    })
-
-    heartbeatCount += 1
-
-    const lagExceeded = maxMs > LAG_WARNING_THRESHOLD_MS
-    // The unconditional low-rate heartbeat matters because under an
-    // idle-but-unresponsive hang the lag threshold never trips, and with no log
-    // shipping in webapps-prod the console line above goes nowhere. Without
-    // this we would receive nothing at all from a wedged pod.
-    const shouldReport =
-      lagExceeded || heartbeatCount % SENTRY_HEARTBEAT_EVERY === 0
-
-    if (shouldReport) {
-      Sentry.captureMessage(
-        lagExceeded
-          ? "Event loop lag exceeded warning threshold"
-          : "Event loop heartbeat",
-        {
-          level: lagExceeded ? "warning" : "info",
-          tags: {
-            diagnostic: lagExceeded ? "event_loop_lag" : "event_loop_heartbeat",
-          },
-          extra: {
-            ...window,
-            meanLagMs: histogram.mean / 1e6,
-            recentEluWindows,
-            activeHandles: activeHandleCountsByType(),
-            memoryUsage: process.memoryUsage(),
-          },
-        }
-      )
-    }
-
     histogram.reset()
   }, HEARTBEAT_INTERVAL_MS).unref()
 
@@ -163,11 +112,6 @@ export async function registerNodeDiagnostics() {
         ...captureDiagnosticSnapshot("uncaughtException"),
       })
     )
-    Sentry.captureException(err, {
-      level: "fatal",
-      tags: { diagnostic: "uncaught_exception" },
-      extra: captureDiagnosticSnapshot("uncaughtException"),
-    })
   })
 
   process.on("unhandledRejection", (reason) => {
@@ -178,11 +122,6 @@ export async function registerNodeDiagnostics() {
         ...captureDiagnosticSnapshot("unhandledRejection"),
       })
     )
-    Sentry.captureException(reason, {
-      level: "fatal",
-      tags: { diagnostic: "unhandled_rejection" },
-      extra: captureDiagnosticSnapshot("unhandledRejection"),
-    })
   })
 
   process.on("SIGTERM", () => {
@@ -191,34 +130,15 @@ export async function registerNodeDiagnostics() {
       JSON.stringify({ msg: "sigterm_diagnostic_snapshot", ...snapshot })
     )
 
-    Sentry.captureMessage("Portal received SIGTERM", {
-      level: "error",
-      tags: { diagnostic: "sigterm" },
-      extra: snapshot,
-    })
-
-    // If the flush stalls we would sit here alive but not serving until kubelet
-    // escalates. Take ourselves out first. Unref'd so it never keeps us up.
-    const watchdog = setTimeout(() => {
-      console.error(JSON.stringify({ msg: "sigterm_exit_watchdog_fired" }))
-      process.kill(process.pid, "SIGKILL")
-    }, SHUTDOWN_WATCHDOG_MS)
-    watchdog.unref()
-
-    void Sentry.flush(5_000).finally(() => {
-      // An open inspector session makes process.exit() block indefinitely in
-      // "Waiting for the debugger to disconnect...", which is how a pod stayed
-      // alive and unresponsive for 3h40m after its SIGTERM. Sentry's ANR
-      // integration opened one via captureStackTrace; it is disabled now, but
-      // close defensively so nothing can reintroduce that hang. The watchdog
-      // above cannot save us here — a JS timer does not fire once the process
-      // is inside that native wait.
-      try {
-        if (inspector.url()) inspector.close()
-      } catch {
-        // Best effort; never block shutdown on teardown of a debug facility.
-      }
-      process.exit(0)
-    })
+    // An open inspector session makes process.exit() block indefinitely in
+    // "Waiting for the debugger to disconnect...", which is how a pod once
+    // stayed alive and unresponsive for 3h40m after its SIGTERM. Close it
+    // defensively so nothing can reintroduce that hang.
+    try {
+      if (inspector.url()) inspector.close()
+    } catch {
+      // Best effort; never block shutdown on teardown of a debug facility.
+    }
+    process.exit(0)
   })
 }

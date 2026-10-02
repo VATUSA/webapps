@@ -1,5 +1,3 @@
-import { withSentryConfig } from "@sentry/nextjs"
-
 /** @type {import('next').NextConfig} */
 const securityHeaders = [
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
@@ -44,12 +42,4 @@ const nextConfig = {
   },
 }
 
-export default withSentryConfig(nextConfig, {
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-  silent: true,
-  // No SENTRY_AUTH_TOKEN in CI yet, so there's nothing to upload sourcemaps to.
-  sourcemaps: { disable: true },
-  telemetry: false,
-})
+export default nextConfig
