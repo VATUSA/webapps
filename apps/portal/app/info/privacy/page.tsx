@@ -319,7 +319,9 @@ function PrivacySectionContent({ section }: { section: SectionId }) {
         </p>
         <p>
           Server access logs, which include IP addresses and browser
-          information, are kept for 90 days and then deleted automatically.
+          information, are kept with full IP addresses for 90 days. After that,
+          IP addresses are truncated so they no longer identify an individual
+          device, and the remaining logs are kept for service statistics.
         </p>
         <p>Database backups are kept for 7 days on a rolling basis.</p>
         <p>
