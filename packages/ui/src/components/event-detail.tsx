@@ -24,6 +24,8 @@ export type EventDetailData = {
 
 type EventDetailProps = {
   event: EventDetailData
+  // Staff-only: flags events submitted close to their start date.
+  showUrgency?: boolean
 }
 
 function formatZulu(value: string) {
@@ -43,8 +45,13 @@ function formatZulu(value: string) {
   return `${formatted}Z`
 }
 
-export default function EventDetail({ event }: EventDetailProps) {
-  const urgency = getEventUrgency(event.created_at, event.start_timestamp)
+export default function EventDetail({
+  event,
+  showUrgency = false,
+}: EventDetailProps) {
+  const urgency = showUrgency
+    ? getEventUrgency(event.created_at, event.start_timestamp)
+    : { level: "none" as const, reason: null }
 
   return (
     <Card className="shrink-0 overflow-hidden border-border/60 bg-card/95 pt-0">

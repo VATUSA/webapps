@@ -89,7 +89,7 @@ export function EventPreviewProvider({
               <DialogDescription className="sr-only">
                 Event posting preview
               </DialogDescription>
-              <EventDetail event={event} />
+              <EventDetail event={event} showUrgency />
             </>
           ) : null}
         </DialogContent>
