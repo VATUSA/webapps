@@ -1,4 +1,4 @@
-ARG NODE_VERSION=24.19.0-slim
+ARG NODE_VERSION=24.22.1-slim
 
 # --platform=$BUILDPLATFORM keeps the install/build stages on the runner's
 # native arch: pnpm/Next output here is plain JS, so there's nothing
