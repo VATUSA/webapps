@@ -51,7 +51,7 @@ const mockStaff: StaffEntry[] = [
   },
   {
     id: "vatusa7",
-    position: "VATUSA7 - Social Media Manager",
+    position: "VATUSA7 - Marketing and Communications Manager",
     name: "Jason Calder",
     email: "vatusa7@vatusa.net",
   },
