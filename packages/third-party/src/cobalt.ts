@@ -504,6 +504,26 @@ export async function getUpcomingEvents(
   })
 }
 
+/**
+ * Approved events overlapping [from, to), including ones that have already
+ * finished. Cobalt rejects windows wider than 366 days.
+ */
+export async function getEventsInRange(
+  from: Date,
+  to: Date,
+  cache?: CobaltCacheOptions
+): Promise<CobaltEvent[]> {
+  const fromSeconds = Math.floor(from.getTime() / 1000)
+  const toSeconds = Math.floor(to.getTime() / 1000)
+  return cobaltRequest<CobaltEvent[]>(
+    `event/range?from=${fromSeconds}&to=${toSeconds}`,
+    {
+      method: "GET",
+      ...readCache(["events"], cache),
+    }
+  )
+}
+
 export async function getEventsPage(
   page = 1,
   facility?: string,

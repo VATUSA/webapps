@@ -1,10 +1,11 @@
 import EventCalendar from "@/components/Events/EventCalendar/EventCalendar"
 import {
-  getUpcomingEvents,
+  getEventsInRange,
   type CobaltEvent,
 } from "@workspace/third-party/cobalt"
 import { Metadata } from "next"
 import { PUBLIC_CACHE } from "@/lib/cache"
+import { calendarWindow } from "@/lib/event-calendar-window"
 
 export const metadata: Metadata = {
   title: "Events Calendar | VATUSA",
@@ -16,13 +17,20 @@ export const metadata: Metadata = {
 export const revalidate = 300
 
 export default async function Page() {
+  const range = calendarWindow()
   let events: CobaltEvent[] = []
 
   try {
-    events = await getUpcomingEvents(50, PUBLIC_CACHE)
+    events = await getEventsInRange(range.from, range.to, PUBLIC_CACHE)
   } catch (error) {
     console.error("Failed to load events calendar:", error)
   }
 
-  return <EventCalendar events={events} />
+  return (
+    <EventCalendar
+      events={events}
+      minMonth={range.firstMonth}
+      maxMonth={range.lastMonth}
+    />
+  )
 }

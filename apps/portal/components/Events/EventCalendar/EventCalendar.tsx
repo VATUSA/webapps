@@ -23,6 +23,13 @@ interface CalendarProps {
   events: CobaltEvent[]
   initialDate?: string | Date
   weekStartsOn?: 0 | 1
+  /**
+   * First and last months (any date within them) that `events` covers. The
+   * month navigation stops at these so nobody pages into a month we never
+   * loaded and mistakes it for one with no events.
+   */
+  minMonth?: Date
+  maxMonth?: Date
 }
 
 const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000
@@ -450,6 +457,8 @@ export default function EventCalendar({
   events,
   initialDate,
   weekStartsOn = 0,
+  minMonth,
+  maxMonth,
 }: CalendarProps) {
   const [viewDate, setViewDate] = useState<Date>(() => {
     if (initialDate) {
@@ -483,13 +492,20 @@ export default function EventCalendar({
     return rows
   }, [grid])
 
+  const canGoPrev =
+    !minMonth || monthStart.getTime() > startOfMonthUTC(minMonth).getTime()
+  const canGoNext =
+    !maxMonth || monthStart.getTime() < startOfMonthUTC(maxMonth).getTime()
+
   function prevMonth() {
+    if (!canGoPrev) return
     setExpandedDays(new Set())
     setViewDate(
       (d) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - 1, 1))
     )
   }
   function nextMonth() {
+    if (!canGoNext) return
     setExpandedDays(new Set())
     setViewDate(
       (d) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))
@@ -567,6 +583,7 @@ export default function EventCalendar({
               variant="ghost"
               size="sm"
               onClick={prevMonth}
+              disabled={!canGoPrev}
               aria-label="Previous month"
             >
               <ChevronLeft className="size-4" />
@@ -583,6 +600,7 @@ export default function EventCalendar({
               variant="ghost"
               size="sm"
               onClick={nextMonth}
+              disabled={!canGoNext}
               aria-label="Next month"
             >
               <ChevronRight className="size-4" />
