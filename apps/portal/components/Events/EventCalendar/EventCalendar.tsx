@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui/components/tooltip"
 import { cn } from "@workspace/ui/lib/utils"
 import { type CobaltEvent } from "@workspace/third-party/cobalt"
+import { addMonths, monthKey } from "@/lib/event-calendar-window"
 
 interface CalendarProps {
   /**
@@ -24,12 +25,10 @@ interface CalendarProps {
   initialDate?: string | Date
   weekStartsOn?: 0 | 1
   /**
-   * First and last months (any date within them) that `events` covers. The
-   * month navigation stops at these so nobody pages into a month we never
-   * loaded and mistakes it for one with no events.
+   * "YYYY-MM" UTC months that `events` already fully covers. Any other month
+   * the user pages to (or its neighbours) is fetched on demand.
    */
-  minMonth?: Date
-  maxMonth?: Date
+  loadedMonths?: string[]
 }
 
 const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000
@@ -453,13 +452,28 @@ function multiDayOccupiesDay(seg: SpanSegment, col: number) {
   return col >= seg.startCol && col <= seg.endCol
 }
 
+type MonthLoadState = "loading" | "loaded" | "error"
+
+async function fetchMonthEvents(month: string): Promise<CobaltEvent[]> {
+  const res = await fetch(`/api/events/month/${month}`)
+  if (!res.ok) throw new Error(`Failed to load events for ${month}`)
+  return (await res.json()) as CobaltEvent[]
+}
+
 export default function EventCalendar({
-  events,
+  events: initialEvents,
+  loadedMonths = [],
   initialDate,
   weekStartsOn = 0,
-  minMonth,
-  maxMonth,
 }: CalendarProps) {
+  const [eventsById, setEventsById] = useState<Map<number, CobaltEvent>>(
+    () => new Map(initialEvents.map((ev) => [ev.id, ev]))
+  )
+  const [monthStates, setMonthStates] = useState<
+    Record<string, MonthLoadState>
+  >(() => Object.fromEntries(loadedMonths.map((m) => [m, "loaded" as const])))
+  const events = useMemo(() => Array.from(eventsById.values()), [eventsById])
+
   const [viewDate, setViewDate] = useState<Date>(() => {
     if (initialDate) {
       const d = new Date(initialDate)
@@ -492,20 +506,41 @@ export default function EventCalendar({
     return rows
   }, [grid])
 
-  const canGoPrev =
-    !minMonth || monthStart.getTime() > startOfMonthUTC(minMonth).getTime()
-  const canGoNext =
-    !maxMonth || monthStart.getTime() < startOfMonthUTC(maxMonth).getTime()
+  const loadMonth = useCallback((month: string) => {
+    setMonthStates((prev) => ({ ...prev, [month]: "loading" }))
+    fetchMonthEvents(month)
+      .then((fetched) => {
+        setEventsById((prev) => {
+          const next = new Map(prev)
+          for (const ev of fetched) next.set(ev.id, ev)
+          return next
+        })
+        setMonthStates((prev) => ({ ...prev, [month]: "loaded" }))
+      })
+      .catch((error) => {
+        console.error(error)
+        setMonthStates((prev) => ({ ...prev, [month]: "error" }))
+      })
+  }, [])
+
+  // The grid spills into the neighbouring months, and loading them now also
+  // makes the next prev/next click instant.
+  const viewMonth = monthKey(monthStart)
+  useEffect(() => {
+    for (const offset of [0, -1, 1]) {
+      const month = monthKey(addMonths(monthStart, offset))
+      if (monthStates[month] === undefined) loadMonth(month)
+    }
+  }, [monthStart, monthStates, loadMonth])
+  const viewMonthState = monthStates[viewMonth]
 
   function prevMonth() {
-    if (!canGoPrev) return
     setExpandedDays(new Set())
     setViewDate(
       (d) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - 1, 1))
     )
   }
   function nextMonth() {
-    if (!canGoNext) return
     setExpandedDays(new Set())
     setViewDate(
       (d) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))
@@ -577,13 +612,28 @@ export default function EventCalendar({
                 Zulu
               </span>
             </h3>
+            {viewMonthState === "loading" ? (
+              <p className="text-xs text-muted-foreground" aria-live="polite">
+                Loading events…
+              </p>
+            ) : viewMonthState === "error" ? (
+              <p className="text-xs text-destructive" aria-live="polite">
+                Couldn&apos;t load events for this month.{" "}
+                <button
+                  type="button"
+                  className="underline underline-offset-2"
+                  onClick={() => loadMonth(viewMonth)}
+                >
+                  Retry
+                </button>
+              </p>
+            ) : null}
           </div>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={prevMonth}
-              disabled={!canGoPrev}
               aria-label="Previous month"
             >
               <ChevronLeft className="size-4" />
@@ -600,7 +650,6 @@ export default function EventCalendar({
               variant="ghost"
               size="sm"
               onClick={nextMonth}
-              disabled={!canGoNext}
               aria-label="Next month"
             >
               <ChevronRight className="size-4" />
@@ -856,7 +905,9 @@ export default function EventCalendar({
           <div className="space-y-3 p-3 sm:hidden">
             {mobileDays.length === 0 ? (
               <p className="py-6 text-center text-sm text-muted-foreground">
-                No upcoming events this month.
+                {viewMonthState === "loaded"
+                  ? "No events this month."
+                  : "Loading events…"}
               </p>
             ) : (
               mobileDays.map((d) => {
